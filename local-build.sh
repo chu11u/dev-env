@@ -243,9 +243,6 @@ dist/
 GITIGNORE
 
 cd "$PROJECT_DIR"
-git init 2>/dev/null || true
-git add -A
-git commit -m "Create $PROJECT_NAME project" 2>/dev/null || true
 cd "$(dirname "$0")"
 
 echo ""
