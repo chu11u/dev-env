@@ -1,0 +1,2 @@
+# Docker daemon - auto-pull every 5 minutes
+*/5 * * * * cd /home/elkayam/dev-env && /home/elkayam/dev-env/deploy-all.sh >> /var/log/dev-env-deploy.log 2>&1

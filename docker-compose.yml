@@ -1,0 +1,14 @@
+version: "3.8"
+
+services:
+  code-server:
+    image: codercom/code-server:4.92.2
+    container_name: code-server
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./data/code-server:/home/coder
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - PASSWORD=${PASSWORD}
