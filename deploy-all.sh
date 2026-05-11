@@ -21,18 +21,18 @@ log() {
 }
 
 echo "========================================"
-echo "  🚀 Auto-Deploy"
+echo "   Deploy"
 echo "========================================"
 
 # Pull latest
 cd "$BASE_DIR"
-git pull origin main 2>&1 || log "⚠️  Git pull failed"
+git pull origin main 2>&1 || log "Git pull failed"
 
 # Reload nginx
 nginx -t 2>/dev/null && systemctl reload nginx 2>/dev/null || true
 
 # Deploy each project
-log "📦 Scanning projects..."
+log "Scanning projects..."
 FOUND=0
 
 for dir in "$PROJECTS_DIR"/*/; do
@@ -43,28 +43,37 @@ for dir in "$PROJECTS_DIR"/*/; do
         DOCKERFILE="$dir/Dockerfile"
 
         if [ -f "$DOCKER_FILE" ] && [ -f "$DOCKERFILE" ]; then
-            log "${YELLOW}📦 Deploying $PROJECT_NAME...${NC}"
+            log "$YELLOW Deploying $PROJECT_NAME...$NC"
 
-            # Get port
-            PORT=$(grep -oP '"127\.0\.0\.1:\K\d+' "$DOCKER_FILE" 2>/dev/null || echo "3000")
+             # Get port
+            PORT=$(grep -oP '"127\.0\.0\.1:\K\d+' "$DOCKER_FILE" 2>/dev/null | head -1 || echo "3000")
 
-            # Setup nginx
-            if [ -f "$BASE_DIR/nginx-project-template.conf" ]; then
+             # Check for custom nginx config
+            if [ -f "$dir/nginx-api.conf" ]; then
+                cp "$dir/nginx-api.conf" "$NGINX_AVAILABLE/${PROJECT_NAME}.apps.elkayam.me.conf"
+                log "  Custom nginx config applied"
+            elif [ -f "$BASE_DIR/nginx-project-template.conf" ]; then
                 cp "$BASE_DIR/nginx-project-template.conf" "$NGINX_AVAILABLE/${PROJECT_NAME}.apps.elkayam.me.conf"
                 sed -i "s/{{PROJECT_NAME}}/${PROJECT_NAME}/g; s/{{PROJECT_PORT}}/${PORT}/g" "$NGINX_AVAILABLE/${PROJECT_NAME}.apps.elkayam.me.conf"
                 ln -sf "$NGINX_AVAILABLE/${PROJECT_NAME}.apps.elkayam.me.conf" "$NGINX_ENABLED/"
-                log "${GREEN}🌐 $PROJECT_NAME.apps.elkayam.me → port $PORT${NC}"
+                log "  $GREEN $PROJECT_NAME.apps.elkayam.me  port $PORT$NC"
             fi
 
-            # Deploy
+             # Check for multi-service projects
+            SERVICE_COUNT=$(grep -c "container_name:" "$DOCKER_FILE" 2>/dev/null || echo "1")
+            if [ "$SERVICE_COUNT" -gt 1 ]; then
+                log "  Multi-service project ($SERVICE_COUNT services)"
+            fi
+
+             # Deploy
             cd "$dir"
-            if docker compose up -d --build 2>&1 | tail -3; then
-                log "${GREEN}✅ $PROJECT_NAME is LIVE! (https://$PROJECT_NAME.apps.elkayam.me)${NC}"
+            if docker compose up -d --build 2>&1 | tail -5; then
+                log "$GREEN $PROJECT_NAME is LIVE! (https://$PROJECT_NAME.apps.elkayam.me)$NC"
             else
-                log "${RED}❌ Failed to deploy $PROJECT_NAME${NC}"
+                log "$RED Failed to deploy $PROJECT_NAME$NC"
             fi
         else
-            log "  ⏭️  $PROJECT_NAME (no docker files)"
+            log "  Skip $PROJECT_NAME (no docker files)"
         fi
     fi
 done
@@ -75,7 +84,10 @@ else
     log "Deployed $FOUND project(s)"
 fi
 
+# Final nginx reload
+nginx -t 2>/dev/null && systemctl reload nginx 2>/dev/null || true
+
 echo ""
 echo "========================================"
-echo "  ✅ Deploy complete!"
+echo "   Deploy complete!"
 echo "========================================"

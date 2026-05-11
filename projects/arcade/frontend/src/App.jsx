@@ -184,6 +184,10 @@ function App() {
             games={GAMES}
             scores={scores}
             onPlay={playGame}
+            onBack={() => {
+              setCurrentPlayer(null);
+              setScreen("player-select");
+            }}
           />
         )}
 
