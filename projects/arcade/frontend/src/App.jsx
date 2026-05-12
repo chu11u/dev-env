@@ -3,23 +3,30 @@ import GameLobby from "./components/GameLobby";
 import PlayerSelect from "./components/PlayerSelect";
 import SkyJumper from "./components/SkyJumper";
 import MemoryMatch from "./components/MemoryMatch";
+import TetrisGame from "./components/TetrisGame";
 import Leaderboard from "./components/Leaderboard";
 
 const API = "/api";
 
 const GAMES = [
-  {
+   {
     id: "sky-jumper",
     name: "🚀 Sky Jumper",
     color: "#6366f1",
     desc: "Jump as high as you can!",
-  },
-  {
+   },
+   {
     id: "memory-match",
     name: "🧠 Memory Match",
     color: "#8b5cf6",
     desc: "Find matching pairs!",
-  },
+   },
+   {
+    id: "tetris",
+    name: "🧱 Tetris",
+    color: "#00d4ff",
+    desc: "Classic block-stacking fun!",
+   },
 ];
 
 const AVATARS = ["🦊", "🐼", "🦁", "🐯", "🐸", "🦄", "🐉", "🐙", "🦋", "🐨"];
@@ -192,13 +199,15 @@ function App() {
         )}
 
         {screen === "game" &&
-          selectedGame &&
-          currentPlayer &&
+         selectedGame &&
+         currentPlayer &&
           (selectedGame.id === "sky-jumper" ? (
             <SkyJumper player={currentPlayer} onScore={submitScore} />
-          ) : (
+          ) : selectedGame.id === "memory-match" ? (
             <MemoryMatch player={currentPlayer} onScore={submitScore} />
-          ))}
+          ) : selectedGame.id === "tetris" ? (
+            <TetrisGame player={currentPlayer} onScore={submitScore} />
+          ) : null)
 
         {screen === "leaderboard" && (
           <Leaderboard players={players} scores={scores} games={GAMES} />
