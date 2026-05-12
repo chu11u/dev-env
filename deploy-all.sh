@@ -126,15 +126,25 @@ for dir in "$PROJECTS_DIR"/*/; do
     NGINX_APPLIED=$((NGINX_APPLIED + 1))
 done
 
-# Clean up stale nginx configs for non-project directories
+# Build list of valid project names
+VALID_PROJECTS=""
+for dir in "$PROJECTS_DIR"/*/; do
+     [ -d "$dir" ] || continue
+    NAME=$(basename "$dir")
+    if [ "$NAME" = "dev" ]; then
+        VALID_PROJECTS="$VALID_PROJECTS dev"
+    fi
+    is_project "$dir" && VALID_PROJECTS="$VALID_PROJECTS $NAME"
+done
+
+# Clean up ALL stale nginx configs
 for link in "$NGINX_ENABLED"/*.apps.elkayam.me.conf; do
-    [ -f "$link" ] || continue
+     [ -f "$link" ] || continue
     NAME=$(basename "$link" .apps.elkayam.me.conf)
-    [ "$NAME" = "dev" ] && continue
-    if [ -d "$PROJECTS_DIR/$NAME" ] && ! is_project "$PROJECTS_DIR/$NAME"; then
+    if ! echo "$VALID_PROJECTS" | grep -qw "$NAME"; then
         rm -f "$link"
         rm -f "$NGINX_AVAILABLE/${NAME}.apps.elkayam.me.conf"
-        log "   🧹 Removed stale config for $NAME"
+        log "    🧹 Removed stale config for $NAME"
     fi
 done
 
@@ -197,12 +207,18 @@ for dir in "$PROJECTS_DIR"/*/; do
         SUMMARY_OK+=("Deployed $PROJECT_NAME")
         DEPLOYED=$((DEPLOYED + 1))
     else
-        log "   └─ ${RED}❌ Failed to deploy $PROJECT_NAME${NC}"
-        # Show last 20 lines of build output for debugging
-        log "${RED}   │  Build error (last 20 lines):${NC}"
-        echo "$BUILD_OUTPUT" | tail -20 | while IFS= read -r line; do
-            log "   │  $line"
+        log "    └─ ${RED}❌ Failed to deploy $PROJECT_NAME${NC}"
+        # Show full build error for debugging (grep for error markers)
+        log "${RED}    │  Build error log:${NC}"
+        echo "$BUILD_OUTPUT" | grep -A5 -i "error\|fail\|SyntaxError" | head -30 | while IFS= read -r line; do
+            log "    │  $line"
         done
+        # If no error grep matched, show last 20 lines
+        if ! echo "$BUILD_OUTPUT" | grep -qi "error\|fail"; then
+            echo "$BUILD_OUTPUT" | tail -20 | while IFS= read -r line; do
+                log "    │  $line"
+            done
+        fi
         SUMMARY_FAIL+=("Failed to deploy $PROJECT_NAME")
     fi
 done
