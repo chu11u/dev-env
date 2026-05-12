@@ -181,6 +181,22 @@ docker compose up -d
 
 Next available: 3004, 30041
 
+## PERSISTENT DATA
+
+**IMPORTANT**: Arcade data lives in `/home/elkayam/dev-env/project-data/arcade/data/data.json`
+This directory is OUTSIDE the git repo, so `git pull` and `deploy-all.sh` will never overwrite it.
+The deploy script auto-migrates data if it's still in the old location.
+
+## DEPLOY COMMAND
+
+On the server, just run:
+```bash
+cd /home/elkayam/dev-env
+./deploy-all.sh
+```
+
+That handles: git pull, data migration, nginx configs, Docker rebuild, everything.
+
 ## GITHUB USER
 
 - Username: `chu11u`
