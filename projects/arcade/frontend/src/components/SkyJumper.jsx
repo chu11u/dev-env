@@ -8,7 +8,7 @@ const PLATFORM_BREAKING = 2;
 // Game config
 const GRAVITY = 0.4;
 const JUMP_FORCE = -12;
-const MOVE_SPEED = 6;
+const MOVE_SPEED = 4.2;
 const PLATFORM_WIDTH = 65;
 const PLATFORM_HEIGHT = 10;
 const PLAYER_SIZE = 18;

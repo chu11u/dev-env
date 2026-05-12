@@ -28,6 +28,9 @@ echo "========================================"
 cd "$BASE_DIR"
 git pull origin main 2>&1 || log "Git pull failed"
 
+# Create persistent data directories (outside git repo)
+mkdir -p "$BASE_DIR/project-data/arcade/data"
+
 # Reload nginx
 nginx -t 2>/dev/null && systemctl reload nginx 2>/dev/null || true
 
