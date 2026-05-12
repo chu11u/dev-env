@@ -12,6 +12,8 @@ const MOVE_SPEED = 6;
 const PLATFORM_WIDTH = 65;
 const PLATFORM_HEIGHT = 10;
 const PLAYER_SIZE = 18;
+const CANVAS_W = 500;
+const CANVAS_H = 600;
 
 function SkyJumper({ player, onScore }) {
   const canvasRef = useRef(null);
@@ -19,15 +21,20 @@ function SkyJumper({ player, onScore }) {
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(0);
   const keysRef = useRef({ left: false, right: false });
-  const gameRef = useRef(null);
+  const animFrameRef = useRef(null);
 
   const startGame = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
-    const W = (canvas.width = canvas.offsetWidth);
-    const H = (canvas.height = canvas.offsetHeight);
+    const W = CANVAS_W;
+    const H = CANVAS_H;
+    canvas.width = W;
+    canvas.height = H;
+
+    // Read high score at game start (accessible from all scopes)
+    const hs = parseInt(localStorage.getItem("skyJumperHS") || "0");
 
     // Player starts centered
     let px = W / 2;
@@ -139,12 +146,10 @@ function SkyJumper({ player, onScore }) {
       if (py > H) {
         running = false;
         setScore(gameScore);
-        const hs = parseInt(localStorage.getItem("skyJumperHS") || "0");
         if (gameScore > hs) {
           localStorage.setItem("skyJumperHS", gameScore.toString());
           setHighScore(gameScore);
         }
-        setHighScore(Math.max(hs, gameScore));
         setGameState("gameover");
         onScore("sky-jumper", gameScore);
         return;
@@ -200,14 +205,22 @@ function SkyJumper({ player, onScore }) {
       ctx.fillStyle = "#888";
       ctx.fillText(`Best: ${Math.max(hs, gameScore)}`, 10, 50);
 
-      requestAnimationFrame(animate);
+      animFrameRef.current = requestAnimationFrame(animate);
     };
 
     keysRef.current = { left: false, right: false };
-    gameRef.current = { running };
     setGameState("playing");
-    animate();
+    animFrameRef.current = requestAnimationFrame(animate);
   }, [onScore]);
+
+  // Cleanup animation on unmount
+  useEffect(() => {
+    return () => {
+      if (animFrameRef.current) {
+        cancelAnimationFrame(animFrameRef.current);
+      }
+    };
+  }, []);
 
   // Keyboard controls
   useEffect(() => {
@@ -304,8 +317,8 @@ function SkyJumper({ player, onScore }) {
 
       <canvas
         ref={canvasRef}
-        width="500"
-        height="600"
+        width={CANVAS_W}
+        height={CANVAS_H}
         style={{
           width: "100%",
           height: "auto",
@@ -338,7 +351,8 @@ function SkyJumper({ player, onScore }) {
               fontSize: "1.5rem",
               userSelect: "none",
             }}
-            onTouchStart={() => {
+            onTouchStart={(e) => {
+              e.preventDefault();
               keysRef.current.left = true;
             }}
             onTouchEnd={() => {
@@ -364,7 +378,8 @@ function SkyJumper({ player, onScore }) {
               fontSize: "1.5rem",
               userSelect: "none",
             }}
-            onTouchStart={() => {
+            onTouchStart={(e) => {
+              e.preventDefault();
               keysRef.current.right = true;
             }}
             onTouchEnd={() => {
