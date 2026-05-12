@@ -1,96 +1,151 @@
 #!/bin/bash
 # ============================================================
-# Deploy All Projects - Called by webhook automatically
-# Also run manually: ./deploy-all.sh
+# Deploy All Projects - One command, bulletproof
+# Usage: ./deploy-all.sh
+# Safe to run anytime. Handles untracked files, rebuilds images, preserves data.
 # ============================================================
 
 set -e
 
 BASE_DIR="/home/elkayam/dev-env"
 PROJECTS_DIR="$BASE_DIR/projects"
+DATA_DIR="$BASE_DIR/project-data"
 NGINX_AVAILABLE="/etc/nginx/sites-available"
 NGINX_ENABLED="/etc/nginx/sites-enabled"
 
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
+CYAN='\033[0;36m'
 NC='\033[0m'
 
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
 }
 
-echo "========================================"
-echo "   Deploy"
-echo "========================================"
+banner() {
+    echo ""
+    echo -e "${CYAN}╔══════════════════════════════════════╗${NC}"
+    echo -e "${CYAN}║     🚀  Deploying All Projects       ║${NC}"
+    echo -e "${CYAN}╚══════════════════════════════════════╝${NC}"
+    echo ""
+}
 
-# Pull latest
+banner
+
+# ── STEP 1: Safe Git Pull ──────────────────────────────────
+log "${YELLOW}Step 1: Pulling latest code...${NC}"
 cd "$BASE_DIR"
-git pull origin main 2>&1 || log "Git pull failed"
 
-# Create persistent data directories (outside git repo)
-mkdir -p "$BASE_DIR/project-data/arcade/data"
+# Handle untracked files that would block git pull
+# This is safe because project directories are rebuilt from docker-compose
+if git status --porcelain | grep -q "^??"; then
+    log "  Found untracked files in projects/ — cleaning up..."
+    # Remove project directories that are not tracked (but keep tracked files)
+    for item in $(git status --porcelain | grep "^??" | sed 's/^?? //' | grep "^projects\//"); do
+        log "    Removing $item"
+        rm -rf "$item"
+    done
+fi
 
-# Reload nginx
-nginx -t 2>/dev/null && systemctl reload nginx 2>/dev/null || true
+git pull origin main 2>&1 || {
+    log "${RED}Git pull failed! Aborting.${NC}"
+    exit 1
+}
+log "${GREEN}  ✅ Code pulled${NC}"
 
-# Deploy each project
-log "Scanning projects..."
-FOUND=0
+# ── STEP 2: Protect Persistent Data ────────────────────────
+log "${YELLOW}Step 2: Setting up persistent data directories...${NC}"
+
+# Arcade data migration (only if data doesn't exist in new location)
+if [ ! -d "$DATA_DIR/arcade/data" ]; then
+    mkdir -p "$DATA_DIR/arcade/data"
+    if [ -f "$PROJECTS_DIR/arcade/backend/data/data.json" ]; then
+        cp "$PROJECTS_DIR/arcade/backend/data/data.json" "$DATA_DIR/arcade/data/data.json"
+        log "  📦 Migrated arcade data to persistent location"
+    else
+        log "  📦 Created arcade data directory"
+    fi
+else
+    log "  ✅ Arcade data already persistent"
+fi
+
+# ── STEP 3: Reload Nginx Configs ────────────────────────────
+log "${YELLOW}Step 3: Applying nginx configs...${NC}"
 
 for dir in "$PROJECTS_DIR"/*/; do
-    if [ -d "$dir" ]; then
-        FOUND=$((FOUND + 1))
-        PROJECT_NAME=$(basename "$dir")
-        DOCKER_FILE="$dir/docker-compose.yml"
-        DOCKERFILE="$dir/Dockerfile"
+    [ -d "$dir" ] || continue
+    PROJECT_NAME=$(basename "$dir")
 
-        if [ -f "$DOCKER_FILE" ] && [ -f "$DOCKERFILE" ]; then
-            log "$YELLOW Deploying $PROJECT_NAME...$NC"
-
-             # Get port
-            PORT=$(grep -oP '"127\.0\.0\.1:\K\d+' "$DOCKER_FILE" 2>/dev/null | head -1 || echo "3000")
-
-             # Check for custom nginx config
-            if [ -f "$dir/nginx-api.conf" ]; then
-                cp "$dir/nginx-api.conf" "$NGINX_AVAILABLE/${PROJECT_NAME}.apps.elkayam.me.conf"
-                log "  Custom nginx config applied"
-            elif [ -f "$BASE_DIR/nginx-project-template.conf" ]; then
-                cp "$BASE_DIR/nginx-project-template.conf" "$NGINX_AVAILABLE/${PROJECT_NAME}.apps.elkayam.me.conf"
-                sed -i "s/{{PROJECT_NAME}}/${PROJECT_NAME}/g; s/{{PROJECT_PORT}}/${PORT}/g" "$NGINX_AVAILABLE/${PROJECT_NAME}.apps.elkayam.me.conf"
-                ln -sf "$NGINX_AVAILABLE/${PROJECT_NAME}.apps.elkayam.me.conf" "$NGINX_ENABLED/"
-                log "  $GREEN $PROJECT_NAME.apps.elkayam.me  port $PORT$NC"
-            fi
-
-             # Check for multi-service projects
-            SERVICE_COUNT=$(grep -c "container_name:" "$DOCKER_FILE" 2>/dev/null || echo "1")
-            if [ "$SERVICE_COUNT" -gt 1 ]; then
-                log "  Multi-service project ($SERVICE_COUNT services)"
-            fi
-
-             # Deploy
-            cd "$dir"
-            if docker compose up -d --build 2>&1 | tail -5; then
-                log "$GREEN $PROJECT_NAME is LIVE! (https://$PROJECT_NAME.apps.elkayam.me)$NC"
-            else
-                log "$RED Failed to deploy $PROJECT_NAME$NC"
-            fi
-        else
-            log "  Skip $PROJECT_NAME (no docker files)"
-        fi
+    if [ -f "$dir/nginx-api.conf" ]; then
+        cp "$dir/nginx-api.conf" "$NGINX_AVAILABLE/${PROJECT_NAME}.apps.elkayam.me.conf"
+        ln -sf "$NGINX_AVAILABLE/${PROJECT_NAME}.apps.elkayam.me.conf" "$NGINX_ENABLED/"
+        log "  📝 Custom nginx config for $PROJECT_NAME"
+    elif [ -f "$BASE_DIR/nginx-project-template.conf" ]; then
+        PORT=$(grep -oP '"127\.0\.0\.1:\K\d+' "$dir/docker-compose.yml" 2>/dev/null | head -1 || echo "3000")
+        cp "$BASE_DIR/nginx-project-template.conf" "$NGINX_AVAILABLE/${PROJECT_NAME}.apps.elkayam.me.conf"
+        sed -i "s/{{PROJECT_NAME}}/${PROJECT_NAME}/g; s/{{PROJECT_PORT}}/${PORT}/g" "$NGINX_AVAILABLE/${PROJECT_NAME}.apps.elkayam.me.conf"
+        ln -sf "$NGINX_AVAILABLE/${PROJECT_NAME}.apps.elkayam.me.conf" "$NGINX_ENABLED/"
+        log "  📝 Template nginx config for $PROJECT_NAME (port $PORT)"
     fi
 done
 
+nginx -t 2>/dev/null && systemctl reload nginx 2>/dev/null || log "  ⚠️  Nginx reload failed"
+log "${GREEN}  ✅ Nginx configs applied${NC}"
+
+# ── STEP 4: Build & Deploy Each Project ────────────────────
+log "${YELLOW}Step 4: Building and deploying projects...${NC}"
+FOUND=0
+
+for dir in "$PROJECTS_DIR"/*/; do
+    [ -d "$dir" ] || continue
+    PROJECT_NAME=$(basename "$dir")
+    DOCKER_FILE="$dir/docker-compose.yml"
+    DOCKERFILE="$dir/Dockerfile"
+
+    if [ -f "$DOCKER_FILE" ] && [ -f "$DOCKERFILE" ]; then
+        FOUND=$((FOUND + 1))
+        log ""
+        log "${CYAN}  ┌─ Deploying: $PROJECT_NAME${NC}"
+
+        cd "$dir"
+
+        # Count services
+        SERVICE_COUNT=$(grep -c "container_name:" "$DOCKER_FILE" 2>/dev/null || echo "1")
+        if [ "$SERVICE_COUNT" -gt 1 ]; then
+            log "  │  Multi-service project ($SERVICE_COUNT services)"
+        fi
+
+        # Remove old images to avoid cache issues
+        log "  │  Removing old images..."
+        docker compose down 2>&1 | tail -1
+        IMAGES=$(grep "container_name:" "$DOCKER_FILE" | sed 's/.*container_name: *//' | tr '\n' ' ')
+        for img in $IMAGES; do
+            docker image rm "$img" 2>/dev/null || true
+        done
+
+        # Build & start
+        log "  │  Building & starting..."
+        if docker compose up -d --build 2>&1 | tail -3; then
+            log "  └─ ${GREEN}✅ $PROJECT_NAME is LIVE!${NC}"
+        else
+            log "  └─ ${RED}❌ Failed to deploy $PROJECT_NAME${NC}"
+        fi
+    else
+        log "  ⏭️  Skip $PROJECT_NAME (no docker files)"
+    fi
+done
+
+# ── Summary ────────────────────────────────────────────────
+echo ""
 if [ "$FOUND" -eq 0 ]; then
-    log "No projects found in $PROJECTS_DIR"
+    log "${YELLOW}No projects to deploy${NC}"
 else
-    log "Deployed $FOUND project(s)"
+    log "${GREEN}✅ Deployed $FOUND project(s)${NC}"
 fi
 
-# Final nginx reload
-nginx -t 2>/dev/null && systemctl reload nginx 2>/dev/null || true
-
 echo ""
-echo "========================================"
-echo "   Deploy complete!"
-echo "========================================"
+echo -e "${CYAN}╔══════════════════════════════════════╗${NC}"
+echo -e "${CYAN}║     🎉  Deploy Complete!             ║${NC}"
+echo -e "${CYAN}╚══════════════════════════════════════╝${NC}"
+echo ""
