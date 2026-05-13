@@ -66,7 +66,8 @@ const TETROMINO_KEYS = Object.keys(TETROMINOES);
 const COLS = 10;
 const ROWS = 20;
 const BLOCK_SIZE = 25;
-const CANVAS_W = COLS * BLOCK_SIZE;
+const SIDEBAR_W = 12; // blocks wide for sidebar
+const CANVAS_W = (COLS + SIDEBAR_W) * BLOCK_SIZE;
 const CANVAS_H = ROWS * BLOCK_SIZE;
 const INITIAL_SPEED = 800;
 const SPEED_INCREMENT = 50;
@@ -135,7 +136,7 @@ function TetrisGame({ player, onScore }) {
 
   const clearLines = (board) => {
     let linesCleared = 0;
-    const newBoard = board.filter((row) => row.every((cell) => cell !== 0));
+    const newBoard = board.filter((row) => row.some((cell) => cell === 0));
     linesCleared = board.length - newBoard.length;
     while (newBoard.length < ROWS) {
       newBoard.unshift(Array(COLS).fill(0));
@@ -184,12 +185,13 @@ function TetrisGame({ player, onScore }) {
     };
 
     const drawBoard = () => {
-      // Background gradient
-      const grad = ctx.createLinearGradient(0, 0, 0, CANVAS_H);
-      grad.addColorStop(0, "#0a0a1a");
-      grad.addColorStop(1, "#1a0a2e");
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+      // Game area background
+      ctx.fillStyle = "#0a0a1a";
+      ctx.fillRect(0, 0, COLS * BLOCK_SIZE, CANVAS_H);
+
+      // Sidebar background
+      ctx.fillStyle = "#111122";
+      ctx.fillRect(COLS * BLOCK_SIZE, 0, SIDEBAR_W * BLOCK_SIZE, CANVAS_H);
 
       // Grid lines
       ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
@@ -197,7 +199,7 @@ function TetrisGame({ player, onScore }) {
       for (let r = 0; r <= ROWS; r++) {
         ctx.beginPath();
         ctx.moveTo(0, r * BLOCK_SIZE);
-        ctx.lineTo(CANVAS_W, r * BLOCK_SIZE);
+        ctx.lineTo(COLS * BLOCK_SIZE, r * BLOCK_SIZE);
         ctx.stroke();
       }
       for (let c = 0; c <= COLS; c++) {
@@ -245,18 +247,18 @@ function TetrisGame({ player, onScore }) {
     };
 
     const drawNextPiece = () => {
-      const offsetX = COLS + 2;
-      const offsetY = 2;
+      const offsetX = COLS + 3;
+      const offsetY = 3;
 
       // Next piece box
-      ctx.fillStyle = "rgba(255, 255, 255, 0.03)";
+      ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
       ctx.fillRect(
         offsetX * BLOCK_SIZE,
         offsetY * BLOCK_SIZE,
         5 * BLOCK_SIZE,
         5 * BLOCK_SIZE,
       );
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
       ctx.strokeRect(
         offsetX * BLOCK_SIZE,
         offsetY * BLOCK_SIZE,
@@ -273,17 +275,31 @@ function TetrisGame({ player, onScore }) {
     };
 
     const drawUI = () => {
-      ctx.fillStyle = "white";
-      ctx.font = "bold 14px monospace";
-      ctx.fillText("NEXT", COLS + 2, 1.3 * BLOCK_SIZE);
+      const x = COLS + 3;
+      ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+      ctx.font = "bold 13px monospace";
+      ctx.fillText("NEXT", x, 2.3 * BLOCK_SIZE);
 
-      ctx.font = "13px monospace";
-      ctx.fillText(`Score`, COLS + 2, 8.0 * BLOCK_SIZE);
-      ctx.fillText(`${game.gameScore}`, COLS + 2, 9.3 * BLOCK_SIZE);
-      ctx.fillText(`Lines`, COLS + 2, 10.5 * BLOCK_SIZE);
-      ctx.fillText(`${game.gameLines}`, COLS + 2, 11.8 * BLOCK_SIZE);
-      ctx.fillText(`Level`, COLS + 2, 13.0 * BLOCK_SIZE);
-      ctx.fillText(`${game.gameLevel}`, COLS + 2, 14.3 * BLOCK_SIZE);
+      ctx.fillStyle = "white";
+      ctx.font = "bold 16px monospace";
+      ctx.fillText(`${game.gameScore}`, x, 7.3 * BLOCK_SIZE);
+      ctx.font = "12px monospace";
+      ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+      ctx.fillText("SCORE", x, 8.5 * BLOCK_SIZE);
+
+      ctx.fillStyle = "white";
+      ctx.font = "bold 16px monospace";
+      ctx.fillText(`${game.gameLines}`, x, 10.3 * BLOCK_SIZE);
+      ctx.font = "12px monospace";
+      ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+      ctx.fillText("LINES", x, 11.5 * BLOCK_SIZE);
+
+      ctx.fillStyle = "white";
+      ctx.font = "bold 16px monospace";
+      ctx.fillText(`${game.gameLevel}`, x, 13.3 * BLOCK_SIZE);
+      ctx.font = "12px monospace";
+      ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
+      ctx.fillText("LEVEL", x, 14.5 * BLOCK_SIZE);
     };
 
     const drop = () => {
@@ -524,9 +540,8 @@ function TetrisGame({ player, onScore }) {
           width={CANVAS_W}
           height={CANVAS_H}
           style={{
-            width: "100%",
+            maxWidth: "500px",
             height: "auto",
-            maxWidth: "400px",
             background: "rgba(0,0,0,0.3)",
             borderRadius: "12px",
             border: "2px solid rgba(0, 212, 255, 0.3)",
