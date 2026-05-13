@@ -157,8 +157,18 @@ if [ ! -d "$DATA_DIR/arcade/data" ]; then
         SUMMARY_OK+=("Created arcade data dir")
     fi
 else
-    log "     ✅ Arcade data already persistent"
+    log "      ✅ Arcade data already persistent"
     SUMMARY_OK+=("Arcade data persistent")
+fi
+
+# ── STEP 0.6: Migrate dinnerplan data BEFORE git pull ──
+if [ ! -d "$DATA_DIR/dinnerplan/data" ]; then
+    mkdir -p "$DATA_DIR/dinnerplan/data"
+    log "      📦 Created dinnerplan data directory"
+    SUMMARY_OK+=("Created dinnerplan data dir")
+else
+    log "      ✅ Dinnerplan data already persistent"
+    SUMMARY_OK+=("Dinnerplan data persistent")
 fi
 
 # ── STEP 1: Safe Git Pull (with self-update) ──
