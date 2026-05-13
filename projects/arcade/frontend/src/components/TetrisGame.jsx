@@ -485,11 +485,10 @@ function TetrisGame({ player, onScore }) {
   return (
     <div
       style={{
-        padding: "2rem",
-        maxWidth: "600px",
+        maxWidth: "500px",
         margin: "0 auto",
+        padding: "1rem",
         animation: "slideUp 0.3s ease",
-        textAlign: "center",
       }}
     >
       <h2
@@ -497,51 +496,32 @@ function TetrisGame({ player, onScore }) {
           textAlign: "center",
           marginBottom: "0.5rem",
           color: "#00d4ff",
+          fontSize: "1.5rem",
         }}
       >
         🧱 Tetris
       </h2>
-      <p
-        style={{
-          textAlign: "center",
-          color: "#888",
-          marginBottom: "0.5rem",
-          fontSize: "0.9rem",
-        }}
-      >
-        Desktop: ← → move | ↑ rotate | ↓ soft drop | Space pause
-      </p>
-      <p
-        style={{
-          textAlign: "center",
-          color: "#888",
-          marginBottom: "0.5rem",
-          fontSize: "0.9rem",
-        }}
-      >
-        Mobile: tap left/right to move | center to drop | top to rotate
-      </p>
       {highScore > 0 && (
         <p
           style={{
             textAlign: "center",
             color: "#9370db",
-            marginBottom: "1rem",
+            marginBottom: "0.5rem",
             fontWeight: "bold",
           }}
         >
           🏆 Best: {highScore}
         </p>
       )}
-
-      <div style={{ display: "inline-block", position: "relative" }}>
+      <div style={{ position: "relative" }}>
         <canvas
           ref={canvasRef}
           width={CANVAS_W}
           height={CANVAS_H}
           style={{
-            maxWidth: "500px",
+            width: "100%",
             height: "auto",
+            display: "block",
             background: "rgba(0,0,0,0.3)",
             borderRadius: "12px",
             border: "2px solid rgba(0, 212, 255, 0.3)",
@@ -567,28 +547,31 @@ function TetrisGame({ player, onScore }) {
           >
             <div
               style={{
-                background: "rgba(0,0,0,0.85)",
-                padding: "2.5rem",
+                background: "rgba(0,0,0,0.9)",
+                padding: "1.5rem",
                 borderRadius: "16px",
                 backdropFilter: "blur(10px)",
+                width: "80%",
               }}
             >
-              <h2
-                style={{
-                  color: "#00d4ff",
-                  marginBottom: "1rem",
-                  fontSize: "1.8rem",
-                }}
-              >
+              <h2 style={{ color: "#00d4ff", marginBottom: "0.5rem" }}>
                 🧱 Tetris
               </h2>
-              <p style={{ color: "#888", marginBottom: "1.5rem" }}>
-                Classic block-stacking fun!
+              <p
+                style={{
+                  color: "#888",
+                  marginBottom: "1rem",
+                  fontSize: "0.9rem",
+                }}
+              >
+                Desktop: ← → move | ↑ rotate | ↓ fast | Space pause
+                <br />
+                Mobile: tap top=rotate | left/right=move | center=drop
               </p>
               <button
                 className="btn-primary"
                 onClick={startGame}
-                style={{ fontSize: "1.2rem", padding: "1rem 2rem" }}
+                style={{ fontSize: "1.1rem", padding: "0.8rem 1.5rem" }}
               >
                 🎮 Start Game
               </button>
@@ -610,37 +593,32 @@ function TetrisGame({ player, onScore }) {
             <div
               style={{
                 background: "rgba(0,0,0,0.9)",
-                padding: "2.5rem",
+                padding: "1.5rem",
                 borderRadius: "16px",
                 backdropFilter: "blur(10px)",
+                width: "80%",
               }}
             >
-              <h2
-                style={{
-                  color: "#ff4444",
-                  marginBottom: "0.5rem",
-                  fontSize: "1.5rem",
-                }}
-              >
+              <h2 style={{ color: "#ff4444", marginBottom: "0.5rem" }}>
                 Game Over!
               </h2>
               <p
                 style={{
-                  marginBottom: "0.5rem",
                   fontSize: "1.5rem",
                   color: "white",
+                  marginBottom: "0.5rem",
                 }}
               >
                 Score: {score}
-                {score >= highScore && score > 0 ? " 🎉 New High Score!" : ""}
+                {score >= highScore && score > 0 ? " 🎉" : ""}
               </p>
-              <p style={{ color: "#888", marginBottom: "1.5rem" }}>
+              <p style={{ color: "#888", marginBottom: "1rem" }}>
                 Lines: {lines} | Level: {level}
               </p>
               <button
                 className="btn-primary"
                 onClick={startGame}
-                style={{ fontSize: "1.2rem", padding: "1rem 2rem" }}
+                style={{ fontSize: "1.1rem", padding: "0.8rem 1.5rem" }}
               >
                 🔄 Play Again
               </button>

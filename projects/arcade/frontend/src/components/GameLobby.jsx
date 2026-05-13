@@ -16,7 +16,7 @@ function GameLobby({ player, games, scores, onPlay, onBack }) {
   return (
     <div
       style={{
-        padding: "2rem",
+        padding: "1rem",
         maxWidth: "900px",
         margin: "0 auto",
         animation: "slideUp 0.3s ease",
@@ -26,30 +26,28 @@ function GameLobby({ player, games, scores, onPlay, onBack }) {
       <div
         style={{
           textAlign: "center",
-          marginBottom: "3rem",
+          marginBottom: "2rem",
           position: "relative",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "0.5rem",
         }}
       >
-        <button
-          onClick={onBack}
-          className="btn-secondary"
-          style={{
-            position: "absolute",
-            left: "0",
-            top: "50%",
-            transform: "translateY(-50%)",
-          }}
-        >
+        <button onClick={onBack} className="btn-secondary">
           ← Players
         </button>
 
-        <div className="player-avatar" style={{ margin: "0 auto 1rem" }}>
+        <div className="player-avatar" style={{ margin: "0" }}>
           {player.avatar || "🦊"}
         </div>
-        <h2 style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>
-          Hey, {player.username}!
-        </h2>
-        <p style={{ color: "#888" }}>Choose a game to play</p>
+
+        <div>
+          <h2 style={{ fontSize: "1.5rem", marginBottom: "0.25rem" }}>
+            Hey, {player.username}!
+          </h2>
+          <p style={{ color: "#888" }}>Choose a game</p>
+        </div>
       </div>
 
       {stats.totalPlays > 0 && (
@@ -99,7 +97,7 @@ function GameLobby({ player, games, scores, onPlay, onBack }) {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
           gap: "1.5rem",
         }}
       >

@@ -153,21 +153,21 @@ function App() {
         {/* Header */}
         <header
           style={{
-            padding: "1.5rem 2rem",
+            padding: "1.5rem",
             borderBottom: "1px solid rgba(255,255,255,0.1)",
             background: "rgba(0,0,0,0.3)",
             backdropFilter: "blur(10px)",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
+            flexWrap: "wrap",
+            gap: "0.5rem",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-            <h1 style={{ fontSize: "1.5rem", fontWeight: "bold" }}>
-              🕹️ Family Arcade
-            </h1>
-          </div>
-          <div style={{ display: "flex", gap: "0.5rem" }}>
+          <h1 style={{ fontSize: "1.3rem", fontWeight: "bold" }}>
+            🕹️ Family Arcade
+          </h1>
+          <div style={{ display: "flex", gap: "0.5rem", flexShrink: 0 }}>
             {screen !== "player-select" && (
               <button
                 className="btn-secondary"
@@ -181,7 +181,7 @@ function App() {
                 className="btn-secondary"
                 onClick={() => setScreen("leaderboard")}
               >
-                🏆 Scores
+                🏆
               </button>
             )}
           </div>
