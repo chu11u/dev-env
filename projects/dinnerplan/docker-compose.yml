@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: ./frontend
+    container_name: dinnerplan-frontend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3004:3000"
+    volumes:
+      - ./frontend:/app
+    environment:
+      - NODE_ENV=production
+
+  backend:
+    build: ./backend
+    container_name: dinnerplan-backend
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:30041:3001"
+    volumes:
+      - ../../project-data/dinnerplan/data:/app/data

@@ -1,0 +1,356 @@
+:root {
+   --color-bg: #FFF8F0;
+   --color-surface: #FFFFFF;
+   --color-primary: #E8734A;
+   --color-primary-dark: #C45A35;
+   --color-primary-light: #FDE8D8;
+   --color-secondary: #6B8F71;
+   --color-secondary-dark: #4A6B4F;
+   --color-secondary-light: #D8EDEA;
+   --color-accent: #F4B942;
+   --color-text: #3D2B1F;
+   --color-text-light: #7A6B60;
+   --color-border: #E8DDD4;
+   --color-danger: #D94F4F;
+   --color-danger-light: #F8D8D8;
+   --shadow-sm: 0 1px 3px rgba(61, 43, 31, 0.08);
+   --shadow-md: 0 4px 12px rgba(61, 43, 31, 0.1);
+   --shadow-lg: 0 8px 24px rgba(61, 43, 31, 0.12);
+   --radius-sm: 8px;
+   --radius-md: 12px;
+   --radius-lg: 16px;
+   --radius-xl: 24px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Heebo', sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  direction: rtl;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  font-family: 'Heebo', sans-serif;
+  cursor: pointer;
+  border: none;
+  outline: none;
+}
+
+input, textarea, select {
+  font-family: 'Heebo', sans-serif;
+  direction: rtl;
+}
+
+.container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  font-size: 16px;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-dark);
+   transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-secondary {
+  background: var(--color-secondary);
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: var(--color-secondary-dark);
+   transform: translateY(-1px);
+}
+
+.btn-danger {
+  background: var(--color-danger);
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #C03F3F;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 2px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.btn-outline:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 14px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.badge-primary {
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+}
+
+.badge-secondary {
+  background: var(--color-secondary-light);
+  color: var(--color-secondary-dark);
+}
+
+.badge-accent {
+  background: #FFF3D6;
+  color: #96730A;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(61, 43, 31, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 32px;
+  max-width: 560px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  transition: border-color 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  border-color: var(--color-primary);
+  outline: none;
+}
+
+/* Header nav */
+.app-header {
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  padding: 16px 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.app-header-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.app-logo {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.app-nav {
+  display: flex;
+  gap: 8px;
+}
+
+.app-nav a {
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.app-nav a:hover {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+.app-nav a.active {
+  background: var(--color-primary);
+  color: white;
+}
+
+/* Page header */
+.page-header {
+  margin-bottom: 32px;
+}
+
+.page-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 8px;
+}
+
+.page-header p {
+  font-size: 16px;
+  color: var(--color-text-light);
+}
+
+/* Grid layouts */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+/* Family card */
+.family-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.family-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
+  color: white;
+  flex-shrink: 0;
+}
+
+.family-info {
+  flex: 1;
+}
+
+.family-info h3 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.family-info p {
+  font-size: 14px;
+  color: var(--color-text-light);
+}
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--color-text-light);
+}
+
+.empty-state .icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.empty-state h3 {
+  font-size: 20px;
+  margin-bottom: 8px;
+  color: var(--color-text);
+}
+
+/* Mobile responsive */
+@media (max-width: 600px) {
+  .app-header-inner {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .app-nav {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .container {
+    padding: 16px;
+  }
+
+  .page-header h1 {
+    font-size: 24px;
+  }
+
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .modal {
+    padding: 24px;
+    margin: 12px;
+  }
+}
