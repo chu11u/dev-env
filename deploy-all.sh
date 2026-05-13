@@ -256,13 +256,17 @@ for dir in "$PROJECTS_DIR"/*/; do
     PROJECT_NAME=$(basename "$dir")
     is_project "$dir" || continue
 
-    log "        🧹 Cleaning up $PROJECT_NAME..."
-    CONTAINERS=$(docker ps -a --format '{{.Names}}' | grep -E "^${PROJECT_NAME}(\-)?\w*$" 2>/dev/null || true)
+    log "         Cleaning up $PROJECT_NAME..."
+    cd "$dir" || continue
+      # Force remove containers by name
+    CONTAINERS=$(grep "container_name:" "$dir/docker-compose.yml" 2>/dev/null | sed 's/.*container_name: *//')
     for c in $CONTAINERS; do
-        docker rm -f "$c" 2>/dev/null || true
+        docker stop "$c" 2>/dev/null && docker rm -f "$c" 2>/dev/null || true
     done
-    docker network prune -f 2>/dev/null || true
-    docker image prune -f 2>/dev/null || true
+      # Remove project networks by name
+    docker network ls --format '{{.Name}}' 2>/dev/null | grep "^${PROJECT_NAME}_" | xargs -r docker network rm 2>/dev/null || true
+      # Force compose down
+    docker compose -p "$PROJECT_NAME" down --rmi local --volumes --remove-orphans 2>/dev/null || true
 done
 
 log "     ✅ Cleanup complete"
