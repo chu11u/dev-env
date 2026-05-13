@@ -70,13 +70,13 @@ server {
     error_log /var/log/nginx/${name}.error.log;
 
     location /api/ {
-        proxy_pass http://127.0.0.1:${api_port}/;
+        proxy_pass http://127.0.0.1:${api_port};
         proxy_http_version 1.1;
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto \$scheme;
-    }
+     }
 
     location / {
         proxy_pass http://127.0.0.1:${frontend_port};
@@ -111,7 +111,23 @@ if [ -d "$PROJECTS_DIR/project-data" ]; then
     else
         mv "$PROJECTS_DIR/project-data" "$DATA_DIR"
     fi
-    log "      ✅ project-data fixed"
+    log "       ✅ project-data fixed"
+fi
+
+# ── STEP 0.5: Migrate data BEFORE git pull (critical!) ──
+if [ ! -d "$DATA_DIR/arcade/data" ]; then
+    mkdir -p "$DATA_DIR/arcade/data"
+    if [ -f "$PROJECTS_DIR/arcade/backend/data/data.json" ]; then
+        cp "$PROJECTS_DIR/arcade/backend/data/data.json" "$DATA_DIR/arcade/data/data.json"
+        log "       📦 Migrated arcade data to persistent location"
+        SUMMARY_OK+=("Migrated arcade data")
+    else
+        log "       📦 Created arcade data directory"
+        SUMMARY_OK+=("Created arcade data dir")
+    fi
+else
+    log "       ✅ Arcade data already persistent"
+    SUMMARY_OK+=("Arcade data persistent")
 fi
 
 # ── STEP 1: Safe Git Pull (with self-update) ──
@@ -139,26 +155,8 @@ if [ "$BEFORE_HASH" != "$AFTER_HASH" ]; then
     exec "$0" "$@"
 fi
 
-log "         ✅ Code pulled"
+log "          ✅ Code pulled"
 SUMMARY_OK+=("Git pull")
-
-# ── STEP 2: Protect Persistent Data ──
-log "${YELLOW}Step 2: Setting up persistent data...${NC}"
-
-if [ ! -d "$DATA_DIR/arcade/data" ]; then
-    mkdir -p "$DATA_DIR/arcade/data"
-    if [ -f "$PROJECTS_DIR/arcade/backend/data/data.json" ]; then
-        cp "$PROJECTS_DIR/arcade/backend/data/data.json" "$DATA_DIR/arcade/data/data.json"
-        log "      📦 Migrated arcade data"
-        SUMMARY_OK+=("Migrated arcade data")
-    else
-        log "      📦 Created arcade data dir"
-        SUMMARY_OK+=("Created arcade data dir")
-    fi
-else
-    log "      ✅ Arcade data already persistent"
-    SUMMARY_OK+=("Arcade data persistent")
-fi
 
 # ── STEP 3: Generate & Apply Nginx Configs ──
 log "${YELLOW}Step 3: Generating nginx configs...${NC}"
