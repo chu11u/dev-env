@@ -258,15 +258,19 @@ for dir in "$PROJECTS_DIR"/*/; do
 
     log "         Cleaning up $PROJECT_NAME..."
     cd "$dir" || continue
-      # Force remove containers by name
+     # Order matters: compose down first, then prune leftovers
+    docker compose -p "$PROJECT_NAME" down --rmi local --volumes --remove-orphans 2>/dev/null || true
+     # Force remove any remaining containers
     CONTAINERS=$(grep "container_name:" "$dir/docker-compose.yml" 2>/dev/null | sed 's/.*container_name: *//')
     for c in $CONTAINERS; do
-        docker stop "$c" 2>/dev/null && docker rm -f "$c" 2>/dev/null || true
+        docker rm -f "$c" 2>/dev/null || true
     done
-      # Remove project networks by name
+     # Remove project networks
     docker network ls --format '{{.Name}}' 2>/dev/null | grep "^${PROJECT_NAME}_" | xargs -r docker network rm 2>/dev/null || true
-      # Force compose down
-    docker compose -p "$PROJECT_NAME" down --rmi local --volumes --remove-orphans 2>/dev/null || true
+     # Remove dangling images
+    for img in $CONTAINERS; do
+        docker image rm "$img" 2>/dev/null || true
+    done
 done
 
 log "     ✅ Cleanup complete"

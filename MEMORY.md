@@ -1,5 +1,5 @@
 # Dev Environment Memory Dump
-# Created: May 2026
+# Updated: May 13, 2026
 # Use this to continue the project in a new conversation
 
 ## ARCHITECTURE
@@ -8,10 +8,10 @@
 Internet → NPM (*.apps.elkayam.me, TLS) → nginx (192.168.131.134:80) → Docker containers
 
 Subdomains:
-  dev.apps.elkayam.me        → code-server (VS Code IDE)
-  clock.apps.elkayam.me      → Clock dashboard (static HTML)
-  todo.apps.elkayam.me       → Todo app (React + Vite)
-  arcade.apps.elkayam.me     → Family Arcade (React + Express API)
+  dev.apps.elkayam.me         → code-server (VS Code IDE)
+  clock.apps.elkayam.me       → Clock dashboard (static HTML)
+  todo.apps.elkayam.me        → Todo app (React + Vite)
+  arcade.apps.elkayam.me      → Family Arcade (React + Express API)
 ```
 
 ## SERVER (LXC Container - Debian 12)
@@ -33,148 +33,134 @@ Subdomains:
 
 ```
 dev-env/
-├── docker-compose.yml            # code-server container
-├── .env                          # code-server password
-├── nginx-dev.apps.elkayam.me.conf       # code-server nginx config
-├── nginx-project-template.conf         # Template for new projects
-├── deploy-all.sh                 # Auto-deploy script (called by cron)
-├── sync-push.sh                  # Local: push to GitHub
-├── local-build.sh                # Local: scaffold projects (has clock template)
-├── cleanup-project.sh            # Server: remove a project
-├── build-arcade.sh               # Local: build arcade project
-├── deploy-project.sh             # Server: deploy single project
-├── new-project.sh                # Server: scaffold + deploy
-├── setup.sh                      # Server: one-time bootstrap
-├── webhook-server.sh             # GitHub webhook listener
-├── cron-deploy                   # Cron entry (every 5 min)
-├── README.md
+├── deploy-all.sh                  # Main deploy script (self-updates, see below)
+├── .env                           # code-server password
+├── nginx-dev.apps.elkayam.me.conf # code-server nginx config
+├── nginx-project-template.conf    # Template for single-service projects
+├── project-data/                  # PERSISTENT DATA (outside git, auto-migrated)
+│   └── arcade/data/data.json      # Arcade player/score data
 ├── projects/
-│   ├─ clock/           # Static HTML clock (working ✅)
-│   ├─ todo/            # React todo app (working ✅)
-│   └─ arcade/          # Family Arcade (partially working)
-│       ├─ frontend/    # React + Vite
-│       │  ├─ src/App.jsx
-│       │  ├─ src/main.jsx
-│       │  ├─ src/index.css
-│       │  └─ src/components/
-│       │      ├─ PlayerSelect.jsx     # Player select + registration
-│       │      ├─ GameLobby.jsx        # Game selection screen
-│       │      ├─ SkyJumper.jsx        # Jumping game (canvas)
-│       │      ├─ MemoryMatch.jsx      # Card matching game
-│       │      └─ Leaderboard.jsx      # Score board
-│       ├─ backend/     # Express + lowdb
-│       │  ├─ server.js
-│       │  ├─ package.json
-│       │  └─ data/     # Persisted game data
-│       ├─ docker-compose.yml    # 2 services: frontend + backend
-│       └─ nginx-api.conf        # Custom nginx config (API proxy)
-└── data/
-    └── code-server/             # Persistent IDE workspace
+│   ├── clock/                     # Static HTML clock ✅
+│   │   ├── Dockerfile             # nginx:alpine serving index.html
+│   │   ├── docker-compose.yml     # container_name: clock, port 3002
+│   │   └── index.html             # Clock dashboard
+│   └── arcade/                    # Family Arcade ✅
+│       ├── docker-compose.yml     # 2 services: frontend + backend
+│       ├── nginx-api.conf         # Custom nginx (API proxy)
+│       ├── backend/
+│       │   ├── Dockerfile
+│       │   ├── server.js          # Express + lowdb (players, scores, games)
+│       │   └── package.json
+│       └── frontend/
+│           ├── Dockerfile         # Node builder + preview
+│           ├── vite.config.js
+│           ├── package.json       # React 18.3.1 + Vite 5.4.1
+│           ├── src/App.jsx        # Main app (routing between games)
+│           ├── src/main.jsx
+│           ├── src/index.css
+│           └── src/components/
+│               ├── PlayerSelect.jsx   # Player list + registration + DELETE button
+│               ├── GameLobby.jsx      # Game selection + player stats + back button
+│               ├── SkyJumper.jsx      # Jumping game (canvas)
+│               ├── MemoryMatch.jsx    # Card matching game
+│               ├── TetrisGame.jsx     # Classic Tetris (canvas)
+│               └── Leaderboard.jsx    # Score board
 ```
 
-## WORKFLOW
+## DEPLOY WORKFLOW
 
-### Creating a New Project (Local → Server):
+### Local (creating new projects):
+1. Create files in `projects/<name>/` (must have `docker-compose.yml` + `Dockerfile`)
+2. Push: `cd dev-env && git add -A && git commit -m "msg" && git push origin main`
 
-1. I create files in `/Users/elnaor/Environments/Zed/dev-env/projects/<name>/`
-2. User runs locally:
-   ```bash
-   cd dev-env
-   rm -rf projects/<name>/.git     # CRITICAL: remove nested git
-   git add -A
-   git commit -m "message"
-   git push origin main
-   ```
-3. On server (or via cron every 5 min):
-   ```bash
-   cd /home/elkayam/dev-env
-   rm -rf projects/<name>     # Remove old untracked files first
-   git checkout -- .
-   git pull origin main
-   ./deploy-all.sh
-   ```
+### Server (ONE COMMAND):
+```bash
+cd /home/elkayam/dev-env
+./deploy-all.sh
+```
+
+### Deploy script (`deploy-all.sh`) — bulletproof, self-updates:
+
+**Step 0**: Move `project-data` outside `projects/` if misplaced
+**Step 0.5**: Migrate arcade data BEFORE git pull (prevents data loss)
+**Step 1**: Git pull with untracked file cleanup. **Self-updates**: checks md5sum before/after pull and re-runs with `exec "$0" "$@"` if script changed
+**Step 2**: Generate nginx configs via heredocs (no `sed -i`):
+    - Single-service projects: use `generate_nginx_config()` function
+    - Multi-service projects: use `generate_nginx_api_config()` function
+    - Auto-cleans stale configs for non-existent projects
+**Step 3**: Docker cleanup:
+    - `docker compose down --rmi local --volumes --remove-orphans`
+    - `docker rm -f` for any remaining containers
+    - `docker network rm` for project-specific networks
+    - `docker image rm` for dangling images
+**Step 4**: Build & deploy each project
+**Summary**: Shows ✅ successes, ❌ failures, ⚠️ warnings
 
 ## CRITICAL ISSUES & FIXES
 
-1. **Nested .git repos**: If `git clone` or `build-*` scripts create a `.git` inside `projects/<name>/`, Git treats it as a submodule. Always `rm -rf projects/<name>/.git` before committing.
+1. **Nested .git repos**: Always `rm -rf projects/<name>/.git` before committing.
 
-2. **Docker build cache**: If changes don't show, run:
-   ```bash
-   docker compose down
-   docker image rm <name>-frontend <name>-backend 2>/dev/null
-   docker compose build
-   docker compose up -d
-   ```
+2. **Nginx config generation**:
+    - Deploy script generates configs via **heredocs** (not `sed -i` on template file)
+    - `generate_nginx_config(name, port)` for single-service projects
+    - `generate_nginx_api_config(name, frontend_port, api_port)` for multi-service projects
+    - Stale configs auto-removed based on whitelist of valid project names
 
-3. **Nginx API routing**: For projects with `/api/` routes, the proxy MUST preserve the prefix:
-   ```nginx
-   location /api/ {
-       proxy_pass http://127.0.0.1:PORT/api/;   # Note trailing slash!
-   }
-   ```
-   Wrong: `proxy_pass http://127.0.0.1:PORT/;` (strips /api/)
-   Right: `proxy_pass http://127.0.0.1:PORT/api/;` (preserves /api/)
+3. **API routing in nginx**: The `proxy_pass` MUST NOT have trailing slash:
+    ```nginx
+    # RIGHT (preserves /api/ prefix):
+    proxy_pass http://127.0.0.1:PORT;
+    # WRONG (strips /api/ prefix):
+    proxy_pass http://127.0.0.1:PORT/;
+    ```
+    This was the cause of "Unexpected token '<', "<!DOCTYPE "... is not valid JSON" errors.
 
-4. **Server not pulling changes**: If `git pull` fails with "untracked files would be overwritten":
-   ```bash
-   cd /home/elkayam/dev-env
-   rm -rf projects/<name>/
-   git checkout -- .
-   git pull origin main
-   ```
+4. **Docker container name conflicts**: Use `docker compose down` BEFORE `docker rm -f`. Don't try to remove containers before compose knows about them.
 
-5. **Vite allowedHosts**: Must have `allowedHosts: true` in both `server` and `preview` sections of vite.config.js, AND the file must be copied to the final Docker stage.
+5. **Docker network ambiguity**: "network X_default is ambiguous (2 matches found)" means duplicate networks exist. Fix with `docker network prune -f` or manually remove duplicates.
 
-6. **Browser caching**: Always hard refresh (Cmd+Shift+R) after frontend updates.
+6. **Data persistence**: Arcade data lives in `project-data/arcade/data/data.json`. Deploy script auto-migrates this BEFORE git pull.
+
+7. **Vite allowedHosts**: Must have `allowedHosts: true` in both `server` and `preview` sections of vite.config.js.
+
+8. **Browser caching**: Always hard refresh (Cmd+Shift+R) after frontend updates.
 
 ## ARCADE PROJECT STATUS
 
-### Working:
-- ✅ Player registration (with error handling)
-- ✅ Player selection screen
-- ✅ Game lobby with stats
+### Games (all working):
+- ✅ **Sky Jumper** — Jumping game with keyboard (← →, A/D) + touch controls, high score
+- ✅ **Memory Match** — Card matching game
+- ✅ **Tetris** — Classic Tetris with:
+    - All 7 tetrominoes (I, O, T, S, Z, J, L) with distinct colors
+    - Ghost piece preview
+    - Next piece preview
+    - Score, Lines, Level tracking
+    - High score (localStorage)
+    - Keyboard: ← → move, ↑ rotate, ↓ soft drop, Space pause
+    - Touch: top=rotate, left/right=move, center=drop
+    - Game state in single mutable `game` object, shared via `gameRef.current`
+    - NOTE: If left/right don't work, check that `gameRef.current` in keyboard handler matches `game` object in game loop
+
+### Features:
+- ✅ Player registration (with error handling, username required)
+- ✅ Player selection screen with avatars
+- ✅ **Player deletion** — ✕ button on player cards (only when 2+ players)
+- ✅ Game lobby with stats + back button
 - ✅ Leaderboard
-- ✅ Memory Match game
-- ✅ Backend API (players, scores)
-- ✅ Data persistence (lowdb JSON file)
-- ✅ Docker compose (2 containers)
-- ✅ nginx routing (frontend + API)
+- ✅ Backend API (players CRUD, scores, games)
+- ✅ Data persistence (lowdb JSON in `project-data/`)
+- ✅ Docker compose (2 containers: frontend + backend)
+- ✅ nginx routing (frontend + API proxy)
 
-### Pending Changes (committed locally but NOT verified on server):
-As of last commit on May 10, 2026, these files were modified locally:
-
-1. `GameLobby.jsx` - Added `onBack` prop + "← Players" button
-2. `SkyJumper.jsx` - Complete rewrite with:
-    - First platform guaranteed under player at start
-    - Keyboard controls (← → and A/D)
-    - Touch controls for mobile
-    - On-screen Left/Right buttons during gameplay
-    - High score with localStorage
-    - Better visual effects (glow, gradient bg)
-3. `App.jsx` - Added `onBack={() => { setCurrentPlayer(null); setScreen('player-select'); }}` to GameLobby
-4. `nginx-project-template.conf` - Fixed API proxy to preserve `/api/` prefix
-
-### To verify fixes worked:
-```bash
-# On server
-cd /home/elkayam/dev-env
-rm -rf projects/arcade
-git checkout -- .
-git pull origin main
-cd projects/arcade
-docker compose down
-docker image rm arcade-frontend arcade-backend 2>/dev/null
-docker compose build
-docker compose up -d
-# Then hard refresh browser
-```
+### Known issues to verify after deploy:
+- ⚠️ Tetris left/right controls — verify on server after deploy
+- ⚠️ Clock app loading — verify after deploy (may have Docker network issue)
 
 ## PORT ALLOCATIONS
 
 | Port | Project | Purpose |
 |------|---------|---------|
 | 8080 | code-server | IDE |
-| 3001 | todo | Frontend |
 | 3002 | clock | Frontend |
 | 3003 | arcade | Frontend |
 | 30031 | arcade | Backend API |
@@ -184,18 +170,7 @@ Next available: 3004, 30041
 ## PERSISTENT DATA
 
 **IMPORTANT**: Arcade data lives in `/home/elkayam/dev-env/project-data/arcade/data/data.json`
-This directory is OUTSIDE the git repo, so `git pull` and `deploy-all.sh` will never overwrite it.
-The deploy script auto-migrates data if it's still in the old location.
-
-## DEPLOY COMMAND
-
-On the server, just run:
-```bash
-cd /home/elkayam/dev-env
-./deploy-all.sh
-```
-
-That handles: git pull, data migration, nginx configs, Docker rebuild, everything.
+This directory is OUTSIDE the git repo. The deploy script auto-migrates data from old location.
 
 ## GITHUB USER
 
@@ -204,10 +179,11 @@ That handles: git pull, data migration, nginx configs, Docker rebuild, everythin
 
 ## THINGS TO BUILD NEXT
 
-1. **Fix Arcade** - Verify pending changes (SkyJumper, back button)
-2. **Weather Widget** - Simple weather dashboard
-3. **Home Dashboard** - Monitor all homelab services
-4. **More Arcade Games** - Tic Tac Toe, Snake, etc.
+1. **Verify Tetris works** on server (left/right controls)
+2. **Fix Clock app** if not loading
+3. **Weather Widget** — Simple weather dashboard
+4. **Home Dashboard** — Monitor all homelab services
+5. **More Arcade Games** — Tic Tac Toe, Snake, etc.
 
 ## CRON CONFIG
 
