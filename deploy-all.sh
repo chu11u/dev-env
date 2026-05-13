@@ -2,10 +2,7 @@
 # ============================================================
 # Deploy All Projects - One command, bulletproof
 # Usage: ./deploy-all.sh
-# Safe to run anytime. Handles untracked files, rebuilds images, preserves data.
 # ============================================================
-
-# NOTE: Do NOT use 'set -e' — we handle errors manually and want to continue
 
 BASE_DIR="/home/elkayam/dev-env"
 PROJECTS_DIR="$BASE_DIR/projects"
@@ -19,92 +16,143 @@ RED='\033[0;31m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
-# Track results for summary
 declare -a SUMMARY_OK=()
 declare -a SUMMARY_FAIL=()
 declare -a SUMMARY_WARN=()
 
-log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"; }
+is_project() { [ -f "$1/docker-compose.yml" ]; }
+get_port() { grep -oP '"127\.0\.0\.1:\K\d+' "$1" 2>/dev/null | head -1 || echo "3000"; }
+
+generate_nginx_config() {
+    local name="$1"
+    local port="$2"
+    local dest="$NGINX_AVAILABLE/${name}.apps.elkayam.me.conf"
+    cat > "$dest" << NGINX_EOF
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${name}.apps.elkayam.me;
+
+    access_log /var/log/nginx/${name}.access.log;
+    error_log /var/log/nginx/${name}.error.log;
+
+    location / {
+        proxy_pass http://127.0.0.1:${port};
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header X-Forwarded-Host \$host;
+        proxy_set_header X-Forwarded-Port \$server_port;
+        proxy_cache_bypass \$http_upgrade;
+    }
+}
+NGINX_EOF
+    ln -sf "$dest" "$NGINX_ENABLED/"
 }
 
-banner() {
-    echo ""
-    echo -e "${CYAN}╔══════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║       🚀  Deploying All Projects        ║${NC}"
-    echo -e "${CYAN}╚══════════════════════════════════════╝${NC}"
-    echo ""
+generate_nginx_api_config() {
+    local name="$1"
+    local frontend_port="$2"
+    local api_port="$3"
+    local dest="$NGINX_AVAILABLE/${name}.apps.elkayam.me.conf"
+    cat > "$dest" << NGINX_EOF
+server {
+    listen 80;
+    listen [::]:80;
+    server_name ${name}.apps.elkayam.me;
+
+    access_log /var/log/nginx/${name}.access.log;
+    error_log /var/log/nginx/${name}.error.log;
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:${api_port}/;
+        proxy_http_version 1.1;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:${frontend_port};
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header X-Forwarded-Host \$host;
+        proxy_set_header X-Forwarded-Port \$server_port;
+        proxy_cache_bypass \$http_upgrade;
+    }
+}
+NGINX_EOF
+    ln -sf "$dest" "$NGINX_ENABLED/"
 }
 
-# Check if a directory is a deployable project
-is_project() {
-    [ -f "$1/docker-compose.yml" ]
-}
+echo ""
+echo -e "${CYAN}╔══════════════════════════════════════╗${NC}"
+echo -e "${CYAN}║          🚀  Deploying All Projects            ║${NC}"
+echo -e "${CYAN}╚══════════════════════════════════════╝${NC}"
+echo ""
 
-# Get port from docker-compose.yml (first frontend service)
-get_port() {
-    grep -oP '"127\.0\.0\.1:\K\d+' "$1" 2>/dev/null | head -1 || echo "3000"
-}
-
-banner
-
-# ── STEP 0: Move project-data out of projects/ if it's there ──
+# ── STEP 0: Move project-data if misplaced ──
 if [ -d "$PROJECTS_DIR/project-data" ]; then
     log "${YELLOW}Step 0: Moving project-data outside projects/...${NC}"
     if [ -d "$DATA_DIR" ]; then
         cp -r "$PROJECTS_DIR/project-data/"* "$DATA_DIR/" 2>/dev/null || true
         rm -rf "$PROJECTS_DIR/project-data"
-        log "   ✅ Merged and removed duplicate project-data"
     else
         mv "$PROJECTS_DIR/project-data" "$DATA_DIR"
-        log "   ✅ Moved project-data to correct location"
     fi
+    log "      ✅ project-data fixed"
 fi
 
-# ── STEP 1: Safe Git Pull ──────────────────────────────────
+# ── STEP 1: Safe Git Pull ──
 log "${YELLOW}Step 1: Pulling latest code...${NC}"
 cd "$BASE_DIR"
 
 if git status --porcelain | grep -q "^??"; then
-    log "  Found untracked files — cleaning up..."
+    log "  Cleaning untracked files..."
     for item in $(git status --porcelain | grep "^??" | sed 's/^?? //' | grep "^projects\//"); do
-        if echo "$item" | grep -q "data/"; then
-            log "   ⏭️  Skipping data file: $item"
-            continue
-        fi
-        log "   🗑️  Removing: $item"
+        echo "$item" | grep -q "data/" && continue
         rm -rf "$item"
     done
 fi
 
 git pull origin main 2>&1 || {
-    log "${RED}   ❌ Git pull failed! Aborting.${NC}"
-    SUMMARY_FAIL+=("Git pull failed")
-    exit 1
+    log "${RED}      ❌ Git pull failed! Aborting.${NC}"
+    SUMMARY_FAIL+=("Git pull failed"); exit 1
 }
-log "   ✅ Code pulled"
+log "      ✅ Code pulled"
 SUMMARY_OK+=("Git pull")
 
-# ── STEP 2: Protect Persistent Data ────────────────────────
-log "${YELLOW}Step 2: Setting up persistent data directories...${NC}"
+# ── STEP 2: Protect Persistent Data ──
+log "${YELLOW}Step 2: Setting up persistent data...${NC}"
 
 if [ ! -d "$DATA_DIR/arcade/data" ]; then
     mkdir -p "$DATA_DIR/arcade/data"
     if [ -f "$PROJECTS_DIR/arcade/backend/data/data.json" ]; then
         cp "$PROJECTS_DIR/arcade/backend/data/data.json" "$DATA_DIR/arcade/data/data.json"
-        log "   📦 Migrated arcade data to persistent location"
+        log "      📦 Migrated arcade data"
         SUMMARY_OK+=("Migrated arcade data")
     else
-        log "   📦 Created arcade data directory"
+        log "      📦 Created arcade data dir"
         SUMMARY_OK+=("Created arcade data dir")
     fi
 else
-    log "   ✅ Arcade data already persistent"
+    log "      ✅ Arcade data already persistent"
     SUMMARY_OK+=("Arcade data persistent")
 fi
 
-# ── STEP 3: Apply Nginx Configs ────────────────────────────
-log "${YELLOW}Step 3: Applying nginx configs...${NC}"
+# ── STEP 3: Generate & Apply Nginx Configs ──
+log "${YELLOW}Step 3: Generating nginx configs...${NC}"
 
 NGINX_APPLIED=0
 for dir in "$PROJECTS_DIR"/*/; do
@@ -112,66 +160,59 @@ for dir in "$PROJECTS_DIR"/*/; do
     PROJECT_NAME=$(basename "$dir")
     is_project "$dir" || continue
 
-    if [ -f "$dir/nginx-api.conf" ]; then
-        cp "$dir/nginx-api.conf" "$NGINX_AVAILABLE/${PROJECT_NAME}.apps.elkayam.me.conf"
-        ln -sf "$NGINX_AVAILABLE/${PROJECT_NAME}.apps.elkayam.me.conf" "$NGINX_ENABLED/"
-        log "   📝 Custom nginx config for $PROJECT_NAME"
+    COMPOSE="$dir/docker-compose.yml"
+    SERVICE_COUNT=$(grep -c "container_name:" "$COMPOSE" 2>/dev/null || echo "1")
+
+    if [ "$SERVICE_COUNT" -gt 1 ]; then
+        # Multi-service: extract frontend and backend ports
+        FRONTEND_PORT=$(grep -oP '"127\.0\.0\.1:\K\d+' "$COMPOSE" 2>/dev/null | head -1)
+        BACKEND_PORT=$(grep -oP '"127\.0\.0\.1:\K\d+' "$COMPOSE" 2>/dev/null | tail -1)
+        [ -z "$FRONTEND_PORT" ] && FRONTEND_PORT=3000
+        [ -z "$BACKEND_PORT" ] && BACKEND_PORT=3001
+        generate_nginx_api_config "$PROJECT_NAME" "$FRONTEND_PORT" "$BACKEND_PORT"
+        log "      📝 Nginx for $PROJECT_NAME (frontend:$FRONTEND_PORT, api:$BACKEND_PORT)"
     else
-        PORT=$(get_port "$dir/docker-compose.yml")
-        cp "$BASE_DIR/nginx-project-template.conf" "$NGINX_AVAILABLE/${PROJECT_NAME}.apps.elkayam.me.conf"
-        sed -i "s/{{PROJECT_NAME}}/${PROJECT_NAME}/g; s/{{PROJECT_PORT}}/${PORT}/g" "$NGINX_AVAILABLE/${PROJECT_NAME}.apps.elkayam.me.conf"
-        ln -sf "$NGINX_AVAILABLE/${PROJECT_NAME}.apps.elkayam.me.conf" "$NGINX_ENABLED/"
-        log "   📝 Nginx config for $PROJECT_NAME (port $PORT)"
+        PORT=$(get_port "$COMPOSE")
+        generate_nginx_config "$PROJECT_NAME" "$PORT"
+        log "      📝 Nginx for $PROJECT_NAME (port $PORT)"
     fi
     NGINX_APPLIED=$((NGINX_APPLIED + 1))
 done
 
-# Build list of valid project names
-VALID_PROJECTS=""
+# Remove stale configs
+VALID_PROJECTS="dev"
 for dir in "$PROJECTS_DIR"/*/; do
-     [ -d "$dir" ] || continue
-    NAME=$(basename "$dir")
-    if [ "$NAME" = "dev" ]; then
-        VALID_PROJECTS="$VALID_PROJECTS dev"
-    fi
-    is_project "$dir" && VALID_PROJECTS="$VALID_PROJECTS $NAME"
+    [ -d "$dir" ] || continue
+    is_project "$dir" && VALID_PROJECTS="$VALID_PROJECTS $(basename "$dir")"
 done
 
-# Clean up ALL stale nginx configs
 for link in "$NGINX_ENABLED"/*.apps.elkayam.me.conf; do
-     [ -f "$link" ] || continue
+    [ -f "$link" ] || continue
     NAME=$(basename "$link" .apps.elkayam.me.conf)
     if ! echo "$VALID_PROJECTS" | grep -qw "$NAME"; then
         rm -f "$link"
         rm -f "$NGINX_AVAILABLE/${NAME}.apps.elkayam.me.conf"
-        log "    🧹 Removed stale config for $NAME"
+        log "      🧹 Removed stale config: $NAME"
     fi
 done
 
-# Test nginx config and show actual errors
-NGINX_TEST=$(nginx -t 2>&1)
-NGINX_EXIT=$?
+nginx -t 2>&1 | grep -v "nginx: the configuration file .* syntax is ok"
+NGINX_EXIT=${PIPESTATUS[0]}
 if [ $NGINX_EXIT -eq 0 ]; then
-    # Try multiple reload methods (systemctl may not work in LXC)
-    if systemctl reload nginx 2>/dev/null; then
-        log "   ✅ Nginx reloaded via systemctl"
-    elif service nginx reload 2>/dev/null; then
-        log "   ✅ Nginx reloaded via service"
-    elif kill -HUP $(cat /var/run/nginx.pid 2>/dev/null) 2>/dev/null; then
-        log "   ✅ Nginx reloaded via HUP signal"
-    else
-        log "   ⚠️  Nginx config OK but reload failed — try 'systemctl reload nginx' manually"
+    systemctl reload nginx 2>/dev/null || service nginx reload 2>/dev/null || {
+        log "      ⚠️  Config OK but reload failed"
         SUMMARY_WARN+=("Nginx reload failed")
-    fi
+    }
+    log "      ✅ Nginx configs applied ($NGINX_APPLIED)"
     SUMMARY_OK+=("Nginx configs ($NGINX_APPLIED)")
 else
-    log "${RED}   ❌ Nginx config test FAILED:${NC}"
-    echo "$NGINX_TEST"
+    log "${RED}      ❌ Nginx config FAILED!${NC}"
+    nginx -t 2>&1
     SUMMARY_FAIL+=("Nginx config test failed")
 fi
 
-# ── STEP 4: Build & Deploy Each Project ────────────────────
-log "${YELLOW}Step 4: Building and deploying projects...${NC}"
+# ── STEP 4: Build & Deploy ──
+log "${YELLOW}Step 4: Building & deploying...${NC}"
 DEPLOYED=0
 
 for dir in "$PROJECTS_DIR"/*/; do
@@ -180,81 +221,67 @@ for dir in "$PROJECTS_DIR"/*/; do
     is_project "$dir" || continue
 
     log ""
-    log "${CYAN}   ┌─ Deploying: $PROJECT_NAME${NC}"
+    log "${CYAN}      ┌─ Deploying: $PROJECT_NAME${NC}"
     cd "$dir" || continue
 
-    # Count services
     SERVICE_COUNT=$(grep -c "container_name:" "$dir/docker-compose.yml" 2>/dev/null || echo "1")
-    if [ "$SERVICE_COUNT" -gt 1 ]; then
-        log "   │  Multi-service project ($SERVICE_COUNT services)"
-    fi
+    [ "$SERVICE_COUNT" -gt 1 ] && log "      │  Multi-service ($SERVICE_COUNT services)"
 
-    # Remove old images to avoid cache issues
-    log "   │  Removing old images..."
-    docker compose down 2>&1 | tail -1
+    # Force stop old containers first
+    log "      │  Stopping old containers..."
+    docker compose down --remove-orphans --force 2>&1 | tail -2
+
+    # Remove old images
+    log "      │  Removing old images..."
     IMAGES=$(grep "container_name:" "$dir/docker-compose.yml" | sed 's/.*container_name: *//' | tr '\n' ' ')
     for img in $IMAGES; do
+        docker rm -f "$img" 2>/dev/null || true
         docker image rm "$img" 2>/dev/null || true
     done
 
-    # Build & start — capture full output for debugging
-    log "   │  Building & starting..."
+    # Build & start
+    log "      │  Building & starting..."
     BUILD_OUTPUT=$(docker compose up -d --build 2>&1)
-    BUILD_EXIT=$?
-
-    if [ $BUILD_EXIT -eq 0 ]; then
-        log "   └─ ${GREEN}✅ $PROJECT_NAME is LIVE!${NC}"
+    if [ $? -eq 0 ]; then
+        log "      └─ ${GREEN}✅ $PROJECT_NAME is LIVE!${NC}"
         SUMMARY_OK+=("Deployed $PROJECT_NAME")
         DEPLOYED=$((DEPLOYED + 1))
     else
-        log "    └─ ${RED}❌ Failed to deploy $PROJECT_NAME${NC}"
-        # Show full build error for debugging (grep for error markers)
-        log "${RED}    │  Build error log:${NC}"
-        echo "$BUILD_OUTPUT" | grep -A5 -i "error\|fail\|SyntaxError" | head -30 | while IFS= read -r line; do
-            log "    │  $line"
+        log "      └─ ${RED}❌ Failed: $PROJECT_NAME${NC}"
+        log "${RED}       │  Build errors:${NC}"
+        echo "$BUILD_OUTPUT" | grep -iE "error|fail|SyntaxError|expected" | head -15 | while IFS= read -r line; do
+            log "       │   $line"
         done
-        # If no error grep matched, show last 20 lines
-        if ! echo "$BUILD_OUTPUT" | grep -qi "error\|fail"; then
-            echo "$BUILD_OUTPUT" | tail -20 | while IFS= read -r line; do
-                log "    │  $line"
-            done
-        fi
         SUMMARY_FAIL+=("Failed to deploy $PROJECT_NAME")
     fi
 done
 
-# ── Summary ────────────────────────────────────────────────
+# ── Summary ──
 echo ""
 echo -e "${CYAN}╔══════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║         📊  Deployment Summary         ║${NC}"
+echo -e "${CYAN}║            📊  Summary                 ║${NC}"
 echo -e "${CYAN}╚══════════════════════════════════════╝${NC}"
 echo ""
 
-echo -e "   ${GREEN}✅ Successes:${NC}"
-for item in "${SUMMARY_OK[@]}"; do
-    echo "     • $item"
-done
+echo -e "      ${GREEN}✅ Success:${NC}"
+for item in "${SUMMARY_OK[@]}"; do echo "        • $item"; done
 
 if [ ${#SUMMARY_FAIL[@]} -gt 0 ]; then
     echo ""
-    echo -e "   ${RED}❌ Failures:${NC}"
-    for item in "${SUMMARY_FAIL[@]}"; do
-        echo "     • $item"
-    done
+    echo -e "      ${RED}❌ Failures:${NC}"
+    for item in "${SUMMARY_FAIL[@]}"; do echo "        • $item"; done
 fi
 
 if [ ${#SUMMARY_WARN[@]} -gt 0 ]; then
     echo ""
-    echo -e "   ${YELLOW}⚠️  Warnings:${NC}"
-    for item in "${SUMMARY_WARN[@]}"; do
-        echo "     • $item"
-    done
+    echo -e "      ${YELLOW}⚠️  Warnings:${NC}"
+    for item in "${SUMMARY_WARN[@]}"; do echo "        • $item"; done
 fi
 
 echo ""
 echo "  Projects deployed: $DEPLOYED"
 echo ""
 echo -e "${CYAN}╔══════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║       🎉  Deploy Complete!            ║${NC}"
+echo -e "${CYAN}║          🎉  Deploy Complete!          ║${NC}"
 echo -e "${CYAN}╚══════════════════════════════════════╝${NC}"
 echo ""
