@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-function PlayerSelect({ players, avatars, onSelect, onRegister }) {
+function PlayerSelect({ players, avatars, onSelect, onRegister, onDelete }) {
   const [mode, setMode] = useState("list");
   const [username, setUsername] = useState("");
   const [avatar, setAvatar] = useState(avatars[0]);
@@ -55,9 +55,8 @@ function PlayerSelect({ players, avatars, onSelect, onRegister }) {
             }}
           >
             {players.map((player) => (
-              <button
+              <div
                 key={player.id}
-                onClick={() => onSelect(player)}
                 style={{
                   background: "rgba(255,255,255,0.1)",
                   border: "2px solid rgba(99, 102, 241, 0.3)",
@@ -71,15 +70,49 @@ function PlayerSelect({ players, avatars, onSelect, onRegister }) {
                   alignItems: "center",
                   gap: "0.5rem",
                   minWidth: "150px",
+                  position: "relative",
                 }}
               >
-                <span style={{ fontSize: "3rem" }}>
+                {players.length > 1 && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(player);
+                    }}
+                    style={{
+                      position: "absolute",
+                      top: "8px",
+                      right: "8px",
+                      background: "rgba(239,68,68,0.2)",
+                      border: "1px solid rgba(239,68,68,0.4)",
+                      borderRadius: "8px",
+                      color: "#ef4444",
+                      cursor: "pointer",
+                      padding: "4px 8px",
+                      fontSize: "0.8rem",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    ✕
+                  </button>
+                )}
+                <span
+                  onClick={() => onSelect(player)}
+                  style={{ fontSize: "3rem", cursor: "pointer" }}
+                >
                   {player.avatar || "🦊"}
                 </span>
-                <span style={{ fontWeight: "bold", fontSize: "1.1rem" }}>
+                <span
+                  onClick={() => onSelect(player)}
+                  style={{
+                    fontWeight: "bold",
+                    fontSize: "1.1rem",
+                    cursor: "pointer",
+                  }}
+                >
                   {player.username}
                 </span>
-              </button>
+              </div>
             ))}
           </div>
 

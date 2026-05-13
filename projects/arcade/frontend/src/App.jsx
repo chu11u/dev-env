@@ -91,6 +91,18 @@ function App() {
     setScreen("lobby");
   };
 
+  const deletePlayer = async (player) => {
+    try {
+      const res = await fetch(`${API}/players/${player.id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete");
+      await fetchPlayers();
+    } catch (e) {
+      console.error("Failed to delete player:", e);
+    }
+  };
+
   const playGame = (game) => {
     setSelectedGame(game);
     setScreen("game");
@@ -182,6 +194,7 @@ function App() {
             avatars={AVATARS}
             onSelect={selectPlayer}
             onRegister={registerPlayer}
+            onDelete={deletePlayer}
           />
         )}
 

@@ -235,11 +235,11 @@ for dir in "$PROJECTS_DIR"/*/; do
     [ "$SERVICE_COUNT" -gt 1 ] && log "      │  Multi-service ($SERVICE_COUNT services)"
 
     # Force stop old containers first
-    log "      │  Stopping old containers..."
-    docker compose down --remove-orphans --force 2>&1 | tail -2
+    log "       │  Stopping old containers..."
+    docker compose down --remove-orphans 2>&1 | tail -2 || true
 
-    # Remove old images
-    log "      │  Removing old images..."
+     # Force remove containers that might still exist
+    log "       │  Removing old images..."
     IMAGES=$(grep "container_name:" "$dir/docker-compose.yml" | sed 's/.*container_name: *//' | tr '\n' ' ')
     for img in $IMAGES; do
         docker rm -f "$img" 2>/dev/null || true
