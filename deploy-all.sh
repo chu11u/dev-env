@@ -114,10 +114,11 @@ if [ -d "$PROJECTS_DIR/project-data" ]; then
     log "      ✅ project-data fixed"
 fi
 
-# ── STEP 1: Safe Git Pull ──
+# ── STEP 1: Safe Git Pull (with self-update) ──
 log "${YELLOW}Step 1: Pulling latest code...${NC}"
 cd "$BASE_DIR"
 
+# Clean untracked files first (before checking hash)
 if git status --porcelain | grep -q "^??"; then
     log "  Cleaning untracked files..."
     for item in $(git status --porcelain | grep "^??" | sed 's/^?? //' | grep "^projects\//"); do
@@ -126,11 +127,19 @@ if git status --porcelain | grep -q "^??"; then
     done
 fi
 
+BEFORE_HASH=$(md5sum "$BASE_DIR/deploy-all.sh" 2>/dev/null | cut -d' ' -f1)
 git pull origin main 2>&1 || {
-    log "${RED}      ❌ Git pull failed! Aborting.${NC}"
+    log "${RED}         ❌ Git pull failed! Aborting.${NC}"
     SUMMARY_FAIL+=("Git pull failed"); exit 1
 }
-log "      ✅ Code pulled"
+AFTER_HASH=$(md5sum "$BASE_DIR/deploy-all.sh" 2>/dev/null | cut -d' ' -f1)
+
+if [ "$BEFORE_HASH" != "$AFTER_HASH" ]; then
+    log "         🔄 Deploy script updated — re-running with new version..."
+    exec "$0" "$@"
+fi
+
+log "         ✅ Code pulled"
 SUMMARY_OK+=("Git pull")
 
 # ── STEP 2: Protect Persistent Data ──
