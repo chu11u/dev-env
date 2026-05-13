@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   frontend:
@@ -7,10 +7,6 @@ services:
     restart: unless-stopped
     ports:
       - "127.0.0.1:3004:3000"
-    volumes:
-      - ./frontend:/app
-    environment:
-      - NODE_ENV=production
 
   backend:
     build: ./backend
