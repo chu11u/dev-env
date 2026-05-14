@@ -4,6 +4,7 @@ import {
   Routes,
   Route,
   useLocation,
+  useParams,
   Link,
 } from "react-router-dom";
 import { api } from "./data/api";
@@ -124,8 +125,7 @@ const Layout = () => {
           <Route
             path="/dinner/:id"
             element={
-              <DinnerDetail
-                dinnerId={location.params.id}
+              <DinnerDetailWrapper
                 dinners={dinners}
                 setDinners={setDinners}
                 families={families}
@@ -151,11 +151,10 @@ const Layout = () => {
           <Route
             path="/dishes/:dinnerId"
             element={
-              <DishesPage
+              <DishesPageWrapper
                 dishes={dishes}
                 setDishes={setDishes}
                 families={families}
-                dinnerId={location.params.dinnerId}
               />
             }
           />
@@ -172,6 +171,44 @@ const Layout = () => {
         </Routes>
       </main>
     </div>
+  );
+};
+
+const DinnerDetailWrapper = ({
+  dinners,
+  setDinners,
+  families,
+  setFamilies,
+  dishes,
+  posts,
+  setPosts,
+  refreshData,
+}) => {
+  const { id } = useParams();
+  return (
+    <DinnerDetail
+      dinnerId={id}
+      dinners={dinners}
+      setDinners={setDinners}
+      families={families}
+      setFamilies={setFamilies}
+      dishes={dishes}
+      posts={posts}
+      setPosts={setPosts}
+      refreshData={refreshData}
+    />
+  );
+};
+
+const DishesPageWrapper = ({ dishes, setDishes, families }) => {
+  const { dinnerId } = useParams();
+  return (
+    <DishesPage
+      dishes={dishes}
+      setDishes={setDishes}
+      families={families}
+      dinnerId={dinnerId}
+    />
   );
 };
 

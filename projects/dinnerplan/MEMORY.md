@@ -1,5 +1,5 @@
 # Dinnerplan Project Memory Dump
-# Updated: May 14, 2026
+# Updated: May 15, 2026
 # Use this to continue the project in a new conversation
 
 ## PROJECT OVERVIEW
@@ -179,13 +179,19 @@ ssh -i ~/.ssh/dev-env-server naor@192.168.131.134 "cd /home/elkayam/dev-env && g
 2. **NO volume mount on frontend!** Overwrites node_modules → vite crash.
 3. **Backend volume**: Only mount data dir (`../../project-data/dinnerplan/data:/app/data`).
 4. **`allowedHosts` (plural!)** in vite.config.js, NOT `allowedHost`.
-5. **Cached builds**: Use `docker compose build --no-cache` when changes don't take effect.
-6. **HashRouter**: Used instead of BrowserRouter.
-7. **Browser caching**: Hard refresh (Cmd+Shift+R) after frontend updates.
-8. **Nginx reload**: `sudo /usr/sbin/nginx -s reload` works (passwordless sudo).
-9. **Deploy script**: Uses `sudo /usr/sbin/nginx` for nginx operations.
-10. **Guest family mapping**: Form stores family names as text → maps to IDs on submit via `families.find()`.
-11. **Dinner detail route**: `/dinner/:id` (singular) to avoid conflicts with `/dishes/:dinnerId`.
+5. **`preview.proxy` NOT supported in Vite 5!** Use nginx for API routing in production. Dev proxy works fine.
+6. **Cached builds**: Use `docker compose build --no-cache` when changes don't take effect.
+7. **HashRouter**: Used instead of BrowserRouter.
+8. **Browser caching**: Hard refresh (Cmd+Shift+R) after frontend updates.
+9. **Nginx reload**: `sudo /usr/sbin/nginx -s reload` works (passwordless sudo).
+10. **Deploy script**: Uses `sudo /usr/sbin/nginx` for nginx operations.
+11. **Guest family mapping**: Form stores family names as text → maps to IDs on submit via `families.find()`.
+12. **Dinner detail route**: `/dinner/:id` (singular) to avoid conflicts with `/dishes/:dinnerId`.
+13. **Route params**: Use `useParams()` hook via wrapper components, NOT `location.params` (which is undefined).
+
+## BUG FIXES
+
+- **Blank page fix** (May 15): Replaced `location.params.id` with proper `useParams()` via `DinnerDetailWrapper` and `DishesPageWrapper` components. Removed unsupported `preview.proxy` from vite.config.js.
 
 ## TODO / Next Ideas
 
