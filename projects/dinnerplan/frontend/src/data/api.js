@@ -46,12 +46,13 @@ export const api = {
   deleteDish: (id) => request(`/dishes/${id}`, { method: "DELETE" }),
 
   // Shopping
-  getShopping: () => request("/shopping"),
+  getShopping: () => request("/shoppingItems"),
   createShoppingItem: (item) =>
-    request("/shopping", { method: "POST", body: item }),
+    request("/shoppingItems", { method: "POST", body: item }),
   updateShoppingItem: (id, item) =>
-    request(`/shopping/${id}`, { method: "PUT", body: item }),
-  deleteShoppingItem: (id) => request(`/shopping/${id}`, { method: "DELETE" }),
+    request(`/shoppingItems/${id}`, { method: "PUT", body: item }),
+  deleteShoppingItem: (id) =>
+    request(`/shoppingItems/${id}`, { method: "DELETE" }),
 
   // Posts
   getPosts: () => request("/posts"),

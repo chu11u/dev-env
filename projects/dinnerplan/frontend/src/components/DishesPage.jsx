@@ -15,6 +15,7 @@ const categories = [
 const DishesPage = ({ dishes, setDishes, families, dinnerId }) => {
   const [showModal, setShowModal] = useState(false);
   const [editingDish, setEditingDish] = useState(null);
+  const [showTemplates, setShowTemplates] = useState(false);
   const [filterCategory, setFilterCategory] = useState("all");
   const [form, setForm] = useState({
     name: "",
@@ -27,6 +28,26 @@ const DishesPage = ({ dishes, setDishes, families, dinnerId }) => {
   useEffect(() => {
     setForm((f) => ({ ...f, dinnerId: dinnerId || "" }));
   }, [dinnerId]);
+
+  // Get unique dish names (one per unique name, for template reuse)
+  const uniqueDishNames = dishes.reduce((acc, dish) => {
+    if (!acc.find((d) => d.name === dish.name)) {
+      acc.push(dish);
+    }
+    return acc;
+  }, []);
+
+  // Duplicate an existing dish as a new entry for current dinner
+  const handleDuplicateDish = (dish) => {
+    setForm({
+      name: dish.name,
+      category: dish.category,
+      familyId: "",
+      dinnerId: dinnerId || "",
+      ingredientList: dish.ingredientList || "",
+    });
+    setShowTemplates(false);
+  };
 
   const handleAdd = async () => {
     if (!form.name.trim()) return;
@@ -208,12 +229,92 @@ const DishesPage = ({ dishes, setDishes, families, dinnerId }) => {
           onClick={() => {
             setShowModal(false);
             setEditingDish(null);
+            setShowTemplates(false);
           }}
         >
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h2 style={{ marginBottom: 20 }}>
               {editingDish ? "עריכת מנה" : "הוסף מנה"}
             </h2>
+
+            {/* Existing dishes to reuse - only show when adding (not editing) and we have templates */}
+            {!editingDish && uniqueDishNames.length > 0 && (
+              <div style={{ marginBottom: 20 }}>
+                <button
+                  className="btn btn-outline btn-sm"
+                  onClick={() => setShowTemplates(!showTemplates)}
+                  style={{ marginBottom: 8 }}
+                >
+                  {showTemplates
+                    ? "🍽️ הסתר מנות קיימות"
+                    : `🍽️ השתמש במנה קיימת (${uniqueDishNames.length})`}
+                </button>
+
+                {showTemplates && (
+                  <div className="grid-2" style={{ gap: 8 }}>
+                    {uniqueDishNames.map((dish) => (
+                      <div
+                        key={dish.id}
+                        onClick={() => handleDuplicateDish(dish)}
+                        style={{
+                          padding: 12,
+                          border: "2px solid var(--color-border)",
+                          borderRadius: 12,
+                          cursor: "pointer",
+                          transition: "all 0.2s",
+                          background: "var(--color-surface)",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor =
+                            "var(--color-primary)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor =
+                            "var(--color-border)";
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                          }}
+                        >
+                          <strong style={{ fontSize: 14 }}>{dish.name}</strong>
+                          <span
+                            className="badge badge-primary"
+                            style={{ fontSize: 11 }}
+                          >
+                            {getCategoryLabel(dish.category)}
+                          </span>
+                        </div>
+                        {dish.ingredientList && (
+                          <p
+                            style={{
+                              fontSize: 12,
+                              color: "var(--color-text-light)",
+                              marginTop: 4,
+                            }}
+                          >
+                            🥦 {dish.ingredientList}
+                          </p>
+                        )}
+                        <p
+                          style={{
+                            fontSize: 11,
+                            color: "var(--color-text-light)",
+                            marginTop: 4,
+                          }}
+                        >
+                          👨‍👩‍👧‍👦 {getFamilyName(dish.familyId)}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="form-group">
               <label>שם המנה</label>
               <input
@@ -270,6 +371,7 @@ const DishesPage = ({ dishes, setDishes, families, dinnerId }) => {
                 onClick={() => {
                   setShowModal(false);
                   setEditingDish(null);
+                  setShowTemplates(false);
                 }}
               >
                 ביטול
