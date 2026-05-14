@@ -99,7 +99,7 @@ All routes prefixed with `/api/`:
 - `/api/families` (CRUD) - Family management
 - `/api/dinners` (CRUD) - Dinner management
 - `/api/dishes` (CRUD) - Dish management
-- `/api/shopping` (CRUD) - Shopping items (collection name: `shoppingItems`)
+- `/api/shoppingItems` (CRUD) - Shopping items (collection name matches endpoint!)
 - `/api/posts` (CRUD) - Blog posts per dinner
 
 Backend uses auto-generated CRUD routes via `crudRoutes(name, collection)` helper.
@@ -144,6 +144,8 @@ Backend uses auto-generated CRUD routes via `crudRoutes(name, collection)` helpe
 - Categories: appetizer, main, salad, dessert, drink, bread, other
 - Assign to family, link to dinner, ingredient list
 - Filter by category
+- Edit existing dishes (full edit mode)
+- **Reuse existing dishes** - when adding a dish, expand "השתמש במנה קיימת" to see all existing dishes as templates. Click one to prefill the form with its name/category/ingredients, then assign to a different family/dinner.
 
 ### Shopping
 - List with checkboxes (mark as purchased)
