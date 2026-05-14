@@ -4,6 +4,7 @@ import { api } from "../data/api";
 
 const DinnersPage = ({ dinners, setDinners, families, refreshData }) => {
   const [showModal, setShowModal] = useState(false);
+  const [editingDinner, setEditingDinner] = useState(null);
   const [form, setForm] = useState({
     name: "",
     date: "",
@@ -19,9 +20,55 @@ const DinnersPage = ({ dinners, setDinners, families, refreshData }) => {
       .split(",")
       .map((f) => f.trim())
       .filter(Boolean)
-      .map((fid) => ({ familyId: fid, attendees: 0 }));
-    const dinner = await api.createDinner({ ...form, guestList });
+      .map((familyName) => {
+        const family = families.find((fm) => fm.name === familyName);
+        return family
+          ? { familyId: family.id, attendees: family.members?.length || 2 }
+          : { familyId: familyName, attendees: 0 };
+      });
+    const dinner = await api.createDinner({
+      name: form.name,
+      date: form.date,
+      time: form.time,
+      location: form.location,
+      notes: form.notes,
+      guestList,
+    });
     setDinners([...dinners, dinner]);
+    setShowModal(false);
+    setForm({
+      name: "",
+      date: "",
+      time: "19:00",
+      location: "",
+      notes: "",
+      guestFamilyIds: "",
+    });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingDinner) return;
+    const guestList = form.guestFamilyIds
+      .split(",")
+      .map((f) => f.trim())
+      .filter(Boolean)
+      .map((familyName) => {
+        const family = families.find((fm) => fm.name === familyName);
+        return family
+          ? { familyId: family.id, attendees: family.members?.length || 2 }
+          : { familyId: familyName, attendees: 0 };
+      });
+    const updated = await api.updateDinner(editingDinner.id, {
+      ...editingDinner,
+      name: form.name,
+      date: form.date,
+      time: form.time,
+      location: form.location,
+      notes: form.notes,
+      guestList,
+    });
+    setDinners(dinners.map((d) => (d.id === editingDinner.id ? updated : d)));
+    setEditingDinner(null);
     setShowModal(false);
     setForm({
       name: "",
@@ -37,6 +84,24 @@ const DinnersPage = ({ dinners, setDinners, families, refreshData }) => {
     if (!confirm("האם אתה בטוח שברצונך למחוק ארוחה זו?")) return;
     await api.deleteDinner(id);
     setDinners(dinners.filter((d) => d.id !== id));
+  };
+
+  const openEdit = (dinner) => {
+    setEditingDinner(dinner);
+    setForm({
+      name: dinner.name || "",
+      date: dinner.date || "",
+      time: dinner.time || "19:00",
+      location: dinner.location || "",
+      notes: dinner.notes || "",
+      guestFamilyIds: (dinner.guestList || [])
+        .map((g) => {
+          const fam = families.find((f) => f.id === g.familyId);
+          return fam ? fam.name : g.familyId;
+        })
+        .join(", "),
+    });
+    setShowModal(true);
   };
 
   const sortedDinners = [...dinners].sort((a, b) => {
@@ -97,6 +162,8 @@ const DinnersPage = ({ dinners, setDinners, families, refreshData }) => {
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "flex-start",
+                  flexWrap: "wrap",
+                  gap: 8,
                 }}
               >
                 <div>
@@ -114,23 +181,24 @@ const DinnersPage = ({ dinners, setDinners, families, refreshData }) => {
                       </span>
                     )}
                   </h2>
-                  <p style={{ marginBottom: 4 }}>
+                  <p
+                    style={{
+                      marginBottom: 4,
+                      display: "flex",
+                      gap: 8,
+                      flexWrap: "wrap",
+                    }}
+                  >
                     <span className="badge badge-primary">
                       {formatDate(dinner.date)}
                     </span>
                     {dinner.time && (
-                      <span
-                        className="badge badge-accent"
-                        style={{ marginRight: 8 }}
-                      >
+                      <span className="badge badge-accent">
                         🕐 {dinner.time}
                       </span>
                     )}
                     {dinner.location && (
-                      <span
-                        className="badge badge-secondary"
-                        style={{ marginRight: 8 }}
-                      >
+                      <span className="badge badge-secondary">
                         📍 {dinner.location}
                       </span>
                     )}
@@ -160,6 +228,12 @@ const DinnersPage = ({ dinners, setDinners, families, refreshData }) => {
                   >
                     📋 סיכום
                   </Link>
+                  <button
+                    className="btn btn-outline btn-sm"
+                    onClick={() => openEdit(dinner)}
+                  >
+                    ✏️ ערוך
+                  </button>
                   <Link
                     to={`/dishes/${dinner.id}`}
                     className="btn btn-secondary btn-sm"
@@ -182,7 +256,9 @@ const DinnersPage = ({ dinners, setDinners, families, refreshData }) => {
       {showModal && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2 style={{ marginBottom: 20 }}>הוסף ארוחה</h2>
+            <h2 style={{ marginBottom: 20 }}>
+              {editingDinner ? "עריכת ארוחה" : "הוסף ארוחה"}
+            </h2>
             <div className="form-group">
               <label>שם הארוחה</label>
               <input
@@ -253,12 +329,18 @@ const DinnersPage = ({ dinners, setDinners, families, refreshData }) => {
             >
               <button
                 className="btn btn-outline"
-                onClick={() => setShowModal(false)}
+                onClick={() => {
+                  setShowModal(false);
+                  setEditingDinner(null);
+                }}
               >
                 ביטול
               </button>
-              <button className="btn btn-primary" onClick={handleAdd}>
-                הוסף
+              <button
+                className="btn btn-primary"
+                onClick={editingDinner ? handleSaveEdit : handleAdd}
+              >
+                {editingDinner ? "שמור" : "הוסף"}
               </button>
             </div>
           </div>
