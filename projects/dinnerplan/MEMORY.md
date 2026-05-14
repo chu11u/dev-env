@@ -192,6 +192,9 @@ ssh -i ~/.ssh/dev-env-server naor@192.168.131.134 "cd /home/elkayam/dev-env && g
 ## BUG FIXES
 
 - **Blank page fix** (May 15): Replaced `location.params.id` with proper `useParams()` via `DinnerDetailWrapper` and `DishesPageWrapper` components. Removed unsupported `preview.proxy` from vite.config.js.
+- **Shopping auto-generate fix** (May 15): Fixed `autoGenerateShopping` — was calling inner async function without `await`, so items were never actually added. Now properly async with error handling.
+- **Dish edit** (May 15): Added full edit capability to DishesPage (openEdit → prefill form → save). Shows ingredient list on dish cards. Delete now requires confirmation.
+- **ErrorBoundary** (May 15): Added to catch and display React runtime errors instead of blank page.
 
 ## TODO / Next Ideas
 
