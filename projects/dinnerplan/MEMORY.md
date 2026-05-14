@@ -43,51 +43,51 @@ Backend (Express + fs JSON) → port 30041
 
 ```
 projects/dinnerplan/
-├── docker-compose.yml          # 2 services: frontend + backend
+├── docker-compose.yml           # 2 services: frontend + backend
 ├── .gitignore
 ├── frontend/
-│   ├── Dockerfile              # Node builder + preview (no volume mount!)
+│   ├── Dockerfile               # Node builder + preview (no volume mount!)
 │   ├── package.json
 │   ├── vite.config.js
-│   ├── index.html              # Hebrew RTL, Heebo font
+│   ├── index.html               # Hebrew RTL, Heebo font
 │   └── src/
-│       ├── main.jsx             # Entry point
-│       ├── App.jsx              # Router + Layout + global data fetch
-│       ├── index.css            # Global styles (warm theme, RTL, responsive)
+│       ├── main.jsx              # Entry point
+│       ├── App.jsx               # Router + Layout + global data fetch (posts too)
+│       ├── index.css             # Global styles (warm theme, RTL, responsive)
 │       ├── data/
-│        │    └── api.js         # API layer (all CRUD for all entities)
-│        └── components/
-│            ├── Home.jsx          # Dashboard with stats + quick actions
-│            ├── FamiliesPage.jsx    # Add/remove families with members
-│            ├── DinnersPage.jsx     # Plan dinners (date, time, location, notes)
-│            ├── DinnerDetail.jsx    # Dinner summary page (in progress)
-│            ├── DishesPage.jsx      # Assign dishes to families by category
-│            └── ShoppingPage.jsx    # Shopping list + auto-generate from dishes
+│         │     └── api.js        # API layer (all CRUD for all entities incl. posts)
+│         └── components/
+│             ├── Home.jsx          # Dashboard with clickable stat cards
+│             ├── FamiliesPage.jsx     # Add/remove families with members
+│             ├── DinnersPage.jsx      # Plan/edit dinners (date, time, location, notes, guests)
+│             ├── DinnerDetail.jsx     # Dinner summary: countdown, guest list, dishes, blog
+│             ├── DishesPage.jsx       # Assign dishes to families by category
+│             └── ShoppingPage.jsx     # Shopping list + auto-generate from dishes
 └── backend/
-     ├── Dockerfile
-     ├── package.json
-     └── server.js               # Express API (fs read/write, NO lowdb)
+      ├── Dockerfile
+      ├── package.json
+      └── server.js                # Express API (auto CRUD generator + posts collection)
 ```
 
 ## DATA MODEL (JSON file at /app/data/data.json)
 
 ```json
 {
-  "families": [
-    { "id": "123", "name": "המשפחה של רותי", "members": ["רותי", "יונתן"], "defaultAttendees": 2 }
-  ],
-  "dinners": [
-    { "id": "123", "name": "ארוחת שבת", "date": "2024-12-01", "time": "19:00", "location": "אצל רותי", "notes": "...", "guestList": [{"familyId": "456", "attendees": 3}] }
-  ],
-  "dishes": [
-    { "id": "123", "name": "חומץ", "category": "main", "familyId": "456", "dinnerId": "789", "ingredientList": "..." }
-  ],
-  "shoppingItems": [
-    { "id": "123", "name": "עגבניות", "quantity": "2 קילו", "purchaser": "רותי", "purchased": false }
-  ],
-  "posts": [
-    { "id": "123", "dinnerId": "456", "author": "רותי", "message": "אני אביא סלט!", "createdAt": "2024-12-01T18:00:00Z" }
-  ]
+   "families": [
+     { "id": "123", "name": "המשפחה של רותי", "members": ["רותי", "יונתן"] }
+   ],
+   "dinners": [
+     { "id": "123", "name": "ארוחת שבת", "date": "2024-12-01", "time": "19:00", "location": "אצל רותי", "notes": "...", "guestList": [{ "familyId": "456", "attendees": 3 }] }
+   ],
+   "dishes": [
+     { "id": "123", "name": "חומץ", "category": "main", "familyId": "456", "dinnerId": "789", "ingredientList": "..." }
+   ],
+   "shoppingItems": [
+     { "id": "123", "name": "עגבניות", "quantity": "2 קילו", "purchaser": "רותי", "purchased": false }
+   ],
+   "posts": [
+     { "id": "123", "dinnerId": "456", "author": "רותי", "message": "אני אביא סלט!", "createdAt": "2024-12-01T18:00:00Z" }
+   ]
 }
 ```
 
@@ -96,34 +96,82 @@ projects/dinnerplan/
 All routes prefixed with `/api/`:
 - `/api/health` - Health check
 - `/api/data` (GET/POST) - Get/save all data
-- `/api/families` (GET, POST) - List/create families
-- `/api/families/:id` (PUT, DELETE) - Update/delete family
-- `/api/dinners` (GET, POST) - List/create dinners
-- `/api/dinners/:id` (PUT, DELETE) - Update/delete dinner
-- `/api/dishes` (GET, POST) - List/create dishes
-- `/api/dishes/:id` (PUT, DELETE) - Update/delete dish
-- `/api/shopping` (GET, POST) - List/create shopping items
-- `/api/shopping/:id` (PUT, DELETE) - Update/delete shopping item
-- `/api/posts` (GET, POST) - List/create posts
-- `/api/posts/:id` (PUT, DELETE) - Update/delete post
+- `/api/families` (CRUD) - Family management
+- `/api/dinners` (CRUD) - Dinner management
+- `/api/dishes` (CRUD) - Dish management
+- `/api/shopping` (CRUD) - Shopping items (collection name: `shoppingItems`)
+- `/api/posts` (CRUD) - Blog posts per dinner
+
+Backend uses auto-generated CRUD routes via `crudRoutes(name, collection)` helper.
+
+## ROUTES (Frontend)
+
+- `/` → Home (clickable stat cards, upcoming dinners, quick actions)
+- `/families` → Families management (add/remove families)
+- `/dinners` → Dinners list (create/edit/delete, with time, guests)
+- `/dinner/:id` → Dinner detail (countdown, editable guest list, dishes summary, blog posts)
+- `/dishes` → All dishes (filter by category)
+- `/dishes/:dinnerId` → Dishes for specific dinner
+- `/shopping` → Shopping list (auto-generate from dishes, track purchased)
+
+## KEY FEATURES
+
+### Home Page
+- **Clickable stat cards** - Families, Dinners, Dishes, Shopping cards link to their pages
+- **Upcoming dinners** - Shows upcoming dinners with date, time, location, attendee count
+- **Quick action cards** - Same 4 sections as clickable tiles
+
+### Families
+- Add family (name + members comma-separated)
+- Delete family
+- Each family gets an avatar color
+
+### Dinners
+- Create: name, date, **time**, location, notes, guest families
+- Edit: full edit mode for all fields
+- Guest families: enter family names → maps to family IDs
+- Default attendee count = family member count
+- Shows: date badge, time badge, location badge, total attendees
+
+### Dinner Detail Page
+- **Countdown** to the dinner (days, hours, minutes)
+- **Date/Time/Location** display with badges
+- **Guest list** with editable attendance (−/+ buttons per family)
+- **Dishes summary** showing dishes assigned to this dinner
+- **Blog posts** - threaded comments per dinner (name + message + timestamp)
+
+### Dishes
+- Categories: appetizer, main, salad, dessert, drink, bread, other
+- Assign to family, link to dinner, ingredient list
+- Filter by category
+
+### Shopping
+- List with checkboxes (mark as purchased)
+- Auto-generate from dish ingredients
+- Track who buys what
 
 ## DEPLOY WORKFLOW
 
-### Quick deploy (recommended - rebuild frontend only):
+### Quick frontend-only deploy (most common):
 ```bash
 ssh -i ~/.ssh/dev-env-server naor@192.168.131.134 "cd /home/elkayam/dev-env && git pull origin main && cd projects/dinnerplan && docker compose build frontend --no-cache && docker compose up -d frontend"
 ```
 
-### Full deploy (rebuilds everything):
+### Full rebuild (when backend changes):
 ```bash
-ssh -i ~/.ssh/dev-env-server naor@192.168.131.134 "cd /home/elkayam/dev-env && ./deploy-all.sh"
+ssh -i ~/.ssh/dev-env-server naor@192.168.131.134 "cd /home/elkayam/dev-env && git pull origin main && cd projects/dinnerplan && docker compose down && docker compose build --no-cache && docker compose up -d"
 ```
 
 ### Local workflow:
 1. Make changes in `dev-env/projects/dinnerplan/`
 2. Commit & push: `cd dev-env && git add -A && git commit -m "msg" && git push origin main`
-3. Deploy via SSH (see above)
+3. Deploy via SSH (pick command above based on what changed)
 4. Hard refresh browser (Cmd+Shift+R)
+
+## GIT TAGS
+
+- `v1.0-framework` - Complete framework (before customizations)
+- Current: Feature-complete with time, detail page, blog, edit mode
 
 ## CRITICAL GOTCHAS
 
@@ -135,15 +183,18 @@ ssh -i ~/.ssh/dev-env-server naor@192.168.131.134 "cd /home/elkayam/dev-env && .
 6. **HashRouter**: Used instead of BrowserRouter.
 7. **Browser caching**: Hard refresh (Cmd+Shift+R) after frontend updates.
 8. **Nginx reload**: `sudo /usr/sbin/nginx -s reload` works (passwordless sudo).
-9. **Deploy script**: Now uses `sudo /usr/sbin/nginx` for nginx operations.
+9. **Deploy script**: Uses `sudo /usr/sbin/nginx` for nginx operations.
+10. **Guest family mapping**: Form stores family names as text → maps to IDs on submit via `families.find()`.
+11. **Dinner detail route**: `/dinner/:id` (singular) to avoid conflicts with `/dishes/:dinnerId`.
 
-## IN PROGRESS (May 14, 2026)
+## TODO / Next Ideas
 
-### Customizations requested:
-1. ✅ Home page stat cards should be links to their pages
-2. In progress: Add time field to dinners
-3. In progress: Dinner detail page with summary, countdown, guest list with editable attendance
-4. In progress: Blog/thread posts on dinner detail page
+- [ ] WhatsApp/Share export for shopping lists per family
+- [ ] Print-friendly view of dinner summary
+- [ ] Meal suggestion / rotation helpers
+- [ ] Invite/invite link per dinner
+- [ ] Calendar export (iCal)
+- [ ] Notifications/reminders
 
 ## GITHUB
 
