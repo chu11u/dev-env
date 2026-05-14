@@ -13,6 +13,7 @@ const DEFAULT_DATA = {
   dinners: [],
   dishes: [],
   shoppingItems: [],
+  posts: [],
 };
 
 function loadData() {
@@ -32,6 +33,39 @@ function saveData(data) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
 }
 
+// Helper: CRUD generator for a collection
+function crudRoutes(name, collection) {
+  app.get(`/api/${collection}`, (req, res) => {
+    res.json(loadData()[collection] || []);
+  });
+
+  app.post(`/api/${collection}`, (req, res) => {
+    const data = loadData();
+    const item = { id: Date.now().toString(), ...req.body };
+    (data[collection] || (data[collection] = [])).push(item);
+    saveData(data);
+    res.status(201).json(item);
+  });
+
+  app.put(`/api/${collection}/:id`, (req, res) => {
+    const data = loadData();
+    const arr = data[collection] || [];
+    const idx = arr.findIndex((x) => x.id === req.params.id);
+    if (idx === -1) return res.status(404).json({ error: "Not found" });
+    arr[idx] = { ...arr[idx], ...req.body };
+    saveData(data);
+    res.json(arr[idx]);
+  });
+
+  app.delete(`/api/${collection}/:id`, (req, res) => {
+    const data = loadData();
+    const arr = data[collection] || [];
+    data[collection] = arr.filter((x) => x.id !== req.params.id);
+    saveData(data);
+    res.json({ success: true });
+  });
+}
+
 // ===== Health =====
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", project: "dinnerplan", uptime: process.uptime() });
@@ -47,121 +81,12 @@ app.post("/api/data", (req, res) => {
   res.json({ success: true });
 });
 
-// ===== Families =====
-app.get("/api/families", (req, res) => {
-  res.json(loadData().families);
-});
-
-app.post("/api/families", (req, res) => {
-  const data = loadData();
-  const family = { id: Date.now().toString(), ...req.body };
-  data.families.push(family);
-  saveData(data);
-  res.status(201).json(family);
-});
-
-app.put("/api/families/:id", (req, res) => {
-  const data = loadData();
-  const idx = data.families.findIndex((f) => f.id === req.params.id);
-  if (idx === -1) return res.status(404).json({ error: "Not found" });
-  data.families[idx] = { ...data.families[idx], ...req.body };
-  saveData(data);
-  res.json(data.families[idx]);
-});
-
-app.delete("/api/families/:id", (req, res) => {
-  const data = loadData();
-  data.families = data.families.filter((f) => f.id !== req.params.id);
-  saveData(data);
-  res.json({ success: true });
-});
-
-// ===== Dinners =====
-app.get("/api/dinners", (req, res) => {
-  res.json(loadData().dinners);
-});
-
-app.post("/api/dinners", (req, res) => {
-  const data = loadData();
-  const dinner = { id: Date.now().toString(), ...req.body };
-  data.dinners.push(dinner);
-  saveData(data);
-  res.status(201).json(dinner);
-});
-
-app.put("/api/dinners/:id", (req, res) => {
-  const data = loadData();
-  const idx = data.dinners.findIndex((d) => d.id === req.params.id);
-  if (idx === -1) return res.status(404).json({ error: "Not found" });
-  data.dinners[idx] = { ...data.dinners[idx], ...req.body };
-  saveData(data);
-  res.json(data.dinners[idx]);
-});
-
-app.delete("/api/dinners/:id", (req, res) => {
-  const data = loadData();
-  data.dinners = data.dinners.filter((d) => d.id !== req.params.id);
-  saveData(data);
-  res.json({ success: true });
-});
-
-// ===== Dishes =====
-app.get("/api/dishes", (req, res) => {
-  res.json(loadData().dishes);
-});
-
-app.post("/api/dishes", (req, res) => {
-  const data = loadData();
-  const dish = { id: Date.now().toString(), ...req.body };
-  data.dishes.push(dish);
-  saveData(data);
-  res.status(201).json(dish);
-});
-
-app.put("/api/dishes/:id", (req, res) => {
-  const data = loadData();
-  const idx = data.dishes.findIndex((d) => d.id === req.params.id);
-  if (idx === -1) return res.status(404).json({ error: "Not found" });
-  data.dishes[idx] = { ...data.dishes[idx], ...req.body };
-  saveData(data);
-  res.json(data.dishes[idx]);
-});
-
-app.delete("/api/dishes/:id", (req, res) => {
-  const data = loadData();
-  data.dishes = data.dishes.filter((d) => d.id !== req.params.id);
-  saveData(data);
-  res.json({ success: true });
-});
-
-// ===== Shopping =====
-app.get("/api/shopping", (req, res) => {
-  res.json(loadData().shoppingItems);
-});
-
-app.post("/api/shopping", (req, res) => {
-  const data = loadData();
-  const item = { id: Date.now().toString(), ...req.body };
-  data.shoppingItems.push(item);
-  saveData(data);
-  res.status(201).json(item);
-});
-
-app.put("/api/shopping/:id", (req, res) => {
-  const data = loadData();
-  const idx = data.shoppingItems.findIndex((i) => i.id === req.params.id);
-  if (idx === -1) return res.status(404).json({ error: "Not found" });
-  data.shoppingItems[idx] = { ...data.shoppingItems[idx], ...req.body };
-  saveData(data);
-  res.json(data.shoppingItems[idx]);
-});
-
-app.delete("/api/shopping/:id", (req, res) => {
-  const data = loadData();
-  data.shoppingItems = data.shoppingItems.filter((i) => i.id !== req.params.id);
-  saveData(data);
-  res.json({ success: true });
-});
+// ===== Collections (auto CRUD) =====
+crudRoutes("Families", "families");
+crudRoutes("Dinners", "dinners");
+crudRoutes("Dishes", "dishes");
+crudRoutes("Shopping", "shoppingItems");
+crudRoutes("Posts", "posts");
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, "0.0.0.0", () => {

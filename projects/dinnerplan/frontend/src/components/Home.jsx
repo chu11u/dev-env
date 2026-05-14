@@ -14,9 +14,9 @@ const Home = ({ families, dinners, dishes, shopping }) => {
         <p>תכנון ארוחות משפחתיות - כל מה שצריך במקום אחד</p>
       </div>
 
-      {/* Stats overview */}
+      {/* Stats overview - clickable cards */}
       <div className="grid-2" style={{ marginBottom: 32 }}>
-        <div className="card">
+        <Link to="/families" className="stat-card">
           <div className="family-card">
             <div className="family-avatar" style={{ background: "#E8734A" }}>
               👨‍👩‍👧‍👦
@@ -26,9 +26,9 @@ const Home = ({ families, dinners, dishes, shopping }) => {
               <p>המשפחות שמשתתפות</p>
             </div>
           </div>
-        </div>
+        </Link>
 
-        <div className="card">
+        <Link to="/dinners" className="stat-card">
           <div className="family-card">
             <div className="family-avatar" style={{ background: "#6B8F71" }}>
               🍽️
@@ -38,9 +38,9 @@ const Home = ({ families, dinners, dishes, shopping }) => {
               <p>ארוחות שנקבעו מראש</p>
             </div>
           </div>
-        </div>
+        </Link>
 
-        <div className="card">
+        <Link to="/dishes" className="stat-card">
           <div className="family-card">
             <div className="family-avatar" style={{ background: "#F4B942" }}>
               🥘
@@ -50,9 +50,9 @@ const Home = ({ families, dinners, dishes, shopping }) => {
               <p>מנות שתוכננו</p>
             </div>
           </div>
-        </div>
+        </Link>
 
-        <div className="card">
+        <Link to="/shopping" className="stat-card">
           <div className="family-card">
             <div className="family-avatar" style={{ background: "#7B9ED7" }}>
               🛒
@@ -64,54 +64,6 @@ const Home = ({ families, dinners, dishes, shopping }) => {
               <p>עוד צריך לקנות</p>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Quick actions */}
-      <div className="page-header">
-        <h2>פעולות מהירות</h2>
-      </div>
-      <div className="grid-2">
-        <Link
-          to="/families"
-          className="card"
-          style={{ textAlign: "center", textDecoration: "none" }}
-        >
-          <div style={{ fontSize: 48, marginBottom: 12 }}>👨‍👩‍👧‍👦</div>
-          <h3>ניהול משפחות</h3>
-          <p style={{ color: "var(--color-text-light)" }}>הוסף ונהל משפחות</p>
-        </Link>
-
-        <Link
-          to="/dinners"
-          className="card"
-          style={{ textAlign: "center", textDecoration: "none" }}
-        >
-          <div style={{ fontSize: 48, marginBottom: 12 }}>📅</div>
-          <h3>תכנון ארוחות</h3>
-          <p style={{ color: "var(--color-text-light)" }}>
-            קבע תאריכים ומיקומים
-          </p>
-        </Link>
-
-        <Link
-          to="/dishes"
-          className="card"
-          style={{ textAlign: "center", textDecoration: "none" }}
-        >
-          <div style={{ fontSize: 48, marginBottom: 12 }}>🥘</div>
-          <h3>תכנון מנות</h3>
-          <p style={{ color: "var(--color-text-light)" }}>מי מכין מה?</p>
-        </Link>
-
-        <Link
-          to="/shopping"
-          className="card"
-          style={{ textAlign: "center", textDecoration: "none" }}
-        >
-          <div style={{ fontSize: 48, marginBottom: 12 }}>🛒</div>
-          <h3>רשימת קניות</h3>
-          <p style={{ color: "var(--color-text-light)" }}>מה צריך לקנות</p>
         </Link>
       </div>
 
@@ -122,7 +74,11 @@ const Home = ({ families, dinners, dishes, shopping }) => {
             <h2>ארוחות קרובות</h2>
           </div>
           {upcomingDinners.map((dinner) => (
-            <div key={dinner.id} className="card">
+            <Link
+              key={dinner.id}
+              to={`/dinner/${dinner.id}`}
+              className="dinner-link-card"
+            >
               <div className="family-card">
                 <div
                   className="family-avatar"
@@ -134,15 +90,60 @@ const Home = ({ families, dinners, dishes, shopping }) => {
                   <h3>{dinner.name || "ארוחה"}</h3>
                   <p>
                     {dinner.date &&
-                      new Date(dinner.date).toLocaleDateString("he-IL")}
+                      new Date(
+                        `${dinner.date}T${dinner.time || "19:00"}`,
+                      ).toLocaleDateString("he-IL")}
+                    {dinner.time && <span> {dinner.time}</span>}
                     {dinner.location && ` • ${dinner.location}`}
                   </p>
+                  {dinner.guestList && dinner.guestList.length > 0 && (
+                    <p style={{ fontSize: 14 }}>
+                      🍴{" "}
+                      {dinner.guestList.reduce(
+                        (sum, g) => sum + (g.attendees || 0),
+                        0,
+                      )}{" "}
+                      אנשים מתוכננים
+                    </p>
+                  )}
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}
+
+      {/* Quick actions */}
+      <div className="page-header" style={{ marginTop: 32 }}>
+        <h2>פעולות מהירות</h2>
+      </div>
+      <div className="grid-2">
+        <Link to="/families" className="action-card">
+          <div style={{ fontSize: 48, marginBottom: 12 }}>👨‍👩‍👧‍👦</div>
+          <h3>ניהול משפחות</h3>
+          <p style={{ color: "var(--color-text-light)" }}>הוסף ונהל משפחות</p>
+        </Link>
+
+        <Link to="/dinners" className="action-card">
+          <div style={{ fontSize: 48, marginBottom: 12 }}>📅</div>
+          <h3>תכנון ארוחות</h3>
+          <p style={{ color: "var(--color-text-light)" }}>
+            קבע תאריכים ומיקומים
+          </p>
+        </Link>
+
+        <Link to="/dishes" className="action-card">
+          <div style={{ fontSize: 48, marginBottom: 12 }}>🥘</div>
+          <h3>תכנון מנות</h3>
+          <p style={{ color: "var(--color-text-light)" }}>מי מכין מה?</p>
+        </Link>
+
+        <Link to="/shopping" className="action-card">
+          <div style={{ fontSize: 48, marginBottom: 12 }}>🛒</div>
+          <h3>רשימת קניות</h3>
+          <p style={{ color: "var(--color-text-light)" }}>מה צריך לקנות</p>
+        </Link>
+      </div>
     </div>
   );
 };

@@ -1,5 +1,5 @@
 # Dinnerplan Project Memory Dump
-# Updated: Nov 2024
+# Updated: May 14, 2026
 # Use this to continue the project in a new conversation
 
 ## PROJECT OVERVIEW
@@ -28,6 +28,7 @@ Backend (Express + fs JSON) → port 30041
 - **Persistent data**: `/home/elkayam/dev-env/project-data/dinnerplan/data/data.json`
 - **Docker containers**: `dinnerplan-frontend`, `dinnerplan-backend`
 - **Ports**: Frontend 3004, Backend 30041
+- **Nginx**: `sudo /usr/sbin/nginx -s reload` works (passwordless sudo configured)
 
 ## STACK
 
@@ -42,56 +43,59 @@ Backend (Express + fs JSON) → port 30041
 
 ```
 projects/dinnerplan/
-├── docker-compose.yml         # 2 services: frontend + backend (NO version attr needed)
+├── docker-compose.yml          # 2 services: frontend + backend
 ├── .gitignore
 ├── frontend/
-│   ├── Dockerfile             # Node builder + preview (no volume mount!)
+│   ├── Dockerfile              # Node builder + preview (no volume mount!)
 │   ├── package.json
 │   ├── vite.config.js
-│   ├── index.html             # Hebrew RTL, Heebo font
+│   ├── index.html              # Hebrew RTL, Heebo font
 │   └── src/
-│       ├── main.jsx            # Entry point
-│       ├── App.jsx             # Router + Layout + global data fetch
-│       ├── index.css           # Global styles (warm theme, RTL, responsive)
+│       ├── main.jsx             # Entry point
+│       ├── App.jsx              # Router + Layout + global data fetch
+│       ├── index.css            # Global styles (warm theme, RTL, responsive)
 │       ├── data/
-│        │   └── api.js          # API layer (all CRUD for 4 entities)
+│        │    └── api.js         # API layer (all CRUD for all entities)
 │        └── components/
-│            ├── Home.jsx         # Dashboard with stats + quick actions
-│            ├── FamiliesPage.jsx   # Add/remove families with members
-│            ├── DinnersPage.jsx    # Plan dinners (date, location, notes)
-│            ├── DishesPage.jsx     # Assign dishes to families by category
-│            └── ShoppingPage.jsx   # Shopping list + auto-generate from dishes
+│            ├── Home.jsx          # Dashboard with stats + quick actions
+│            ├── FamiliesPage.jsx    # Add/remove families with members
+│            ├── DinnersPage.jsx     # Plan dinners (date, time, location, notes)
+│            ├── DinnerDetail.jsx    # Dinner summary page (in progress)
+│            ├── DishesPage.jsx      # Assign dishes to families by category
+│            └── ShoppingPage.jsx    # Shopping list + auto-generate from dishes
 └── backend/
      ├── Dockerfile
      ├── package.json
-     └── server.js              # Express API (fs read/write, NO lowdb)
+     └── server.js               # Express API (fs read/write, NO lowdb)
 ```
 
 ## DATA MODEL (JSON file at /app/data/data.json)
 
 ```json
 {
-    "families": [
-       { "id": "123", "name": "המשפחה של רותי", "members": ["רותי", "יונתן", "דניאל"] }
-    ],
-    "dinners": [
-       { "id": "123", "name": "ארוחת שבת", "date": "2024-12-01", "location": "אצל רותי", "notes": "..." }
-    ],
-    "dishes": [
-       { "id": "123", "name": "חומץ", "category": "main", "familyId": "456", "dinnerId": "789", "ingredientList": "..." }
-    ],
-    "shoppingItems": [
-       { "id": "123", "name": "עגבניות", "quantity": "2 קילו", "purchaser": "רותי", "purchased": false }
-    ]
+  "families": [
+    { "id": "123", "name": "המשפחה של רותי", "members": ["רותי", "יונתן"], "defaultAttendees": 2 }
+  ],
+  "dinners": [
+    { "id": "123", "name": "ארוחת שבת", "date": "2024-12-01", "time": "19:00", "location": "אצל רותי", "notes": "...", "guestList": [{"familyId": "456", "attendees": 3}] }
+  ],
+  "dishes": [
+    { "id": "123", "name": "חומץ", "category": "main", "familyId": "456", "dinnerId": "789", "ingredientList": "..." }
+  ],
+  "shoppingItems": [
+    { "id": "123", "name": "עגבניות", "quantity": "2 קילו", "purchaser": "רותי", "purchased": false }
+  ],
+  "posts": [
+    { "id": "123", "dinnerId": "456", "author": "רותי", "message": "אני אביא סלט!", "createdAt": "2024-12-01T18:00:00Z" }
+  ]
 }
 ```
 
 ## API ENDPOINTS (backend on port 30041)
 
 All routes prefixed with `/api/`:
-- `/api/health` - Health check (returns status + uptime)
-- `/api/data` (GET) - Get all data
-- `/api/data` (POST) - Save all data
+- `/api/health` - Health check
+- `/api/data` (GET/POST) - Get/save all data
 - `/api/families` (GET, POST) - List/create families
 - `/api/families/:id` (PUT, DELETE) - Update/delete family
 - `/api/dinners` (GET, POST) - List/create dinners
@@ -100,29 +104,19 @@ All routes prefixed with `/api/`:
 - `/api/dishes/:id` (PUT, DELETE) - Update/delete dish
 - `/api/shopping` (GET, POST) - List/create shopping items
 - `/api/shopping/:id` (PUT, DELETE) - Update/delete shopping item
-
-Frontend uses relative `/api` paths - nginx proxies to backend.
+- `/api/posts` (GET, POST) - List/create posts
+- `/api/posts/:id` (PUT, DELETE) - Update/delete post
 
 ## DEPLOY WORKFLOW
 
-### Full deploy (via SSH):
+### Quick deploy (recommended - rebuild frontend only):
+```bash
+ssh -i ~/.ssh/dev-env-server naor@192.168.131.134 "cd /home/elkayam/dev-env && git pull origin main && cd projects/dinnerplan && docker compose build frontend --no-cache && docker compose up -d frontend"
+```
+
+### Full deploy (rebuilds everything):
 ```bash
 ssh -i ~/.ssh/dev-env-server naor@192.168.131.134 "cd /home/elkayam/dev-env && ./deploy-all.sh"
-```
-
-### Manual rebuild (when deploy script misses latest commit):
-```bash
-ssh -i ~/.ssh/dev-env-server naor@192.168.131.134 "cd /home/elkayam/dev-env && git pull origin main && cd projects/dinnerplan && docker compose down && docker compose build --no-cache && docker compose up -d"
-```
-
-### Nginx reload (requires sudo on server):
-After first deploy or config changes, run on server:
-```bash
-sudo /usr/sbin/nginx -t && sudo /usr/sbin/nginx -s reload
-```
-Or from SSH (needs password):
-```bash
-ssh -i ~/.ssh/dev-env-server naor@192.168.131.134 "sudo /usr/sbin/nginx -s reload"
 ```
 
 ### Local workflow:
@@ -131,55 +125,25 @@ ssh -i ~/.ssh/dev-env-server naor@192.168.131.134 "sudo /usr/sbin/nginx -s reloa
 3. Deploy via SSH (see above)
 4. Hard refresh browser (Cmd+Shift+R)
 
-## NGINX CONFIG
-
-- Config file: `/etc/nginx/sites-available/dinnerplan.apps.elkayam.me.conf`
-- Symlink: `/etc/nginx/sites-enabled/dinnerplan.apps.elkayam.me.conf`
-- Frontend proxied to port 3004
-- `/api/` proxied to port 30041 (NO trailing slash on proxy_pass!)
-- **NEEDS sudo reload after first deploy** - deploy script can't reload nginx (no sudo perms)
-
 ## CRITICAL GOTCHAS
 
-1. **NO lowdb!** Uses plain `fs` for JSON read/write (same as arcade). Initial lowdb attempt caused crashes.
-2. **NO volume mount on frontend!** Volume mounts overwrite node_modules → vite not found.
-3. **Backend volume**: Only mount data dir (`../../project-data/dinnerplan/data:/app/data`), NOT the full project.
-4. **docker compose version attr**: The `version: "3.8"` in docker-compose.yml triggers a warning. Can be removed.
+1. **NO lowdb!** Uses plain `fs` for JSON read/write.
+2. **NO volume mount on frontend!** Overwrites node_modules → vite crash.
+3. **Backend volume**: Only mount data dir (`../../project-data/dinnerplan/data:/app/data`).
+4. **`allowedHosts` (plural!)** in vite.config.js, NOT `allowedHost`.
 5. **Cached builds**: Use `docker compose build --no-cache` when changes don't take effect.
-6. **Vite allowedHosts**: Set to `true` in both server and preview sections.
-7. **HashRouter**: Used instead of BrowserRouter for static deployment behind nginx.
-8. **Browser caching**: Hard refresh (Cmd+Shift+R) after frontend updates.
-9. **Nginx reload needs sudo** - can't be done via deploy script. Must be done manually.
+6. **HashRouter**: Used instead of BrowserRouter.
+7. **Browser caching**: Hard refresh (Cmd+Shift+R) after frontend updates.
+8. **Nginx reload**: `sudo /usr/sbin/nginx -s reload` works (passwordless sudo).
+9. **Deploy script**: Now uses `sudo /usr/sbin/nginx` for nginx operations.
 
-## PROJECT STATUS
+## IN PROGRESS (May 14, 2026)
 
-### ✅ Framework Complete & Running:
-- [x] Docker compose (2 services: frontend + backend)
-- [x] Backend API (CRUD for families, dinners, dishes, shopping) - plain fs
-- [x] Frontend (React + Vite, RTL Hebrew, warm design)
-- [x] Home dashboard (stats overview + quick actions)
-- [x] Families page (add/remove families with members)
-- [x] Dinners page (plan dinners with date, location, notes)
-- [x] Dishes page (assign dishes to families, filter by category)
-- [x] Shopping page (list management, auto-generate from dishes)
-- [x] Warm color palette + Heebo font + responsive layout
-- [x] Commit & push to GitHub
-- [x] Deployed to server - containers running (ports 3004, 30041)
-- [x] Nginx config in place (needs sudo reload to activate)
-
-### 🔴 BLOCKER:
-- [ ] **Nginx reload needed** - Run on server: `sudo /usr/sbin/nginx -s reload`
-  - After this, `dinnerplan.apps.elkayam.me` will be accessible
-
-### TODO / Next Iterations:
-- [ ] Test on live server and fix any issues
-- [ ] Edit mode for dinners, dishes, shopping items (currently only create/delete)
-- [ ] Better dish-to-dinner linking in UI
-- [ ] WhatsApp/Share export for shopping lists per family
-- [ ] Print-friendly view
-- [ ] Meal suggestion / rotation helpers
-- [ ] Guest count per family per dinner
-- [ ] Invite / notification system?
+### Customizations requested:
+1. ✅ Home page stat cards should be links to their pages
+2. In progress: Add time field to dinners
+3. In progress: Dinner detail page with summary, countdown, guest list with editable attendance
+4. In progress: Blog/thread posts on dinner detail page
 
 ## GITHUB
 
