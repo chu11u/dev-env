@@ -243,10 +243,10 @@ for link in "$NGINX_ENABLED"/*.apps.elkayam.me.conf; do
     fi
 done
 
-nginx -t 2>&1 | grep -v "nginx: the configuration file .* syntax is ok"
+sudo /usr/sbin/nginx -t 2>&1 | grep -v "nginx: the configuration file .* syntax is ok"
 NGINX_EXIT=${PIPESTATUS[0]}
 if [ $NGINX_EXIT -eq 0 ]; then
-    systemctl reload nginx 2>/dev/null || service nginx reload 2>/dev/null || {
+    sudo /usr/sbin/nginx -s reload 2>/dev/null || {
         log "     ⚠️  Config OK but reload failed"
         SUMMARY_WARN+=("Nginx reload failed")
     }
@@ -254,7 +254,7 @@ if [ $NGINX_EXIT -eq 0 ]; then
     SUMMARY_OK+=("Nginx configs ($NGINX_APPLIED)")
 else
     log "${RED}     ❌ Nginx config FAILED!${NC}"
-    nginx -t 2>&1
+    sudo /usr/sbin/nginx -t 2>&1
     SUMMARY_FAIL+=("Nginx config test failed")
 fi
 
