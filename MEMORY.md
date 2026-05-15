@@ -5,14 +5,27 @@
 ## ARCHITECTURE
 
 ```
-Internet → NPM (*.apps.elkayam.me, TLS) → nginx (192.168.131.134:80) → Docker containers
-
-Subdomains:
-  dev.apps.elkayam.me          → code-server (VS Code IDE)
-  clock.apps.elkayam.me        → Clock dashboard (static HTML)
-  todo.apps.elkayam.me         → Todo app (React + Vite)
-  arcade.apps.elkayam.me       → Family Arcade (React + Express API)
+Local network:   Technitium DNS (*.apps.elkayam.me → 192.168.131.134) → nginx:80 → containers
+External:        Cloudflare DNS (*.elkayam.fun) → cloudflared tunnel → nginx:80 → containers
 ```
+
+**Domains**:
+- `*.apps.elkayam.me` — Local access via Technitium DNS + NPM (TLS)
+- `*.elkayam.fun` — External access via Cloudflare DNS + tunnel (Cloudflare TLS)
+
+**Apps**:
+- `dev.apps.elkayam.me` → code-server (VS Code IDE, port 8080)
+- `clock.apps.elkayam.me` → Clock dashboard (static HTML, port 3002)
+- `arcade.apps.elkayam.me` / `arcade.elkayam.fun` → Family Arcade (React + Express, ports 3003/30031)
+- `dinnerplan.apps.elkayam.me` / `dinnerplan.elkayam.fun` → Dinner planner (React + Express, ports 3004/30041)
+
+**Cloudflare tunnel** (`docker-compose.cloudflare.yml`):
+- Single `cloudflared` container with `network_mode: host`
+- Routes all `*.elkayam.fun` → nginx port 80
+- Token in `.env.cloudflare` (git-ignored, env var `TUNNEL_TOKEN`)
+- Configured via Cloudflare Zero Trust dashboard → Tunnels → ingress rules
+- Each app needs an ingress rule: `appname.elkayam.fun` → `http://localhost:80`
+- Catch-all rule: `*` → `http://nowhere`
 
 ## SERVER (LXC Container - Debian 12)
 
@@ -20,9 +33,10 @@ Subdomains:
 - **SSH**: `ssh -i ~/.ssh/dev-env-server naor@192.168.131.134` (key-based auth)
 - **Docker**: 20.10.24 + compose plugin (v2.x) — `naor` user in docker group
 - **nginx**: 1.22.1 on port 80
-- **Domain**: elkayam.me (Technitium DNS + NPM for TLS)
-- **NPM config**: `*.apps.elkayam.me` → `192.168.131.134:80` (http, NPM handles TLS)
+- **Domain**: elkayam.me (Technitium DNS + NPM for TLS, local only)
+- **External domain**: elkayam.fun (Cloudflare DNS + tunnel)
 - **Technitium**: Wildcard A record `*.apps` → server's public IP
+- **Nginx**: `server_name` includes both `.apps.elkayam.me` and `.elkayam.fun` (auto-generated)
 - **Files owned by**: `naor` (was `root`/`elkayam`, fixed with `sudo chown -R naor:naor`)
 
 ## PROJECT PATHS
@@ -35,8 +49,11 @@ Subdomains:
 
 ```
 dev-env/
-├── deploy-all.sh                   # Main deploy script (self-updates, see below)
-├── .env                            # code-server password
+├── deploy-all.sh                     # Main deploy script (self-updates, see below)
+├── .env                              # code-server password
+├── .env.cloudflare                   # Tunnel token (git-ignored)
+├── docker-compose.cloudflare.yml    # Cloudflare tunnel (cloudflared)
+├── docker-compose.yml               # code-server
 ├── nginx-dev.apps.elkayam.me.conf # code-server nginx config
 ├── nginx-project-template.conf     # Template for single-service projects
 ├── project-data/                   # PERSISTENT DATA (outside git, auto-migrated)

@@ -6,18 +6,21 @@
 
 **Name**: dinnerplan
 **Purpose**: App to plan family dinners with the user's wife's sisters and their families.
-**Subdomain**: `dinnerplan.apps.elkayam.me`
+**Subdomain**: `dinnerplan.apps.elkayam.me` (local), `dinnerplan.elkayam.fun` (external via Cloudflare)
 **Language**: Hebrew (RTL) - all UI text is in Hebrew, layout is RTL
 **Look & Feel**: Warm and friendly - warm color palette (oranges, greens, golds), rounded cards, emoji icons
 
-## ARCHITECTURE
+## ACCESS ARCHITECTURE
 
 ```
-Internet → NPM (*.apps.elkayam.me, TLS) → nginx (192.168.131.134:80) → Docker containers
-
-Frontend (React + Vite) → port 3004
-Backend (Express + fs JSON) → port 30041
+Local network:   Technitium DNS (*.apps.elkayam.me → 192.168.131.134) → nginx:80 → containers
+External:        Cloudflare DNS (*.elkayam.fun) → cloudflared tunnel → nginx:80 → containers
 ```
+
+- **Cloudflare tunnel** (`cloudflared` in Docker, `network_mode: host`) routes all `*.elkayam.fun` → nginx port 80
+- **Single tunnel** serves ALL apps - no per-app tunnel needed
+- **Config**: `dev-env/docker-compose.cloudflare.yml` + `.env.cloudflare` (git-ignored, token via `TUNNEL_TOKEN` env var)
+- **Cloudflare DNS ingress rule**: `dinnerplan.elkayam.fun` → `http://localhost:80`
 
 ## SERVER
 
@@ -187,7 +190,7 @@ ssh -i ~/.ssh/dev-env-server naor@192.168.131.134 "cd /home/elkayam/dev-env && g
 - `v1.0-framework` - Complete framework (before customizations)
 - Current: Feature-complete with time, detail page, blog, edit mode
 
-- **Current commit**: `9485857` — Everything deployed and working. Data migrated to `dinnerDishes` table.
+- **Current commit**: `c9fa016` — Cloudflare tunnel + dual-domain nginx. Data migrated to `dinnerDishes` table.
 
 ## CRITICAL GOTCHAS
 
