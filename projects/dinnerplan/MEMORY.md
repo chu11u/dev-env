@@ -167,8 +167,6 @@ Backend uses auto-generated CRUD routes via `crudRoutes(name, collection)` helpe
 
 ## DEPLOY WORKFLOW
 
-⚠️ **Pending deploy** (May 15): Dish→dinner redesign + auto-migration not yet deployed. Server was unreachable.
-
 ### Quick frontend-only deploy (most common):
 ```bash
 ssh -i ~/.ssh/dev-env-server naor@192.168.131.134 "cd /home/elkayam/dev-env && git pull origin main && cd projects/dinnerplan && docker compose build frontend --no-cache && docker compose up -d frontend"
