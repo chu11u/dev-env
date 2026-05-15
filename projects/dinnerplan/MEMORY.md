@@ -98,7 +98,6 @@ projects/dinnerplan/
 **`dinnerDishes`** links a dish to a dinner + family assignment.
 Same dish can be assigned to multiple dinners with different families.
 Auto-migration runs on backend startup to convert old data.
-```
 
 ## API ENDPOINTS (backend on port 30041)
 
@@ -187,6 +186,8 @@ ssh -i ~/.ssh/dev-env-server naor@192.168.131.134 "cd /home/elkayam/dev-env && g
 
 - `v1.0-framework` - Complete framework (before customizations)
 - Current: Feature-complete with time, detail page, blog, edit mode
+
+- **Current commit**: `9485857` — Everything deployed and working. Data migrated to `dinnerDishes` table.
 
 ## CRITICAL GOTCHAS
 
