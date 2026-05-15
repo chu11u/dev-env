@@ -159,7 +159,7 @@ const DishesPage = ({
                )}
             </div>
             <div style={{ display: "flex", gap: 8 }}>
-              {dinnerId \u0026\u0026 (
+              {dinnerId && (
                 <button
                   className="btn btn-secondary"
                   onClick={() => setShowAssignModal(true)}
@@ -225,7 +225,7 @@ const DishesPage = ({
                         <span className="badge badge-primary">
                           {getCategoryLabel(dish.category)}
                         </span>
-                        {dish.ingredientList \u0026\u0026 (
+                        {dish.ingredientList && (
                           <p
                             style={{
                               marginTop: 8,
@@ -237,7 +237,7 @@ const DishesPage = ({
                           </p>
                          )}
                         {/* Show which dinners this dish is assigned to */}
-                        {assignedDinners.length \u003e 0 \u0026\u0026 (
+                        {assignedDinners.length > 0 && (
                           <div style={{ marginTop: 8 }}>
                             {assignedDinners.map((dd) => (
                               <span
@@ -296,7 +296,7 @@ const DishesPage = ({
           )}
 
           {/* Create/Edit dish modal */}
-          {showModal \u0026\u0026 (
+          {showModal && (
             <div
               className="modal-overlay"
               onClick={() => {
@@ -374,7 +374,7 @@ const DishesPage = ({
           )}
 
           {/* Assign dish to dinner modal */}
-          {showAssignModal \u0026\u0026 (
+          {showAssignModal && (
             <div
               className="modal-overlay"
               onClick={() => setShowAssignModal(null)}
@@ -411,7 +411,7 @@ const DishesPage = ({
                             {getCategoryLabel(dish.category)}
                           </span>
                         </div>
-                        {dish.ingredientList \u0026\u0026 (
+                        {dish.ingredientList && (
                           <p style={{ fontSize: 12, color: "var(--color-text-light)" }}>
                             🥦 {dish.ingredientList}
                           </p>
