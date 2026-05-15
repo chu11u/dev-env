@@ -54,6 +54,15 @@ export const api = {
   deleteShoppingItem: (id) =>
     request(`/shoppingItems/${id}`, { method: "DELETE" }),
 
+  // DinnerDishes (links dishes to dinners + family)
+  getDinnerDishes: () => request("/dinnerDishes"),
+  createDinnerDish: (item) =>
+    request("/dinnerDishes", { method: "POST", body: item }),
+  updateDinnerDish: (id, item) =>
+    request(`/dinnerDishes/${id}`, { method: "PUT", body: item }),
+  deleteDinnerDish: (id) =>
+    request(`/dinnerDishes/${id}`, { method: "DELETE" }),
+
   // Posts
   getPosts: () => request("/posts"),
   createPost: (post) => request("/posts", { method: "POST", body: post }),

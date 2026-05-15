@@ -73,22 +73,31 @@ projects/dinnerplan/
 
 ```json
 {
-   "families": [
-     { "id": "123", "name": "המשפחה של רותי", "members": ["רותי", "יונתן"] }
-   ],
-   "dinners": [
-     { "id": "123", "name": "ארוחת שבת", "date": "2024-12-01", "time": "19:00", "location": "אצל רותי", "notes": "...", "guestList": [{ "familyId": "456", "attendees": 3 }] }
-   ],
-   "dishes": [
-     { "id": "123", "name": "חומץ", "category": "main", "familyId": "456", "dinnerId": "789", "ingredientList": "..." }
-   ],
-   "shoppingItems": [
-     { "id": "123", "name": "עגבניות", "quantity": "2 קילו", "purchaser": "רותי", "purchased": false }
-   ],
-   "posts": [
-     { "id": "123", "dinnerId": "456", "author": "רותי", "message": "אני אביא סלט!", "createdAt": "2024-12-01T18:00:00Z" }
-   ]
+     "families": [
+       { "id": "123", "name": "המשפחה של רותי", "members": ["רותי", "יונתן"] }
+     ],
+     "dinners": [
+       { "id": "123", "name": "ארוחת שבת", "date": "2024-12-01", "time": "19:00", "location": "אצל רותי", "notes": "...", "guestList": [{ "familyId": "456", "attendees": 3 }] }
+     ],
+     "dishes": [
+       { "id": "123", "name": "חצילים בשמנת", "category": "salad", "ingredientList": "חצילים, שמנת", "notes": "..." }
+     ],
+     "dinnerDishes": [
+       { "id": "456", "dinnerId": "789", "dishId": "123", "familyId": "456" }
+     ],
+     "shoppingItems": [
+       { "id": "123", "name": "עגבניות", "quantity": "2 קילו", "purchaser": "רותי", "purchased": false }
+     ],
+     "posts": [
+       { "id": "123", "dinnerId": "456", "author": "רותי", "message": "אני אביא סלט!", "createdAt": "2024-12-01T18:00:00Z" }
+     ]
 }
+```
+
+**Dish model changed**: Dishes are now unique recipes (no `dinnerId`/`familyId`).
+**`dinnerDishes`** links a dish to a dinner + family assignment.
+Same dish can be assigned to multiple dinners with different families.
+Auto-migration runs on backend startup to convert old data.
 ```
 
 ## API ENDPOINTS (backend on port 30041)
@@ -98,8 +107,9 @@ All routes prefixed with `/api/`:
 - `/api/data` (GET/POST) - Get/save all data
 - `/api/families` (CRUD) - Family management
 - `/api/dinners` (CRUD) - Dinner management
-- `/api/dishes` (CRUD) - Dish management
+- `/api/dishes` (CRUD) - Dish management (recipes only, no dinnerId/familyId)
 - `/api/shoppingItems` (CRUD) - Shopping items (collection name matches endpoint!)
+- `/api/dinnerDishes` (CRUD) - Links dishes to dinners + family assignment
 - `/api/posts` (CRUD) - Blog posts per dinner
 
 Backend uses auto-generated CRUD routes via `crudRoutes(name, collection)` helper.
@@ -140,16 +150,19 @@ Backend uses auto-generated CRUD routes via `crudRoutes(name, collection)` helpe
 - **Dishes summary** showing dishes assigned to this dinner
 - **Blog posts** - threaded comments per dinner (name + message + timestamp)
 
-### Dishes
+### Dishes (Recipe Database)
 - Categories: appetizer, main, salad, dessert, drink, bread, other
-- Assign to family, link to dinner, ingredient list
-- Filter by category
+- **Dishes are unique recipes** — no dinnerId/familyId on the dish itself
 - Edit existing dishes (full edit mode)
-- **Reuse existing dishes** - when adding a dish, expand "השתמש במנה קיימת" to see all existing dishes as templates. Click one to prefill the form with its name/category/ingredients, then assign to a different family/dinner.
+- Duplicate dishes to create variants
+- **Assign dishes to dinners** via `dinnerDishes` linking table
+- When viewing dishes for a dinner: "📌 חבר מנה קיימת" to pick from recipe DB + choose family
+- Shows which dinners each dish is assigned to (with family)
+- Unassign dishes directly from the dish card (✕ button)
 
 ### Shopping
 - List with checkboxes (mark as purchased)
-- Auto-generate from dish ingredients
+- Auto-generate from dishes assigned to dinners (via `dinnerDishes`)
 - Track who buys what
 
 ## DEPLOY WORKFLOW
@@ -198,6 +211,7 @@ ssh -i ~/.ssh/dev-env-server naor@192.168.131.134 "cd /home/elkayam/dev-env && g
 - **Dish edit** (May 15): Added full edit capability to DishesPage (openEdit → prefill form → save). Shows ingredient list on dish cards. Delete now requires confirmation.
 - **ErrorBoundary** (May 15): Added to catch and display React runtime errors instead of blank page.
 - **Data persistence verified**: Data JSON is safe in `/home/elkayam/dev-env/project-data/dinnerplan/data/data.json`. Data loss was due to UI crashes, not data deletion.
+- **Dish → dinner redesign** (May 15): Dishes are now unique recipes (no dinnerId/familyId). New `dinnerDishes` linking table. Auto-migration in backend converts old data on startup. Shopping auto-generate now uses `dinnerDishes` instead of raw dishes.
 
 ## TODO / Next Ideas
 

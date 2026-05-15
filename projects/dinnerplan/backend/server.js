@@ -13,8 +13,41 @@ const DEFAULT_DATA = {
   dinners: [],
   dishes: [],
   shoppingItems: [],
+  dinnerDishes: [],
   posts: [],
 };
+
+// Auto-migrate: move old dish.dinnerId/dish.familyId to dinnerDishes linking table
+function migrate() {
+  try {
+    if (!fs.existsSync(DATA_FILE)) return;
+    const data = JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
+    let migrated = 0;
+    if (!data.dinnerDishes) data.dinnerDishes = [];
+    data.dishes.forEach((dish) => {
+      if (dish.dinnerId) {
+        data.dinnerDishes.push({
+          id: Date.now().toString() + Math.random().toString().slice(2, 6),
+          dishId: dish.id,
+          dinnerId: dish.dinnerId,
+          familyId: dish.familyId || "",
+        });
+        delete dish.dinnerId;
+        delete dish.familyId;
+        migrated++;
+      }
+    });
+    if (migrated > 0) {
+      fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+      console.log(
+        `🔄 Migrated ${migrated} dish→dinner links to dinnerDishes table`,
+      );
+    }
+  } catch (e) {
+    console.error("Migration error:", e);
+  }
+}
+migrate();
 
 function loadData() {
   try {
@@ -86,6 +119,7 @@ crudRoutes("Families", "families");
 crudRoutes("Dinners", "dinners");
 crudRoutes("Dishes", "dishes");
 crudRoutes("Shopping", "shoppingItems");
+crudRoutes("DinnerDishes", "dinnerDishes");
 crudRoutes("Posts", "posts");
 
 const PORT = process.env.PORT || 3001;

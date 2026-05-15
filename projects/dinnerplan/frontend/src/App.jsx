@@ -20,6 +20,7 @@ const Layout = () => {
   const [families, setFamilies] = useState([]);
   const [dinners, setDinners] = useState([]);
   const [dishes, setDishes] = useState([]);
+  const [dinnerDishes, setDinnerDishes] = useState([]);
   const [shopping, setShopping] = useState([]);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,16 +31,18 @@ const Layout = () => {
 
   const loadData = async () => {
     try {
-      const [f, d, di, s, p] = await Promise.all([
+      const [f, d, di, dd, s, p] = await Promise.all([
         api.getFamilies(),
         api.getDinners(),
         api.getDishes(),
+        api.getDinnerDishes(),
         api.getShopping(),
         api.getPosts(),
       ]);
       setFamilies(f);
       setDinners(d);
       setDishes(di);
+      setDinnerDishes(dd);
       setShopping(s);
       setPosts(p);
     } catch (err) {
@@ -131,6 +134,8 @@ const Layout = () => {
                 families={families}
                 setFamilies={setFamilies}
                 dishes={dishes}
+                dinnerDishes={dinnerDishes}
+                setDinnerDishes={setDinnerDishes}
                 posts={posts}
                 setPosts={setPosts}
                 refreshData={refreshData}
@@ -144,6 +149,8 @@ const Layout = () => {
                 dishes={dishes}
                 setDishes={setDishes}
                 families={families}
+                dinnerDishes={dinnerDishes}
+                dinners={dinners}
                 dinnerId={null}
               />
             }
@@ -155,6 +162,9 @@ const Layout = () => {
                 dishes={dishes}
                 setDishes={setDishes}
                 families={families}
+                dinnerDishes={dinnerDishes}
+                setDinnerDishes={setDinnerDishes}
+                dinners={dinners}
               />
             }
           />
@@ -165,6 +175,7 @@ const Layout = () => {
                 shopping={shopping}
                 setShopping={setShopping}
                 dishes={dishes}
+                dinnerDishes={dinnerDishes}
               />
             }
           />
@@ -180,6 +191,8 @@ const DinnerDetailWrapper = ({
   families,
   setFamilies,
   dishes,
+  dinnerDishes,
+  setDinnerDishes,
   posts,
   setPosts,
   refreshData,
@@ -193,6 +206,8 @@ const DinnerDetailWrapper = ({
       families={families}
       setFamilies={setFamilies}
       dishes={dishes}
+      dinnerDishes={dinnerDishes}
+      setDinnerDishes={setDinnerDishes}
       posts={posts}
       setPosts={setPosts}
       refreshData={refreshData}
@@ -200,13 +215,23 @@ const DinnerDetailWrapper = ({
   );
 };
 
-const DishesPageWrapper = ({ dishes, setDishes, families }) => {
+const DishesPageWrapper = ({
+  dishes,
+  setDishes,
+  families,
+  dinnerDishes,
+  setDinnerDishes,
+  dinners,
+}) => {
   const { dinnerId } = useParams();
   return (
     <DishesPage
       dishes={dishes}
       setDishes={setDishes}
       families={families}
+      dinnerDishes={dinnerDishes}
+      setDinnerDishes={setDinnerDishes}
+      dinners={dinners}
       dinnerId={dinnerId}
     />
   );

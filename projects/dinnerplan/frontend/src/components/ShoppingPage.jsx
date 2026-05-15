@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { api } from "../data/api";
 
-const ShoppingPage = ({ shopping, setShopping, dishes }) => {
+const ShoppingPage = ({ shopping, setShopping, dishes, dinnerDishes }) => {
   const [showModal, setShowModal] = useState(false);
   const [filterPurchased, setFilterPurchased] = useState(false);
   const [form, setForm] = useState({
@@ -36,11 +36,17 @@ const ShoppingPage = ({ shopping, setShopping, dishes }) => {
     return true;
   });
 
-  // Auto-generate shopping from dishes
+  // Auto-generate shopping from dishes assigned to dinners
   const autoGenerateShopping = async () => {
+    // Get all dishes linked to dinners via dinnerDishes
+    const linkedDishes = dinnerDishes
+      .map((dd) => dishes.find((d) => d.id === dd.dishId))
+      .filter(Boolean);
+
     const existingItems = shopping.map((s) => s.name.toLowerCase());
     const newItems = [];
-    dishes.forEach((dish) => {
+
+    linkedDishes.forEach((dish) => {
       if (dish.ingredientList) {
         const ingredients = dish.ingredientList
           .split(",")
@@ -56,7 +62,7 @@ const ShoppingPage = ({ shopping, setShopping, dishes }) => {
             newItems.push({
               name: ingredient,
               quantity: "",
-              purchaser: dish.familyId || "",
+              purchaser: "",
               purchased: false,
             });
           }
