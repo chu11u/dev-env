@@ -138,6 +138,8 @@ const Layout = () => {
                 setDinnerDishes={setDinnerDishes}
                 posts={posts}
                 setPosts={setPosts}
+                shopping={shopping}
+                setShopping={setShopping}
                 refreshData={refreshData}
               />
             }
@@ -176,6 +178,8 @@ const Layout = () => {
                 setShopping={setShopping}
                 dishes={dishes}
                 dinnerDishes={dinnerDishes}
+                dinners={dinners}
+                families={families}
               />
             }
           />
@@ -195,6 +199,8 @@ const DinnerDetailWrapper = ({
   setDinnerDishes,
   posts,
   setPosts,
+  shopping,
+  setShopping,
   refreshData,
 }) => {
   const { id } = useParams();
@@ -210,6 +216,8 @@ const DinnerDetailWrapper = ({
       setDinnerDishes={setDinnerDishes}
       posts={posts}
       setPosts={setPosts}
+      shopping={shopping}
+      setShopping={setShopping}
       refreshData={refreshData}
     />
   );

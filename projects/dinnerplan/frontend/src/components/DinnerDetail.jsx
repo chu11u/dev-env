@@ -34,6 +34,8 @@ const DinnerDetail = ({
   setDinnerDishes,
   posts,
   setPosts,
+  shopping,
+  setShopping,
   refreshData,
 }) => {
   const dinner = dinners.find((d) => d.id === dinnerId);
@@ -112,6 +114,14 @@ const DinnerDetail = ({
   const handleUnassignDish = async (ddId) => {
     await api.deleteDinnerDish(ddId);
     setDinnerDishes(dinnerDishes.filter((dd) => dd.id !== ddId));
+  };
+
+  // Shopping helpers
+  const dinnerShopping = shopping.filter((s) => s.dinnerId === dinnerId);
+  const toggleShoppingItem = async (item) => {
+    const updated = { ...item, purchased: !item.purchased };
+    const saved = await api.updateShoppingItem(item.id, updated);
+    setShopping(shopping.map((s) => (s.id === item.id ? saved : s)));
   };
 
   if (!dinner) {
@@ -412,6 +422,74 @@ const DinnerDetail = ({
                 </div>
               );
             })}
+          </div>
+        )}
+      </div>
+
+      {/* Shopping list for this dinner */}
+      <div className="card">
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 16,
+          }}
+        >
+          <h2>🛒 רשימת קניות</h2>
+          <Link to="/shopping" className="btn btn-outline btn-sm">
+            ← עריכה מלאה
+          </Link>
+        </div>
+
+        {dinnerShopping.length === 0 ? (
+          <p style={{ color: "var(--color-text-light)" }}>
+            עדיין אין פריטים. הוסיפו דרך רשימת הקניות.
+          </p>
+        ) : (
+          <div>
+            {dinnerShopping.map((item, idx) => (
+              <div
+                key={item.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "10px 0",
+                  borderBottom:
+                    idx < dinnerShopping.length - 1
+                      ? "1px solid var(--color-border)"
+                      : "none",
+                  opacity: item.purchased ? 0.5 : 1,
+                  textDecoration: item.purchased ? "line-through" : "none",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={item.purchased || false}
+                  onChange={() => toggleShoppingItem(item)}
+                  style={{ width: 20, height: 20, cursor: "pointer" }}
+                />
+                <div style={{ flex: 1 }}>
+                  <span style={{ fontWeight: 500 }}>{item.name}</span>
+                  {item.quantity && (
+                    <span
+                      style={{
+                        color: "var(--color-text-light)",
+                        marginRight: 8,
+                      }}
+                    >
+                      ({item.quantity})
+                    </span>
+                  )}
+                </div>
+                {item.purchaser && (
+                  <span className="badge badge-accent">
+                    👤 {item.purchaser}
+                  </span>
+                )}
+              </div>
+            ))}
           </div>
         )}
       </div>

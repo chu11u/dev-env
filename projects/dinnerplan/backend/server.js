@@ -23,6 +23,8 @@ function migrate() {
     if (!fs.existsSync(DATA_FILE)) return;
     const data = JSON.parse(fs.readFileSync(DATA_FILE, "utf8"));
     let migrated = 0;
+
+    // Migrate dish.dinnerId → dinnerDishes table
     if (!data.dinnerDishes) data.dinnerDishes = [];
     data.dishes.forEach((dish) => {
       if (dish.dinnerId) {
@@ -37,6 +39,19 @@ function migrate() {
         migrated++;
       }
     });
+
+    // Migrate shoppingItems: ensure dinnerId exists on new items
+    if (!data.shoppingItems) data.shoppingItems = [];
+    const unmigratedShopping = data.shoppingItems.filter(
+      (item) => !item.dinnerId,
+    );
+    if (unmigratedShopping.length > 0) {
+      // Items without dinnerId are left as-is for backwards compat
+      console.log(
+        `📋 ${unmigratedShopping.length} shopping items without dinnerId (will be shown in 'all' view)`,
+      );
+    }
+
     if (migrated > 0) {
       fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
       console.log(

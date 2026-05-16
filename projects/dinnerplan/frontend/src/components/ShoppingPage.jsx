@@ -1,99 +1,136 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { api } from "../data/api";
 
-const ShoppingPage = ({ shopping, setShopping, dishes, dinnerDishes }) => {
+const ShoppingPage = ({
+  shopping,
+  setShopping,
+  dishes,
+  dinnerDishes,
+  dinners,
+  families,
+ }) => {
   const [showModal, setShowModal] = useState(false);
+  const [selectedDinnerId, setSelectedDinnerId] = useState("");
   const [filterPurchased, setFilterPurchased] = useState(false);
   const [form, setForm] = useState({
     name: "",
     quantity: "",
     purchaser: "",
     purchased: false,
-  });
+   });
+
+   // Get shopping items for the selected dinner (or all if no dinner selected)
+  const dinnerShopping = shopping.filter((item) => {
+    if (selectedDinnerId && item.dinnerId !== selectedDinnerId) return false;
+    return true;
+   });
+
+   // Filter by purchased status
+  const filteredShopping = dinnerShopping.filter((s) => {
+    if (filterPurchased === "purchased") return s.purchased;
+    if (filterPurchased === "pending") return !s.purchased;
+    return true;
+   });
 
   const handleAdd = async () => {
     if (!form.name.trim()) return;
-    const item = await api.createShoppingItem(form);
-    setShopping([...shopping, item]);
+    const item = {
+      ...form,
+      dinnerId: selectedDinnerId,
+     };
+    const created = await api.createShoppingItem(item);
+    setShopping([...shopping, created]);
     setShowModal(false);
     setForm({ name: "", quantity: "", purchaser: "", purchased: false });
-  };
+   };
 
   const togglePurchased = async (item) => {
     const updated = { ...item, purchased: !item.purchased };
     const saved = await api.updateShoppingItem(item.id, updated);
     setShopping(shopping.map((s) => (s.id === item.id ? saved : s)));
-  };
+   };
 
   const handleDelete = async (id) => {
     await api.deleteShoppingItem(id);
     setShopping(shopping.filter((s) => s.id !== id));
-  };
+   };
 
-  const filteredShopping = shopping.filter((s) => {
-    if (filterPurchased === "purchased") return s.purchased;
-    if (filterPurchased === "pending") return !s.purchased;
-    return true;
-  });
+   // Get dinner name
+  const getDinnerName = (dinnerId) => {
+    const dinner = dinners.find((d) => d.id === dinnerId);
+    return dinner ? dinner.name : "";
+   };
 
-  // Auto-generate shopping from dishes assigned to dinners
+   // Get family name
+  const getFamilyName = (familyId) => {
+    const family = families.find((f) => f.id === familyId);
+    return family ? family.name : "";
+   };
+
+   // Auto-generate shopping from dishes assigned to the selected dinner
   const autoGenerateShopping = async () => {
-    // Get all dishes linked to dinners via dinnerDishes
-    const linkedDishes = dinnerDishes
-      .map((dd) => dishes.find((d) => d.id === dd.dishId))
-      .filter(Boolean);
+    if (!selectedDinnerId) {
+      alert("אנא בחר ארוחה תחילה");
+      return;
+     }
 
-    const existingItems = shopping.map((s) => s.name.toLowerCase());
+      // Get dishes for this dinner
+    const linkedDinnerDishes = dinnerDishes.filter(
+      (dd) => dd.dinnerId === selectedDinnerId,
+     );
+
+    const linkedDishes = linkedDinnerDishes
+       .map((dd) => ({ dish: dishes.find((d) => d.id === dd.dishId), familyId: dd.familyId }))
+       .filter((item) =\u003e item.dish);
+
+    const existingNames = dinnerShopping.map((s) => s.name.toLowerCase());
     const newItems = [];
 
-    linkedDishes.forEach((dish) => {
+    linkedDishes.forEach(({ dish, familyId }) =\u003e {
       if (dish.ingredientList) {
         const ingredients = dish.ingredientList
-          .split(",")
-          .map((i) => i.trim())
-          .filter(Boolean);
+           .split(",")
+           .map((i) => i.trim())
+           .filter(Boolean);
         ingredients.forEach((ingredient) => {
-          if (
-            !existingItems.includes(ingredient.toLowerCase()) &&
-            !shopping.find(
-              (s) => s.name.toLowerCase() === ingredient.toLowerCase(),
-            )
-          ) {
+          if (!existingNames.includes(ingredient.toLowerCase())) {
             newItems.push({
               name: ingredient,
               quantity: "",
-              purchaser: "",
+              purchaser: getFamilyName(familyId) || "",
               purchased: false,
-            });
-          }
-        });
-      }
-    });
+              dinnerId: selectedDinnerId,
+             });
+           }
+         });
+       }
+     });
 
     if (newItems.length === 0) {
       alert("אין מצרכים חדשים להוספה");
       return;
-    }
+     }
 
     if (!confirm(`הוסף ${newItems.length} פריטים לרשימת הקניות?`)) return;
 
     try {
       for (const item of newItems) {
         await api.createShoppingItem(item);
-      }
+       }
       const updated = await api.getShopping();
       setShopping(updated);
-    } catch (err) {
+     } catch (err) {
       console.error("Failed to add shopping items:", err);
       alert("שגיאה בהוספת פריטים");
-    }
-  };
+     }
+   };
 
-  const unpurchasedCount = shopping.filter((s) => !s.purchased).length;
+  const unpurchasedCount = dinnerShopping.filter((s) => !s.purchased).length;
 
   return (
-    <div className="container">
-      <div
+     <div className="container">
+       <div
         className="page-header"
         style={{
           display: "flex",
@@ -101,57 +138,100 @@ const ShoppingPage = ({ shopping, setShopping, dishes, dinnerDishes }) => {
           alignItems: "center",
           flexWrap: "wrap",
           gap: 12,
-        }}
-      >
-        <div>
-          <h1>🛒 רשימת קניות</h1>
-          <p>מה צריך לקנות - ואיזה משפחה אחראית</p>
-        </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button className="btn btn-secondary" onClick={autoGenerateShopping}>
-            🥘 הוסף ממנות
-          </button>
-          <button
+         }}
+       >
+         <div>
+           <h1>🛒 רשימת קניות</h1>
+           {selectedDinnerId ? (
+             <p>קניות לארוחה: {getDinnerName(selectedDinnerId)}</p>
+           ) : (
+             <p>בחר ארוחה כדי לראות את רשימת הקניות</p>
+           )}
+         </div>
+         <div style={{ display: "flex", gap: 8 }}>
+           <button
+            className="btn btn-secondary"
+            onClick={autoGenerateShopping}
+            disabled={!selectedDinnerId}
+           >
+             🥘 הוסף ממנות
+           </button>
+           <button
             className="btn btn-primary"
-            onClick={() => setShowModal(true)}
-          >
-            + הוסף פריט
-          </button>
-        </div>
-      </div>
+            onClick={() =\u003e setShowModal(true)}
+            disabled={!selectedDinnerId}
+           >
+             + הוסף פריט
+           </button>
+         </div>
+       </div>
 
-      {/* Filters */}
-      <div style={{ marginBottom: 20, display: "flex", gap: 8 }}>
-        <button
+       {/* Dinner selector */}
+       <div style={{ marginBottom: 20 }}>
+         <label style={{ display: "block", marginBottom: 8, fontWeight: 500 }}>
+           🍽️ בחר ארוחה
+         </label>
+         <select
+          className="form-group"
+          style={{ maxWidth: "400px" }}
+          value={selectedDinnerId}
+          onChange={(e) =\u003e setSelectedDinnerId(e.target.value)}
+         >
+           <option value="">-- ארוחה כללית (ללא ארוחה ספציפית) --</option>
+           {dinners.map((dinner) =\u003e (
+             <option key={dinner.id} value={dinner.id}>
+               {dinner.name}
+               {dinner.date ? ` (${dinner.date})` : ""}
+             </option>
+           ))}
+         </select>
+         {selectedDinnerId && (
+           <Link
+            to={`/dinner/${selectedDinnerId}`}
+            className="btn btn-sm btn-outline"
+            style={{ marginTop: 8, display: "inline-block" }}
+           >
+             ← חזרה לסיכום ארוחה
+           </Link>
+          )}
+       </div>
+
+       {/* Filters */}
+       <div style={{ marginBottom: 20, display: "flex", gap: 8 }}>
+         <button
           className={`btn btn-sm ${filterPurchased === false ? "btn-primary" : "btn-outline"}`}
-          onClick={() => setFilterPurchased(false)}
-        >
-          הכל ({shopping.length})
-        </button>
-        <button
+          onClick={() =\u003e setFilterPurchased(false)}
+         >
+          הכל ({dinnerShopping.length})
+         </button>
+         <button
           className={`btn btn-sm ${filterPurchased === "pending" ? "btn-primary" : "btn-outline"}`}
-          onClick={() => setFilterPurchased("pending")}
-        >
+          onClick={() =\u003e setFilterPurchased("pending")}
+         >
           עוד לא נקנה ({unpurchasedCount})
-        </button>
-        <button
+         </button>
+         <button
           className={`btn btn-sm ${filterPurchased === "purchased" ? "btn-primary" : "btn-outline"}`}
-          onClick={() => setFilterPurchased("purchased")}
-        >
-          נקנה ({shopping.length - unpurchasedCount})
-        </button>
-      </div>
+          onClick={() =\u003e setFilterPurchased("purchased")}
+         >
+          נקנה ({dinnerShopping.length - unpurchasedCount})
+         </button>
+       </div>
 
-      {filteredShopping.length === 0 ? (
-        <div className="empty-state">
-          <div className="icon">🛒</div>
-          <h3>רשימת הקניות ריקה</h3>
-          <p>הוסף פריטים ידנית או השתמש ב"הוסף ממנות"</p>
-        </div>
-      ) : (
-        <div className="card">
-          {filteredShopping.map((item) => (
-            <div
+       {filteredShopping.length === 0 ? (
+         <div className="empty-state">
+           <div className="icon">🛒</div>
+           <h3>{selectedDinnerId ? "רשימת הקניות ריקה" : "בחר ארוחה"}</h3>
+           <p>
+             {selectedDinnerId
+               ? "הוסף פריטים ידנית או השתמש ב\"הוסף ממנות\""
+               : "בחר ארוחה מהרשימה למעלה כדי לראות את רשימת הקניות"}
+           </p>
+         </div>
+        ) : (
+         <div className="card">
+           {filteredShopping.map((item) =\u003e (
+             <div
               key={item.id}
               style={{
                 display: "flex",
@@ -161,91 +241,95 @@ const ShoppingPage = ({ shopping, setShopping, dishes, dinnerDishes }) => {
                 borderBottom: "1px solid var(--color-border)",
                 opacity: item.purchased ? 0.5 : 1,
                 textDecoration: item.purchased ? "line-through" : "none",
-              }}
-            >
-              <input
+               }}
+             >
+               <input
                 type="checkbox"
                 checked={item.purchased || false}
-                onChange={() => togglePurchased(item)}
+                onChange={() =\u003e togglePurchased(item)}
                 style={{ width: 20, height: 20, cursor: "pointer" }}
-              />
-              <div style={{ flex: 1 }}>
-                <span style={{ fontWeight: 500 }}>{item.name}</span>
-                {item.quantity && (
-                  <span
+               />
+               <div style={{ flex: 1 }}>
+                 <span style={{ fontWeight: 500 }}>{item.name}</span>
+                 {item.quantity && (
+                   <span
                     style={{ color: "var(--color-text-light)", marginRight: 8 }}
-                  >
-                    ({item.quantity})
-                  </span>
-                )}
-              </div>
-              {item.purchaser && (
-                <span className="badge badge-accent">👤 {item.purchaser}</span>
-              )}
-              <button
+                   >
+                     ({item.quantity})
+                   </span>
+                 )}
+               </div>
+               {item.purchaser && (
+                 <span className="badge badge-accent">👤 {item.purchaser}</span>
+               )}
+               <button
                 className="btn btn-danger btn-sm"
-                onClick={() => handleDelete(item.id)}
+                onClick={() =\u003e handleDelete(item.id)}
                 style={{ padding: "4px 8px", fontSize: 12 }}
-              >
-                ✕
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+               >
+                 ✕
+               </button>
+             </div>
+           ))}
+         </div>
+       )}
 
-      {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2 style={{ marginBottom: 20 }}>הוסף פריט</h2>
-            <div className="form-group">
-              <label>שם הפריט</label>
-              <input
+       {/* Add item modal */}
+       {showModal && (
+         <div className="modal-overlay" onClick={() =\u003e setShowModal(false)}>
+           <div className="modal" onClick={(e) =\u003e e.stopPropagation()}>
+             <h2 style={{ marginBottom: 20 }}>הוסף פריט</h2>
+             <div className="form-group">
+               <label>שם הפריט</label>
+               <input
                 type="text"
                 value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                onChange={(e) =\u003e setForm({ ...form, name: e.target.value })}
                 placeholder="למשל: עגבניות, לחם"
                 autoFocus
-              />
-            </div>
-            <div className="form-group">
-              <label>כמות</label>
-              <input
+               />
+             </div>
+             <div className="form-group">
+               <label>כמות</label>
+               <input
                 type="text"
                 value={form.quantity}
-                onChange={(e) => setForm({ ...form, quantity: e.target.value })}
+                onChange={(e) =\u003e setForm({ ...form, quantity: e.target.value })}
                 placeholder="למשל: 2 קילו, 3 יחידות"
-              />
-            </div>
-            <div className="form-group">
-              <label>מי קונה?</label>
-              <input
-                type="text"
+               />
+             </div>
+             <div className="form-group">
+               <label>מי קונה? (משפחה)</label>
+               <select
                 value={form.purchaser}
-                onChange={(e) =>
-                  setForm({ ...form, purchaser: e.target.value })
-                }
-                placeholder="למשל: רותי, יונתן"
-              />
-            </div>
-            <div
+                onChange={(e) =\u003e setForm({ ...form, purchaser: e.target.value })}
+               >
+                 <option value="">בחר משפחה...</option>
+                 {families.map((family) =\u003e (
+                   <option key={family.id} value={family.name}>
+                     {family.name}
+                   </option>
+                 ))}
+               </select>
+             </div>
+             <div
               style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}
-            >
-              <button
+             >
+               <button
                 className="btn btn-outline"
-                onClick={() => setShowModal(false)}
-              >
+                onClick={() =\u003e setShowModal(false)}
+               >
                 ביטול
-              </button>
-              <button className="btn btn-primary" onClick={handleAdd}>
+               </button>
+               <button className="btn btn-primary" onClick={handleAdd}>
                 הוסף
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+               </button>
+             </div>
+           </div>
+         </div>
+       )}
+     </div>
+   );
 };
 
 export default ShoppingPage;
