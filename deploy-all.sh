@@ -28,7 +28,8 @@ generate_nginx_config() {
     local name="$1"
     local port="$2"
     local dest="$NGINX_AVAILABLE/${name}.apps.elkayam.me.conf"
-    cat > "$dest" << NGINX_EOF
+    local tmpfile="/tmp/${name}.nginx.conf"
+    cat > "$tmpfile" << NGINX_EOF
 server {
     listen 80;
     listen [::]:80;
@@ -49,10 +50,12 @@ server {
         proxy_set_header X-Forwarded-Host \$host;
         proxy_set_header X-Forwarded-Port \$server_port;
         proxy_cache_bypass \$http_upgrade;
-      }
+       }
 }
 NGINX_EOF
-    ln -sf "$dest" "$NGINX_ENABLED/"
+    sudo cp "$tmpfile" "$dest"
+    sudo ln -sf "$dest" "$NGINX_ENABLED/"
+    rm -f "$tmpfile"
 }
 
 generate_nginx_api_config() {
@@ -60,7 +63,8 @@ generate_nginx_api_config() {
     local frontend_port="$2"
     local api_port="$3"
     local dest="$NGINX_AVAILABLE/${name}.apps.elkayam.me.conf"
-    cat > "$dest" << NGINX_EOF
+    local tmpfile="/tmp/${name}.nginx.conf"
+    cat > "$tmpfile" << NGINX_EOF
 server {
     listen 80;
     listen [::]:80;
@@ -76,7 +80,7 @@ server {
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto \$scheme;
-       }
+        }
 
     location / {
         proxy_pass http://127.0.0.1:${frontend_port};
@@ -90,10 +94,12 @@ server {
         proxy_set_header X-Forwarded-Host \$host;
         proxy_set_header X-Forwarded-Port \$server_port;
         proxy_cache_bypass \$http_upgrade;
-      }
+        }
 }
 NGINX_EOF
-    ln -sf "$dest" "$NGINX_ENABLED/"
+    sudo cp "$tmpfile" "$dest"
+    sudo ln -sf "$dest" "$NGINX_ENABLED/"
+    rm -f "$tmpfile"
 }
 
 # Force remove a project's containers, networks, and images
