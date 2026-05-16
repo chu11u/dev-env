@@ -1,5 +1,5 @@
 # Dinnerplan Project Memory Dump
-# Updated: May 15, 2026
+# Updated: May 16, 2026
 # Use this to continue the project in a new conversation
 
 ## PROJECT OVERVIEW
@@ -89,7 +89,7 @@ projects/dinnerplan/
        { "id": "456", "dinnerId": "789", "dishId": "123", "familyId": "456" }
      ],
      "shoppingItems": [
-       { "id": "123", "name": "עגבניות", "quantity": "2 קילו", "purchaser": "רותי", "purchased": false }
+       { "id": "123", "dinnerId": "789", "name": "עגבניות", "quantity": "2 קילו", "purchaser": "המשפחה של רותי", "purchased": false }
      ],
      "posts": [
        { "id": "123", "dinnerId": "456", "author": "רותי", "message": "אני אביא סלט!", "createdAt": "2024-12-01T18:00:00Z" }
@@ -150,6 +150,7 @@ Backend uses auto-generated CRUD routes via `crudRoutes(name, collection)` helpe
 - **Date/Time/Location** display with badges
 - **Guest list** with editable attendance (−/+ buttons per family)
 - **Dishes summary** showing dishes assigned to this dinner
+- **Shopping list** inline — checkboxes to mark purchased, links to full shopping page
 - **Blog posts** - threaded comments per dinner (name + message + timestamp)
 
 ### Dishes (Recipe Database)
@@ -162,10 +163,12 @@ Backend uses auto-generated CRUD routes via `crudRoutes(name, collection)` helpe
 - Shows which dinners each dish is assigned to (with family)
 - Unassign dishes directly from the dish card (✕ button)
 
-### Shopping
+### Shopping (Per-Dinner)
+- **Dinner selector** — pick a dinner to see its shopping list
 - List with checkboxes (mark as purchased)
-- Auto-generate from dishes assigned to dinners (via `dinnerDishes`)
-- Track who buys what
+- **Auto-generate** from dishes assigned to the dinner (via `dinnerDishes`) — fills purchaser from family assigned to each dish
+- **Manual add** — family dropdown (not free text) for "who buys"
+- Each shopping item has a `dinnerId` — items without `dinnerId` show in "general" view
 
 ## DEPLOY WORKFLOW
 
@@ -190,7 +193,7 @@ ssh -i ~/.ssh/dev-env-server naor@192.168.131.134 "cd /home/elkayam/dev-env && g
 - `v1.0-framework` - Complete framework (before customizations)
 - Current: Feature-complete with time, detail page, blog, edit mode
 
-- **Current commit**: `c9fa016` — Cloudflare tunnel + dual-domain nginx. Data migrated to `dinnerDishes` table.
+- **Current commit**: `848b9b0` — Per-dinner shopping, auto-fill purchaser, family dropdown, sudo nginx config writes, dual-domain configs for all apps.
 
 ## CRITICAL GOTCHAS
 
@@ -216,6 +219,9 @@ ssh -i ~/.ssh/dev-env-server naor@192.168.131.134 "cd /home/elkayam/dev-env && g
 - **ErrorBoundary** (May 15): Added to catch and display React runtime errors instead of blank page.
 - **Data persistence verified**: Data JSON is safe in `/home/elkayam/dev-env/project-data/dinnerplan/data/data.json`. Data loss was due to UI crashes, not data deletion.
 - **Dish → dinner redesign** (May 15): Dishes are now unique recipes (no dinnerId/familyId). New `dinnerDishes` linking table. Auto-migration in backend converts old data on startup. Shopping auto-generate now uses `dinnerDishes` instead of raw dishes.
+- **Back button from dishes page** (May 16): `to="/dinner/${dinnerId}"` → `to={`/dinner/${dinnerId}`}` (template literal for proper interpolation).
+- **Per-dinner shopping** (May 16): Shopping items now have `dinnerId`. ShoppingPage shows dinner selector, auto-generate fills purchaser from dish family assignment. Manual add uses family dropdown. DinnerDetail shows shopping list inline.
+- **Nginx config write fix** (May 16): Deploy script uses `sudo cp` + `sudo ln` via temp file to write to `/etc/nginx/sites-available/`. Sudoers updated for `naor` user.
 
 ## TODO / Next Ideas
 

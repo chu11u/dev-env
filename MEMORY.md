@@ -56,8 +56,9 @@ dev-env/
 ├── docker-compose.yml               # code-server
 ├── nginx-dev.apps.elkayam.me.conf # code-server nginx config
 ├── nginx-project-template.conf     # Template for single-service projects
-├── project-data/                   # PERSISTENT DATA (outside git, auto-migrated)
-│    └── arcade/data/data.json      # Arcade player/score data
+├── project-data/                    # PERSISTENT DATA (outside git, auto-migrated)
+│    ├── arcade/data/data.json       # Arcade player/score data
+│    └── dinnerplan/data/data.json   # Dinnerplan data
 ├── projects/
 │    ├── clock/                      # Static HTML clock ✅
 │    │    ├── Dockerfile             # nginx:alpine serving index.html
@@ -72,20 +73,24 @@ dev-env/
 │        │    ├── Dockerfile
 │        │    ├── server.js          # Express + lowdb (players, scores, games)
 │        │    └── package.json
-│        └── frontend/
-│            ├── Dockerfile          # Node builder + preview
-│            ├── vite.config.js
-│            ├── package.json        # React 18.3.1 + Vite 5.4.1
-│            ├── src/App.jsx         # Main app (routing between games)
-│            ├── src/main.jsx
-│            ├── src/index.css       # Global styles + mobile media queries
-│            └── src/components/
-│                ├── PlayerSelect.jsx    # Player list + registration + DELETE button
-│                ├── GameLobby.jsx       # Game selection + player stats + back button
-│                ├── SkyJumper.jsx       # Jumping game (canvas)
-│                ├── MemoryMatch.jsx     # Card matching game
-│                ├── TetrisGame.jsx      # Classic Tetris (canvas, mobile-responsive)
-│                └── Leaderboard.jsx     # Score board
+│         └── frontend/
+│             ├── Dockerfile           # Node builder + preview
+│             ├── vite.config.js
+│             ├── package.json         # React 18.3.1 + Vite 5.4.1
+│             ├── src/App.jsx          # Main app (routing between games)
+│             ├── src/main.jsx
+│             ├── src/index.css        # Global styles + mobile media queries
+│             └── src/components/
+│                 ├── PlayerSelect.jsx     # Player list + registration + DELETE button
+│                 ├── GameLobby.jsx        # Game selection + player stats + back button
+│                 ├── SkyJumper.jsx        # Jumping game (canvas)
+│                 ├── MemoryMatch.jsx      # Card matching game
+│                 ├── TetrisGame.jsx       # Classic Tetris (canvas, mobile-responsive)
+│                 └── Leaderboard.jsx      # Score board
+│     └── dinnerplan/                    # Family Dinner Planner ✅
+│         ├── docker-compose.yml          # 2 services: frontend + backend
+│         ├── frontend/                   # React + Vite (Hebrew RTL)
+│         └── backend/                    # Express + fs JSON
 ```
 
 ## DEPLOY WORKFLOW
@@ -108,7 +113,9 @@ ssh -i ~/.ssh/dev-env-server naor@192.168.131.134 "cd /home/elkayam/dev-env && .
      - Single-service projects: use `generate_nginx_config()` function
      - Multi-service projects: use `generate_nginx_api_config()` function
      - Auto-cleans stale configs for non-existent projects
-     - **NOTE**: Fails with "Permission denied" on `/etc/nginx/` (owned by root) — doesn't matter, configs already in place
+     - Write to `/tmp/` first, then `sudo cp` + `sudo ln` to `/etc/nginx/` (no permission issues)
+     - All configs include both `.apps.elkayam.me` and `.elkayam.fun` domains
+- **Sudoers**: `naor` has NOPASSWD for `/usr/sbin/nginx`, `/usr/bin/cp`, `/usr/bin/ln` (needed for nginx config writes)
 **Step 3**: Docker cleanup:
      - `docker compose down --rmi local --volumes --remove-orphans`
      - `docker rm -f` for any remaining containers
@@ -175,9 +182,10 @@ ssh -i ~/.ssh/dev-env-server naor@192.168.131.134 "cd /home/elkayam/dev-env && .
 - ✅ Leaderboard
 - ✅ Backend API (players CRUD, scores, games)
 - ✅ Data persistence (lowdb JSON in `project-data/`)
-- ✅ Docker compose (2 containers: frontend + backend)
-- ✅ nginx routing (frontend + API proxy)
-- ✅ **Mobile responsive** — responsive canvas, compact overlays, media queries for 600px/400px
+- **Docker compose** (2 containers: frontend + backend)
+- **nginx routing** (frontend + API proxy)
+- **External access** via `arcade.elkayam.fun` (Cloudflare tunnel)
+- **Mobile responsive** — responsive canvas, compact overlays, media queries for 600px/400px
 
 ### Mobile layout:
 - Canvas: `width: 100%` with `maxWidth: 500px` container
@@ -194,8 +202,10 @@ ssh -i ~/.ssh/dev-env-server naor@192.168.131.134 "cd /home/elkayam/dev-env && .
 | 3002 | clock | Frontend |
 | 3003 | arcade | Frontend |
 | 30031 | arcade | Backend API |
+| 3004 | dinnerplan | Frontend |
+| 30041 | dinnerplan | Backend API |
 
-Next available: 3004, 30041
+Next available: 3005, 30051
 
 ## PERSISTENT DATA
 
@@ -213,6 +223,15 @@ This directory is OUTSIDE the git repo. The deploy script auto-migrates data fro
 1. **Weather Widget** — Simple weather dashboard
 2. **Home Dashboard** — Monitor all homelab services
 3. **More Arcade Games** — Tic Tac Toe, Snake, etc.
+
+## HOW TO PUBLISH A NEW APP EXTERNALLY
+
+1. Create project in `projects/<name>/` with `docker-compose.yml` + Dockerfiles
+2. Push to git and run `./deploy-all.sh` (generates dual-domain nginx config automatically)
+3. In **Cloudflare Zero Trust** → Tunnels → your tunnel → Configuration:
+   - Add hostname rule: `appname.elkayam.fun` → `http://localhost:80`
+   - (The tunnel forwards to nginx, which routes to the right container)
+4. That's it — `appname.elkayam.fun` works externally, `appname.apps.elkayam.me` works locally
 
 ## CRON CONFIG
 
