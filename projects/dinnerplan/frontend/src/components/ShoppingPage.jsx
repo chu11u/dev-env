@@ -82,12 +82,12 @@ const ShoppingPage = ({
 
     const linkedDishes = linkedDinnerDishes
        .map((dd) => ({ dish: dishes.find((d) => d.id === dd.dishId), familyId: dd.familyId }))
-       .filter((item) =\u003e item.dish);
+       .filter((item) => item.dish);
 
     const existingNames = dinnerShopping.map((s) => s.name.toLowerCase());
     const newItems = [];
 
-    linkedDishes.forEach(({ dish, familyId }) =\u003e {
+    linkedDishes.forEach(({ dish, familyId }) => {
       if (dish.ingredientList) {
         const ingredients = dish.ingredientList
            .split(",")
@@ -158,7 +158,7 @@ const ShoppingPage = ({
            </button>
            <button
             className="btn btn-primary"
-            onClick={() =\u003e setShowModal(true)}
+            onClick={() => setShowModal(true)}
             disabled={!selectedDinnerId}
            >
              + הוסף פריט
@@ -175,10 +175,10 @@ const ShoppingPage = ({
           className="form-group"
           style={{ maxWidth: "400px" }}
           value={selectedDinnerId}
-          onChange={(e) =\u003e setSelectedDinnerId(e.target.value)}
+          onChange={(e) => setSelectedDinnerId(e.target.value)}
          >
            <option value="">-- ארוחה כללית (ללא ארוחה ספציפית) --</option>
-           {dinners.map((dinner) =\u003e (
+           {dinners.map((dinner) => (
              <option key={dinner.id} value={dinner.id}>
                {dinner.name}
                {dinner.date ? ` (${dinner.date})` : ""}
@@ -200,19 +200,19 @@ const ShoppingPage = ({
        <div style={{ marginBottom: 20, display: "flex", gap: 8 }}>
          <button
           className={`btn btn-sm ${filterPurchased === false ? "btn-primary" : "btn-outline"}`}
-          onClick={() =\u003e setFilterPurchased(false)}
+          onClick={() => setFilterPurchased(false)}
          >
           הכל ({dinnerShopping.length})
          </button>
          <button
           className={`btn btn-sm ${filterPurchased === "pending" ? "btn-primary" : "btn-outline"}`}
-          onClick={() =\u003e setFilterPurchased("pending")}
+          onClick={() => setFilterPurchased("pending")}
          >
           עוד לא נקנה ({unpurchasedCount})
          </button>
          <button
           className={`btn btn-sm ${filterPurchased === "purchased" ? "btn-primary" : "btn-outline"}`}
-          onClick={() =\u003e setFilterPurchased("purchased")}
+          onClick={() => setFilterPurchased("purchased")}
          >
           נקנה ({dinnerShopping.length - unpurchasedCount})
          </button>
@@ -230,7 +230,7 @@ const ShoppingPage = ({
          </div>
         ) : (
          <div className="card">
-           {filteredShopping.map((item) =\u003e (
+           {filteredShopping.map((item) => (
              <div
               key={item.id}
               style={{
@@ -246,7 +246,7 @@ const ShoppingPage = ({
                <input
                 type="checkbox"
                 checked={item.purchased || false}
-                onChange={() =\u003e togglePurchased(item)}
+                onChange={() => togglePurchased(item)}
                 style={{ width: 20, height: 20, cursor: "pointer" }}
                />
                <div style={{ flex: 1 }}>
@@ -264,7 +264,7 @@ const ShoppingPage = ({
                )}
                <button
                 className="btn btn-danger btn-sm"
-                onClick={() =\u003e handleDelete(item.id)}
+                onClick={() => handleDelete(item.id)}
                 style={{ padding: "4px 8px", fontSize: 12 }}
                >
                  ✕
@@ -276,15 +276,15 @@ const ShoppingPage = ({
 
        {/* Add item modal */}
        {showModal && (
-         <div className="modal-overlay" onClick={() =\u003e setShowModal(false)}>
-           <div className="modal" onClick={(e) =\u003e e.stopPropagation()}>
+         <div className="modal-overlay" onClick={() => setShowModal(false)}>
+           <div className="modal" onClick={(e) => e.stopPropagation()}>
              <h2 style={{ marginBottom: 20 }}>הוסף פריט</h2>
              <div className="form-group">
                <label>שם הפריט</label>
                <input
                 type="text"
                 value={form.name}
-                onChange={(e) =\u003e setForm({ ...form, name: e.target.value })}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
                 placeholder="למשל: עגבניות, לחם"
                 autoFocus
                />
@@ -294,7 +294,7 @@ const ShoppingPage = ({
                <input
                 type="text"
                 value={form.quantity}
-                onChange={(e) =\u003e setForm({ ...form, quantity: e.target.value })}
+                onChange={(e) => setForm({ ...form, quantity: e.target.value })}
                 placeholder="למשל: 2 קילו, 3 יחידות"
                />
              </div>
@@ -302,10 +302,10 @@ const ShoppingPage = ({
                <label>מי קונה? (משפחה)</label>
                <select
                 value={form.purchaser}
-                onChange={(e) =\u003e setForm({ ...form, purchaser: e.target.value })}
+                onChange={(e) => setForm({ ...form, purchaser: e.target.value })}
                >
                  <option value="">בחר משפחה...</option>
-                 {families.map((family) =\u003e (
+                 {families.map((family) => (
                    <option key={family.id} value={family.name}>
                      {family.name}
                    </option>
@@ -317,7 +317,7 @@ const ShoppingPage = ({
              >
                <button
                 className="btn btn-outline"
-                onClick={() =\u003e setShowModal(false)}
+                onClick={() => setShowModal(false)}
                >
                 ביטול
                </button>
