@@ -26,7 +26,7 @@ router.get("/blog/posts", async (_req: Request, res: Response) => {
 router.get("/blog/posts/:slug", async (req: Request, res: Response) => {
   try {
     const post = await db.post.findUnique({
-      where: { slug: req.params.slug },
+      where: { slug: String(req.params.slug) },
       include: { authors: true },
     });
     if (!post) {
@@ -112,7 +112,7 @@ router.post("/admin/blog/posts", async (req: Request, res: Response) => {
 // PUT /api/admin/blog/posts/:id — Update post
 router.put("/admin/blog/posts/:id", async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const postId = String(req.params.id);
     const {
       title,
       slug,
@@ -124,7 +124,7 @@ router.put("/admin/blog/posts/:id", async (req: Request, res: Response) => {
       authorNames,
     } = req.body;
 
-    const existing = await db.post.findUnique({ where: { id } });
+    const existing = await db.post.findUnique({ where: { id: postId } });
     if (!existing) {
       return res.status(404).json({ error: "Post not found" });
     }
@@ -148,7 +148,7 @@ router.put("/admin/blog/posts/:id", async (req: Request, res: Response) => {
 
     const authorIds = authors.map((a) => a.id);
     const post = await db.post.update({
-      where: { id },
+      where: { id: postId },
       data: {
         title,
         slug,
@@ -174,14 +174,14 @@ router.put("/admin/blog/posts/:id", async (req: Request, res: Response) => {
 // DELETE /api/admin/blog/posts/:id — Delete post
 router.delete("/admin/blog/posts/:id", async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const postId = String(req.params.id);
 
-    const existing = await db.post.findUnique({ where: { id } });
+    const existing = await db.post.findUnique({ where: { id: postId } });
     if (!existing) {
       return res.status(404).json({ error: "Post not found" });
     }
 
-    await db.post.delete({ where: { id } });
+    await db.post.delete({ where: { id: postId } });
 
     // Delete markdown file
     const filePath = path.join(
