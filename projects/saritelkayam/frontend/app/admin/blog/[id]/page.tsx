@@ -23,6 +23,7 @@ interface PostData {
 export default function EditPostPage() {
   const router = useRouter();
   const { id } = useParams();
+  const postId = String(id);
   const [post, setPost] = useState<PostData | null>(null);
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
@@ -36,7 +37,7 @@ export default function EditPostPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    getPost(id)
+    getPost(postId)
       .then((data) => {
         setPost(data);
         setTitle(data.title);
@@ -52,7 +53,7 @@ export default function EditPostPage() {
         setError("Failed to load post.");
         setIsLoading(false);
       });
-  }, [id]);
+  }, [postId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -65,7 +66,7 @@ export default function EditPostPage() {
 
     setIsSubmitting(true);
     try {
-      await updatePost(id, {
+      await updatePost(postId, {
         title,
         slug,
         excerpt,
