@@ -1,8 +1,8 @@
-# Stage 1: Build Next.js application
+# Stage 1: Build
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Install dependencies (separate layer for caching)
+# Install dependencies
 COPY package.json package-lock.json* ./
 RUN npm ci
 
@@ -10,14 +10,20 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-# Stage 2: Production - nginx serves static output
-FROM nginx:alpine
+# Stage 2: Production - Node.js runtime to serve Next.js
+FROM node:20-alpine
+WORKDIR /app
 
-# Copy built output from builder stage
-COPY --from=builder /app/out /usr/share/nginx/html
+# Install production dependencies only
+COPY package.json package-lock.json* ./
+RUN npm ci --omit=dev
 
-# Custom nginx config: serve static files + proxy /api/ to backend
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copy built output
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/next.config.js ./next.config.js
 
 EXPOSE 3000
-CMD ["nginx", "-g", "daemon off;"]
+
+# Start Next.js in production mode
+CMD ["npm", "start"]
