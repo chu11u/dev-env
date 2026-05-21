@@ -1,4 +1,4 @@
-# Stage 1: Build — use Alpine (small, fast)
+# Stage 1: Build
 FROM node:20-alpine AS builder
 WORKDIR /app
 
@@ -11,9 +11,13 @@ RUN npx prisma generate
 COPY . .
 RUN npm run build
 
-# Stage 2: Production — Debian for proper OpenSSL (Prisma requires it)
+# Stage 2: Production — Debian with OpenSSL for Prisma
 FROM node:20-slim
 WORKDIR /app
+
+RUN apt-get update -y \
+ && apt-get install -y openssl libssl3 \
+ && rm -rf /var/lib/apt/lists/*
 
 COPY package.json package-lock.json* ./
 RUN npm ci --omit=dev
