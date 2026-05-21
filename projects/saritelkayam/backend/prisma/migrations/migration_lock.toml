@@ -1,3 +1,2 @@
-checksum: 726b7e907b253f323cf57daa2d4cf9faaed90d9cf52e96b86761111724e0545b
-version: "6.5.0"
-dialect: postgresql
+provider = "postgresql"
+version = "5.22.0"
