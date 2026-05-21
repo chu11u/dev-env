@@ -132,7 +132,7 @@ router.put('/admin/blog/posts/:id', async (req: Request, res: Response) => {
         featuredImage,
         status,
         publishedAt: status === 'PUBLISHED' ? (publishedAt || new Date()) : null,
-        authors: authors.length > 0 ? ({ set: authors.map(a => ({ id: a.id })) }) : { set: [] },
+        authors: { set: authors.map(a => ({ id: a.id })) },
       });
 
      // Write markdown file
