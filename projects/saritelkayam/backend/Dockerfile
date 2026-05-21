@@ -1,6 +1,11 @@
 # Stage 1: Build
-FROM node:20-alpine AS builder
+FROM node:20-slim AS builder
 WORKDIR /app
+
+# Install build deps
+RUN apt-get update -y \
+ && apt-get install -y openssl libssl3 \
+ && rm -rf /var/lib/apt/lists/*
 
 COPY package.json package-lock.json* ./
 RUN npm ci
@@ -12,18 +17,19 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Production
-FROM node:20-alpine
+FROM node:20-slim
 WORKDIR /app
 
-# Copy runtime deps only
-COPY package.json package-lock.json* ./
-RUN npm ci --omit=dev
+# Install OpenSSL (needed by Prisma engine at runtime)
+RUN apt-get update -y \
+ && apt-get install -y openssl libssl3 \
+ && rm -rf /var/lib/apt/lists/*
 
-# Copy built output + Prisma client
+# Copy everything from builder - Prisma client + engines need to match runtime OS
 COPY --from=builder /app/dist/ ./dist/
 COPY --from=builder /app/prisma/ ./prisma/
-COPY --from=builder /app/node_modules/.prisma/ ./node_modules/.prisma/
-COPY --from=builder /app/node_modules/@prisma/ ./node_modules/@prisma/
+COPY --from=builder /app/node_modules/ ./node_modules/
+COPY --from=builder /app/package.json ./package.json
 
 EXPOSE 3001
 
