@@ -1,5 +1,5 @@
 # Dev Environment Memory Dump
-# Updated: May 13, 2026
+# Updated: May 20, 2026
 # Use this to continue the project in a new conversation
 
 ## ARCHITECTURE
@@ -18,6 +18,7 @@ External:        Cloudflare DNS (*.elkayam.fun) → cloudflared tunnel → nginx
 - `clock.apps.elkayam.me` → Clock dashboard (static HTML, port 3002)
 - `arcade.apps.elkayam.me` / `arcade.elkayam.fun` → Family Arcade (React + Express, ports 3003/30031)
 - `dinnerplan.apps.elkayam.me` / `dinnerplan.elkayam.fun` → Dinner planner (React + Express, ports 3004/30041)
+- `saritelkayam.apps.elkayam.me` / `saritelkayam.com` → Sarit Elkayam cosmetician website (Next.js 15, ports 3006/30061)
 
 **Cloudflare tunnel** (`docker-compose.cloudflare.yml`):
 - Single `cloudflared` container with `network_mode: host`
@@ -87,10 +88,16 @@ dev-env/
 │                 ├── MemoryMatch.jsx      # Card matching game
 │                 ├── TetrisGame.jsx       # Classic Tetris (canvas, mobile-responsive)
 │                 └── Leaderboard.jsx      # Score board
-│     └── dinnerplan/                    # Family Dinner Planner ✅
-│         ├── docker-compose.yml          # 2 services: frontend + backend
-│         ├── frontend/                   # React + Vite (Hebrew RTL)
-│         └── backend/                    # Express + fs JSON
+│     └── dinnerplan/                     # Family Dinner Planner ✅
+│         ├── docker-compose.yml           # 2 services: frontend + backend
+│         ├── frontend/                    # React + Vite (Hebrew RTL)
+│          └── backend/                     # Express + fs JSON
+│      └── saritelkayam/                   # Sarit Elkayam cosmetician website 🆕
+│          ├── docker-compose.yml           # 3 services: frontend + backend + postgres
+│          ├── frontend/                    # Next.js 15 + Tailwind + Framer Motion
+│          ├── backend/                     # Next.js API routes + Prisma + PostgreSQL
+│          ├── content/                     # Markdown blog posts
+│          └── MEMORY.md                    # Project-specific memory dump
 ```
 
 ## DEPLOY WORKFLOW
@@ -204,6 +211,9 @@ ssh -i ~/.ssh/dev-env-server naor@192.168.131.134 "cd /home/elkayam/dev-env && .
 | 30031 | arcade | Backend API |
 | 3004 | dinnerplan | Frontend |
 | 30041 | dinnerplan | Backend API |
+| 3006 | saritelkayam | Frontend |
+| 30061 | saritelkayam | Backend API |
+| 30062 | saritelkayam | PostgreSQL (internal, not exposed) |
 
 Next available: 3005, 30051
 
@@ -218,11 +228,24 @@ This directory is OUTSIDE the git repo. The deploy script auto-migrates data fro
 - Username: `chu11u`
 - Repos: `chu11u/dev-env` (main), `chu11u/v0-family-arcade-app` (old, deprecated)
 
+## SARIT ELKAYAM WEBSITE (🆕 New Project)
+
+- **Brand**: Sarit Elkayam (cosmetician)
+- **Domain**: `saritelkayam.com` (external), `saritelkayam.apps.elkayam.me` (local)
+- **Tech**: Next.js 15 + Tailwind CSS + Framer Motion + Prisma + PostgreSQL
+- **Design**: Warm luxury (rose gold, cream, burgundy)
+- **Features**: Services, Testimonials, Shop, Blog (CMS), Contact, Booking (on hold)
+- **Media**: Draw Things API (Flux 2 Klein 9B) for royalty-free images
+- **Media API**: `POST http://localhost:7860/sdapi/v1/txt2img` (local Mac only, NOT on server)
+- **Payment**: Stripe (on hold)
+- **Status**: 🆕 Planning phase — see `projects/saritelkayam/MEMORY.md` for full details
+
 ## THINGS TO BUILD NEXT
 
-1. **Weather Widget** — Simple weather dashboard
-2. **Home Dashboard** — Monitor all homelab services
-3. **More Arcade Games** — Tic Tac Toe, Snake, etc.
+1. **Sarit Elkayam Website** — Cosmetician website (🆕 TOP PRIORITY)
+2. **Weather Widget** — Simple weather dashboard
+3. **Home Dashboard** — Monitor all homelab services
+4. **More Arcade Games** — Tic Tac Toe, Snake, etc.
 
 ## HOW TO PUBLISH A NEW APP EXTERNALLY
 

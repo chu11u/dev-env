@@ -12,12 +12,8 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Production
-FROM node:20-slim
+FROM node:20-alpine
 WORKDIR /app
-
-RUN apt-get update -y \
- && apt-get install -y openssl libssl3 \
- && rm -rf /var/lib/apt/lists/*
 
 # Copy runtime deps only
 COPY package.json package-lock.json* ./
