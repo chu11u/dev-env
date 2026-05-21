@@ -168,16 +168,15 @@ export default function BlogPostContent({ post }: { post: BlogPost }) {
   };
 
   const renderInlineMarkdown = (text: string): React.ReactNode => {
-    // Basic inline markdown: **bold**, *italic*, `code`, [link](url)
     const parts: (string | React.ReactNode)[] = [];
     let remaining = text;
 
     while (remaining) {
       // Bold
       const boldMatch = remaining.match(/\*\*(.+?)\*\*/);
-      const boldIdx = boldMatch?.index ?? -1;
-      if (boldIdx >= 0) {
-        parts.push(remaining.slice(0, boldIdx));
+      if (boldMatch) {
+        const idx = boldMatch.index ?? 0;
+        parts.push(remaining.slice(0, idx));
         parts.push(
           <strong
             key={parts.length}
@@ -186,25 +185,25 @@ export default function BlogPostContent({ post }: { post: BlogPost }) {
             {boldMatch[1]}
           </strong>,
         );
-        remaining = remaining.slice(boldIdx + boldMatch[0].length);
+        remaining = remaining.slice(idx + boldMatch[0].length);
         continue;
       }
 
       // Italic
       const italicMatch = remaining.match(/\*(.+?)\*/);
-      const italicIdx = italicMatch?.index ?? -1;
-      if (italicIdx >= 0) {
-        parts.push(remaining.slice(0, italicIdx));
+      if (italicMatch) {
+        const idx = italicMatch.index ?? 0;
+        parts.push(remaining.slice(0, idx));
         parts.push(<em key={parts.length}>{italicMatch[1]}</em>);
-        remaining = remaining.slice(italicIdx + italicMatch[0].length);
+        remaining = remaining.slice(idx + italicMatch[0].length);
         continue;
       }
 
       // Inline code
       const codeMatch = remaining.match(/`([^`]+)`/);
-      const codeIdx = codeMatch?.index ?? -1;
-      if (codeIdx >= 0) {
-        parts.push(remaining.slice(0, codeIdx));
+      if (codeMatch) {
+        const idx = codeMatch.index ?? 0;
+        parts.push(remaining.slice(0, idx));
         parts.push(
           <code
             key={parts.length}
@@ -213,15 +212,15 @@ export default function BlogPostContent({ post }: { post: BlogPost }) {
             {codeMatch[1]}
           </code>,
         );
-        remaining = remaining.slice(codeIdx + codeMatch[0].length);
+        remaining = remaining.slice(idx + codeMatch[0].length);
         continue;
       }
 
       // Links
       const linkMatch = remaining.match(/\[([^\]]+)\]\(([^)]+)\)/);
-      const linkIdx = linkMatch?.index ?? -1;
-      if (linkIdx >= 0) {
-        parts.push(remaining.slice(0, linkIdx));
+      if (linkMatch) {
+        const idx = linkMatch.index ?? 0;
+        parts.push(remaining.slice(0, idx));
         parts.push(
           <a
             key={parts.length}
@@ -233,7 +232,7 @@ export default function BlogPostContent({ post }: { post: BlogPost }) {
             {linkMatch[1]}
           </a>,
         );
-        remaining = remaining.slice(linkIdx + linkMatch[0].length);
+        remaining = remaining.slice(idx + linkMatch[0].length);
         continue;
       }
 
