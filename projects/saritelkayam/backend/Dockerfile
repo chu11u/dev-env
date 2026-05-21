@@ -11,7 +11,7 @@ RUN npx prisma generate
 COPY . .
 RUN npm run build
 
-# Stage 2: Production — Debian with OpenSSL for Prisma
+# Stage 2: Production
 FROM node:20-slim
 WORKDIR /app
 
@@ -19,12 +19,15 @@ RUN apt-get update -y \
  && apt-get install -y openssl libssl3 \
  && rm -rf /var/lib/apt/lists/*
 
+# Copy runtime deps only
 COPY package.json package-lock.json* ./
 RUN npm ci --omit=dev
 
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/prisma/ ./prisma/
+# Copy built output + Prisma client
 COPY --from=builder /app/dist/ ./dist/
+COPY --from=builder /app/prisma/ ./prisma/
+COPY --from=builder /app/node_modules/.prisma/ ./node_modules/.prisma/
+COPY --from=builder /app/node_modules/@prisma/ ./node_modules/@prisma/
 
 EXPOSE 3001
 
