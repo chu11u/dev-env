@@ -1,7 +1,7 @@
 import {
- type ButtonHTMLAttributes,
- type AnchorHTMLAttributes,
- type ReactNode,
+  type ButtonHTMLAttributes,
+  type AnchorHTMLAttributes,
+  type ReactNode,
 } from "react";
 
 type ButtonSize = "sm" | "md" | "lg";
@@ -14,31 +14,33 @@ interface BaseProps {
   disabled?: boolean;
 }
 
-interface ButtonProps extends BaseProps, ButtonHTMLAttributes\u003cHTMLButtonElement\u003e {
-  onClick?: () =\u003e void;
+interface ButtonProps
+  extends BaseProps, ButtonHTMLAttributes<HTMLButtonElement> {
+  onClick?: () => void;
   href?: never;
 }
 
-interface LinkButtonProps extends BaseProps, AnchorHTMLAttributes\u003cHTMLAnchorElement\u003e {
+interface LinkButtonProps
+  extends BaseProps, AnchorHTMLAttributes<HTMLAnchorElement> {
   href: string;
   onClick?: never;
 }
 
 type Props = ButtonProps | LinkButtonProps;
 
-const variantClasses: Record\u003cButtonVariant, string\u003e = {
+const variantClasses: Record<ButtonVariant, string> = {
   primary: "bg-rose-400 text-white hover:bg-rose-500 focus-visible:bg-rose-600",
   secondary:
-      "bg-burgundy-500 text-white hover:bg-burgundy-600 focus-visible:bg-burgundy-700",
+    "bg-burgundy-500 text-white hover:bg-burgundy-600 focus-visible:bg-burgundy-700",
   outline:
-      "border-2 border-rose-400 text-rose-400 hover:bg-rose-400 hover:text-white focus-visible:bg-rose-400 focus-visible:text-white",
- };
+    "border-2 border-rose-400 text-rose-400 hover:bg-rose-400 hover:text-white focus-visible:bg-rose-400 focus-visible:text-white",
+};
 
-const sizeClasses: Record\u003cButtonSize, string\u003e = {
+const sizeClasses: Record<ButtonSize, string> = {
   sm: "px-3 py-1.5 text-sm rounded-lg",
   md: "px-5 py-2.5 text-base rounded-xl",
   lg: "px-7 py-3 text-lg rounded-2xl",
- };
+};
 
 export function Button({
   children,
@@ -46,36 +48,36 @@ export function Button({
   size = "md",
   className = "",
   disabled = false,
-   ...rest
+  ...rest
 }: Props) {
   const base =
-      "inline-flex items-center justify-center font-body font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:btn-focus";
+    "inline-flex items-center justify-center font-body font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed focus-visible:btn-focus";
 
   const classes = `${base} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`;
 
-  if ("href" in rest \u0026\u0026 rest.href) {
+  if ("href" in rest && rest.href) {
     return (
-         \u003ca
-          href={rest.href}
-          className={classes}
-          aria-disabled={disabled}
-          tabIndex={disabled ? -1 : undefined}
-           {...(rest as AnchorHTMLAttributes\u003cHTMLAnchorElement\u003e)}
-        \u003e
-          {children}
-        \u003c/a\u003e
-      );
-    }
+      <a
+        href={rest.href}
+        className={classes}
+        aria-disabled={disabled}
+        tabIndex={disabled ? -1 : undefined}
+        {...(rest as AnchorHTMLAttributes<HTMLAnchorElement>)}
+      >
+        {children}
+      </a>
+    );
+  }
 
   return (
-      \u003cbutton
-       className={classes}
-       disabled={disabled}
-        {...(rest as ButtonHTMLAttributes\u003cHTMLButtonElement\u003e)}
-      \u003e
-        {children}
-      \u003c/button\u003e
-    );
+    <button
+      className={classes}
+      disabled={disabled}
+      {...(rest as ButtonHTMLAttributes<HTMLButtonElement>)}
+    >
+      {children}
+    </button>
+  );
 }
 
 export default Button;
