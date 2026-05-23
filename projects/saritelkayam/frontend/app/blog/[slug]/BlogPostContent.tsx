@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { FadeInSection } from "@/components/common/FadeInSection";
 import { Clock, Calendar, ArrowLeft } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
 interface BlogPost {
   slug: string;
@@ -19,6 +20,9 @@ interface BlogPost {
 }
 
 export default function BlogPostContent({ post }: { post: BlogPost }) {
+  const { t, locale, isRtl } = useTranslation();
+  const dateLocale = locale === "he" ? "he-IL" : "en-US";
+
   // Simple markdown rendering: convert headers, paragraphs, lists, links
   const renderMarkdown = (md: string) => {
     const lines = md.split("\n");
@@ -256,14 +260,14 @@ export default function BlogPostContent({ post }: { post: BlogPost }) {
                 )}
                 <span className="flex items-center gap-1 font-body text-xs text-charcoal-400">
                   <Calendar size={12} />{" "}
-                  {new Date(post.date).toLocaleDateString("en-US", {
+                  {new Date(post.date).toLocaleDateString(dateLocale, {
                     year: "numeric",
                     month: "long",
                     day: "numeric",
                   })}
                 </span>
                 <span className="flex items-center gap-1 font-body text-xs text-charcoal-400">
-                  <Clock size={12} /> {post.readTime} min read
+                  <Clock size={12} /> {post.readTime} {t.blogReadTime}
                 </span>
               </div>
 
@@ -303,9 +307,9 @@ export default function BlogPostContent({ post }: { post: BlogPost }) {
                 variant="outline"
                 size="md"
                 href="/blog"
-                className="inline-flex items-center gap-2"
+                className={`inline-flex items-center gap-2 ${isRtl ? "flex-row-reverse" : ""}`}
               >
-                <ArrowLeft size={16} /> Back to Blog
+                <ArrowLeft size={16} /> {t.blogBackToBlog}
               </Button>
             </div>
           </Container>

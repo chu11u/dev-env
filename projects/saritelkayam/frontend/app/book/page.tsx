@@ -1,39 +1,33 @@
-import type { Metadata } from "next";
+"use client";
+
 import { Container } from "@/components/ui/Container";
 import { SectionDivider } from "@/components/common/SectionDivider";
 import { Button } from "@/components/ui/Button";
 import { FadeInSection } from "@/components/common/FadeInSection";
 import { Calendar, Clock } from "lucide-react";
-
-export const metadata: Metadata = {
-  title: "Book Appointment | Sarit Elkayam",
-  description:
-    "Book your appointment with Sarit Elkayam — professional cosmetician. Choose your service and preferred time.",
-  openGraph: {
-    title: "Book Appointment | Sarit Elkayam",
-    description: "Schedule your personalized beauty treatment.",
-  },
-};
-
-const bookingSteps = [
-  {
-    icon: <Calendar size={24} className="text-rose-400" />,
-    title: "Choose Your Service",
-    description: "Browse our services and pick the treatment right for you.",
-  },
-  {
-    icon: <Clock size={24} className="text-rose-400" />,
-    title: "Select a Time",
-    description: "Pick a date and time that works for your schedule.",
-  },
-  {
-    icon: <span className="text-rose-400 text-2xl">✓</span>,
-    title: "You're All Set",
-    description: "Receive a confirmation email with all the details.",
-  },
-];
+import { useTranslation } from "@/lib/i18n";
 
 export default function BookPage() {
+  const { t } = useTranslation();
+
+  const bookingSteps = [
+    {
+      icon: <Calendar size={24} className="text-rose-400" />,
+      title: t.bookStep1Title,
+      description: t.bookStep1Desc,
+    },
+    {
+      icon: <Clock size={24} className="text-rose-400" />,
+      title: t.bookStep2Title,
+      description: t.bookStep2Desc,
+    },
+    {
+      icon: <span className="text-rose-400 text-2xl">✓</span>,
+      title: t.bookStep3Title,
+      description: t.bookStep3Desc,
+    },
+  ];
+
   return (
     <FadeInSection>
       <section className="bg-cream-100 min-h-[60vh] flex items-center">
@@ -44,17 +38,16 @@ export default function BookPage() {
             </div>
 
             <h1 className="font-heading text-3xl md:text-4xl font-bold text-charcoal-800 mb-4">
-              Book Your Appointment
+              {t.bookTitle}
             </h1>
 
             <SectionDivider className="mb-4" />
 
             <p className="font-body text-lg text-charcoal-500 mb-2">
-              Booking System Coming Soon
+              {t.bookSubtitle}
             </p>
             <p className="font-body text-charcoal-500 mb-12">
-              Our online booking system is under development. In the meantime,
-              you can reach out directly to schedule your treatment.
+              {t.bookSubtitleDetail}
             </p>
 
             {/* Steps preview */}
@@ -82,10 +75,10 @@ export default function BookPage() {
 
             <div className="flex flex-wrap justify-center gap-4">
               <Button variant="primary" size="lg" href="/contact">
-                Contact to Book
+                {t.bookContactBook}
               </Button>
               <Button variant="outline" size="lg" href="/services">
-                Browse Services
+                {t.bookBrowseServices}
               </Button>
             </div>
           </div>

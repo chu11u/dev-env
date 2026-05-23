@@ -1,73 +1,74 @@
 ---
-title: "The Art of Natural Makeup: Enhancing Your Beauty Without Hiding It"
+title: "אמנות האיפור הטבעי: מדגישות את היופי שלך בלי להסתיר אותו"
 slug: "natural-makeup-guide"
-excerpt: "Learn how to achieve a fresh, natural makeup look that enhances your features. Professional tips for everyday elegance."
-featuredImage: "/assets/blog/natural-makeup.jpg"
+excerpt: "למדי איך להשיג מראה איפור טבעי ורענן שמדגיש את תווי הפנים שלך. טיפים מקצועיים לאלגנטיות יומיומית."
+featuredImage: "/assets/blog/featured-beauty-tip.png"
 status: published
 publishedAt: "2026-05-10T14:00:00.000Z"
-authors: "Sarit Elkayam"
-tags: "makeup,natural,beauty tips"
+authors: "שרית אלקיים"
+tags: "איפור,טבעי,טיפים ליופי"
+lang: he
 ---
 
-# The Art of Natural Makeup: Enhancing Your Beauty Without Hiding It
+# אמנות האיפור הטבעי: מדגישות את היופי שלך בלי להסתיר אותו
 
-There's a beautiful philosophy in professional cosmetology: the best makeup doesn't look like makeup. It looks like *you* — just your most refreshed, radiant, confident self. Today, I'm sharing my approach to natural makeup that enhances rather than masks.
+יש פילוסופיה יפה בקוסמטיקה מקצועית: האיפור הטוב ביותר לא נראה כמו איפור. הוא נראה כמו *את* — פשוט הגרסה הכי רעננה, זוהרת ובטוחה שלך. היום אני חולקת את הגישה שלי לאיפור טבעי שמדגיש במקום להסתיר.
 
-## The Philosophy: Less is More
+## הפילוסופיה: פחות זה יותר
 
-Natural makeup isn't about wearing nothing — it's about strategic enhancement. The goal is to even out your complexion, define your features gently, and create a fresh, awake appearance. Think "I woke up like this" (but you didn't, and that's okay!).
+איפור טבעי לא אומר לא ללביש כלום — זה אומר שיפור אסטרטגי. המטרה היא לאזן את גוון הפנים, להדגיש את תווי הפנים בעדינות, וליצור מראה רענן וער. חשבו "התעוררתי כך" (אבל לא התעוררתם כך, וזה בסדר!).
 
-## Step 1: The Canvas — Skin Preparation
+## שלב 1: הבסיס — הכנת העור
 
-Before any makeup goes on, your skin needs to be properly prepped:
+לפני שמוסי איפור, העור צריך להיות מוכן כראוי:
 
-- **Cleanse:** Start with a clean face using your favorite gentle cleanser
-- **Moisturize:** A lightweight moisturizer creates a smooth base for makeup application
-- **Prime (optional):** A good primer fills in fine lines and helps makeup last longer
+- **ניקוי:** התחילי עם פנים נקיות בעזרת המשתף העדין האהוב עליך
+- **לחות:** קרם לחות קליל יוצר בסיס חלק למריחת איפור
+- **פריימר (אופציונלי):** פריימר טוב ממלא קמטים עדינים ועוזר לאיפור להחזיק מעמד
 
-**Pro tip:** Let your moisturizer absorb for at least 2 minutes before applying makeup. This prevents pilling and ensures a smooth finish.
+**טיפ מקצועי:** תני לקרם הלחות להתספח לפחות 2 דקות לפני מריחת איפור. זה מונע גושים ומבטיח מראה חלק.
 
-## Step 2: Light Coverage Base
+## שלב 2: כיסוי קל
 
-For natural makeup, skip heavy foundations. Instead:
+לאיפור טבעי, דלגי על יסודות כבדים. במקום:
 
-- **Tinted moisturizer:** Provides a hint of color while moisturizing
-- **Lightweight foundation:** Use a brush or beauty sponge for a feather-light application
-- **Concealer:** Spot-conceal only where needed — under eyes, around the nose, any redness
+- **קרם לחות מצבע:** מספק רמז לצבע תוך לחות
+- **יסוד קליל:** השתמשי במברשת או בספוג יופי למריחה קלילה כמו נוצה
+- **מכסה:** הכסי רק במקומות הדרושים — מתחת לעיניים, סביב האף, כל אדמומיות
 
-**Application technique:** Start in the center of your face and blend outward. The edges should seamlessly merge with your natural skin tone.
+**טכניקת מריחה:** התחילי במרכז הפנים וערבבי החוצה. השפות צריכות להתמזג באופן חלק עם גוון העור הטבעי שלך.
 
-## Step 3: Warmth and Dimension
+## שלב 3: חום וממד
 
-Add life to your face with subtle warmth:
+הוסיפי חיים לפנים עם חום עדין:
 
-- **Cream blush:** Apply to the apples of your cheeks for a natural flush. Cream formulas blend seamlessly into skin.
-- **Subtle bronzer:** Sweep along the cheekbones, forehead, and jawline for a sun-kissed glow.
-- **Glossy highlighter:** A touch on the high points — cheekbones, brow bone, cupid's bow — gives that lit-from-within radiance.
+- **סומק קרם:** מסי על אפפלים הלחיים למראה טבעי. נוסחאות קרם מתמזגות באופן חלק עם העור.
+- **ברונזר עדין:** מסי בעדינות על עצמות הלחיים, המצח וקו הלסת לברק מזוהר מהשמש.
+- **הייлайטר מבריק:** נגיעה על הנקודות הגבוהות — עצמות לחיים, עצם הגבה, קשת קפריסיוס — מעניקה את הברק המאיר מבפנים.
 
-## Step 4: Eyes and Brows
+## שלב 4: עיניים וגבות
 
-Natural eyes are all about definition without drama:
+עיניים טבעיות הן כל על הגדרה בלי הדרמה:
 
-- **Brows:** Brush upward and fill sparse areas with fine hair-like strokes using a brow pencil
-- **Eyeshadow:** A wash of neutral color (or just concealer on the lid) creates a clean, bright-eyed look
-- **Mascara:** One to two coats of brown or black-brown mascara opens up the eyes without heaviness
-- **Skip the liner:** Or use a brown pencil smudged along the upper lash line for subtle definition
+- **גבות:** מסי כלפי מעלה ומלאי אזורים דלילים עם פסים דקים כמו שיער בעיפרון גבות
+- **סומק עיניים:** שכבה של צבע ניטרלי (או פשוט מכסה על הגבה) יוצרת מראה עיניים נקיות וערות
+- **משקל עיניים:** שכה אחת או שתיים של משקל חום או שחור-חום פותחות את העיניים בלי כבדות
+- **דלגי על הליינר:** או השתמשי בעיפרון חום מטושטש לאורך קו הריסים העליון להגדרה עדינה
 
-## Step 5: The Finishing Touch
+## שלב 5: הגעיה הסופית
 
-- **Lip color:** Choose a tinted lip balm, cream lipstick, or lip stain in your natural lip shade (just enhanced)
-- **Setting spray:** A light mist locks everything in place without changing the finish
-
----
-
-## Common Mistakes to Avoid
-
-1. **Too much foundation:** Start with half the amount you think you need
-2. **Wrong shade:** Test foundation on your jawline, not your wrist
-3. **Heavy powder:** Powder only where needed (T-zone) to maintain a natural dewiness
-4. **Ignoring the neck:** Blend your foundation down to avoid a noticeable line
+- **צבע שפתיים:** בחרי בלסם שפתיים מצבע, שפתון קרם, או צבע שפתיים בגוון השפתיים הטבעי שלך (פשוט משופר)
+- **ספריי קיבוע:** ריסוס קליל קובע הכול במקום בלי לשנות את המראה
 
 ---
 
-*Want a personalized natural makeup look? Book a consultation with me and I'll create a signature look that celebrates your unique features. Remember — the most beautiful makeup is the one that makes you feel like the most confident version of yourself.*
+## טעויות נפוצות להימנע מהן
+
+1. **יותר מדי יסוד:** התחילי עם חצי הכמות שחשבת שאת צריכה
+2. **גוון לא נכון:** בדקי יסוד על קו הלסת, לא על שורש כף היד
+3. **פודרה כבדה:** השתמשי בפודרה רק במקומות הדרושים (אזור T) כדי לשמור על ברק טבעי
+4. **התעלמות מהצוואר:** ערבבי את היסוד מטה כדי למנוער קו בולט
+
+---
+
+*רוצה מראה איפור טבעי מותאם אישית? תאמי ייעוץ איתי ואכין לך מראה סיגניצ'ר שמחגג את תווי הפנים הייחודיים שלך. זכרי — האיפור הכי יפה הוא זה שגורם לך להרגיש כמו הגרסה הכי בטוחה של עצמך.*

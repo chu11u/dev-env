@@ -5,8 +5,9 @@ import { Card } from "@/components/ui/Card";
 import { Section } from "@/components/layout/Section";
 import { Badge } from "@/components/ui/Badge";
 import { Star } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
-const testimonials = [
+const testimonialsEn = [
   {
     name: "Rachel M.",
     service: "Signature Facial",
@@ -27,6 +28,30 @@ const testimonials = [
     rating: 5,
     text: "Sarit did my bridal makeup and I looked flawless all day! The trial session put my mind at ease, and on the big day she was punctual, calm, and brilliant.",
     avatarLabel: "Maya L.",
+  },
+];
+
+const testimonialsHe = [
+  {
+    name: "רחל מ'",
+    service: "פילינג סיגניצ'ר",
+    rating: 5,
+    text: "שרית פשוט מדהימה! העור שלי מעולם לא נראה טוב יותר. הטיפול היה מרגיע והתוצאות מידיות — יצאתי מרגישה כאדם חדש.",
+    avatarLabel: "רחל מ'",
+  },
+  {
+    name: "דנה כ'",
+    service: "אבחון עור",
+    rating: 5,
+    text: "אבחון העור פתח את העיניים שלי — גיליתי מה שהעור שלי באמת צריך. המקצועיות והתשומת לב לפרטים של שרית עשו את כל ההבדל. ממליצה בחום!",
+    avatarLabel: "דנה כ'",
+  },
+  {
+    name: "מאיה ל'",
+    service: "איפור חתונה",
+    rating: 5,
+    text: "שרית עשתה את איפור החתונה שלי והנראיתי מושלם כל היום! מפגש ההכנה השקט את הדעת שלי, וביום הגדול היא הייתה בדיוק בזמן, רגועה ומדהימה.",
+    avatarLabel: "מאיה ל'",
   },
 ];
 
@@ -56,10 +81,13 @@ const cardVariants = {
 };
 
 export function TestimonialsSection() {
+  const { t, locale } = useTranslation();
+  const items = locale === "he" ? testimonialsHe : testimonialsEn;
+
   return (
     <Section
-      title="What Our Clients Say"
-      subtitle="Real experiences from clients who trust Sarit with their beauty"
+      title={t.testimonialsTitle}
+      subtitle={t.testimonialsSubtitle}
       bg="cream"
     >
       <motion.div
@@ -75,26 +103,26 @@ export function TestimonialsSection() {
         whileInView="visible"
         viewport={{ once: true, margin: "-100px" }}
       >
-        {testimonials.map((t) => (
-          <motion.div key={t.name} variants={cardVariants}>
+        {items.map((item) => (
+          <motion.div key={item.name} variants={cardVariants}>
             <Card className="p-6 md:p-8 flex flex-col h-full">
               {/* Avatar + name */}
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 rounded-full bg-rose-200 flex items-center justify-center text-rose-700 font-heading font-semibold text-lg shrink-0">
-                  {t.name.charAt(0)}
+                  {item.name.charAt(0)}
                 </div>
                 <div>
                   <p className="font-body font-medium text-charcoal-800">
-                    {t.name}
+                    {item.name}
                   </p>
-                  <Badge variant="default">{t.service}</Badge>
+                  <Badge variant="default">{item.service}</Badge>
                 </div>
               </div>
 
-              <StarRating count={t.rating} />
+              <StarRating count={item.rating} />
 
               <p className="font-body text-sm text-charcoal-600 leading-relaxed mt-4 flex-1 italic">
-                "{t.text}"
+                "{item.text}"
               </p>
             </Card>
           </motion.div>

@@ -1,48 +1,49 @@
 ---
-title: "5 Skincare Essentials for a Radiant Summer Glow"
+title: "5 חיוניים לטיפוח עור זוהר לקיץ"
 slug: "summer-skincare-essentials"
-excerpt: "Discover the top skincare products and routines to keep your skin glowing all summer long. Expert tips from cosmetician Sarit Elkayam."
-featuredImage: "/assets/blog/summer-skincare.jpg"
+excerpt: "גלי את המוצרים והשגרות החיוניים לטיפוח עור זוהר לאורך כל הקיץ. טיפים מקצועיים מקוסמטיקאית שרית אלקיים."
+featuredImage: "/assets/blog/featured-seasonal.png"
 status: published
 publishedAt: "2026-05-15T10:00:00.000Z"
-authors: "Sarit Elkayam"
-tags: "skincare,summer,beauty"
+authors: "שרית אלקיים"
+tags: "טיפוח עור,קיץ,יופי"
+lang: he
 ---
 
-# 5 Skincare Essentials for a Radiant Summer Glow
+# 5 חיוניים לטיפוח עור זוהר לקיץ
 
-Summer is here, and with the warm weather comes the challenge of keeping your skin looking its best. As a professional cosmetician, I see many clients struggling with summer skin concerns — from excess oil and breakouts to sun damage and dehydration. Here are my top 5 essentials for maintaining a healthy, radiant complexion throughout the season.
+הקיץ הגיע, יחד איתו האתגר לשמור על העור במיטבו. כקוסמטיקאית מקצועית, אני רואה הרבה לקוחות שסובלות מבעיות עור קיציות — משומניות עודפת ופצעים ועד נזקי שמש והתייבות. הנה 5 החיוניים שלי לשמירה על עור בריא וזוהר לאורך העונה.
 
-## 1. Broad-Spectrum Sunscreen (SPF 30+)
+## 1. משחה להגנה מהשמש רחבת ספקטרום (SPF 30+)
 
-This isn't negotiable. Sun damage is the #1 cause of premature aging, hyperpigmentation, and skin cancer. Apply a broad-spectrum sunscreen with at least SPF 30 every morning, even on cloudy days.
+זה לא למוצח. נזקי שמש הם הגורם מספר 1 להזדקנות מוקדמת, פיגמנטציה והתפתחות סרטן עור. מסי משחה להגנה מהשמש רחבת ספקטרום עם SPF 30 לפחות כל בוקר, גם ימים מעוננים.
 
-**Pro tip:** Reapply every 2 hours if you're outdoors. Look for a lightweight, non-comedogenic formula that won't clog your pores.
+**טיפ מקצועי:** חדי כל שעתיים אם את בחוץ. חפי נוסחה קלילה ולא קומדוגנית שלא תסתום את הנקבוביות.
 
-## 2. Gentle Cleanser
+## 2. משתף עדין
 
-Summer heat means more sweat, oil, and pollution on your skin. A gentle cleanser removes impurities without stripping your skin's natural moisture barrier.
+חום הקיץ אומר יותר זיעה, יותר שמן ויותר זיהום על העור. משתף עדין מסיר זיהום מבלי להסיר את מחסום הלחות הטבעי של העור.
 
-**My recommendation:** Use a cream or gel cleanser twice daily — morning and evening. Avoid harsh sulfates that can disrupt your skin's pH balance.
+**ההמלצה שלי:** השתמשי במשתף קרם או ג'ל פעמיים ביום — בבוקר ובערב. הימנעי מסולפטים חזקים שעשויים לשבש את איזון ה-pH של העור.
 
-## 3. Hydrating Serum with Hyaluronic Acid
+## 3. סרום לחות עם חומצה היאלורונית
 
-Don't let the humidity fool you — air-conditioned spaces and swimming can actually dehydrate your skin. Hyaluronic acid attracts and holds moisture, keeping your skin plump and dewy.
+אל תתני לאדים להטעות אותך — חדרים עם מיזוג אוויר ושיטאות עשויים למעשה להתייבש את העור. חומצה היאלורונית מושכת ושומרת על לחות, ומשאירה את העור מלא וברק.
 
-**How to use:** Apply to damp skin after cleansing, before your moisturizer. Layer different molecular weights for deeper hydration.
+**איך להשתמש:** מסי על עור לח לאחר ניקוי, לפני קרם הלחות. שכבי משקלים מולקולריים שונים ללחות עמוקה יותר.
 
-## 4. Antioxidant Rich Moisturizer
+## 4. קרם לחות עשיר באנטי-חמצון
 
-Look for moisturizers containing vitamin C, vitamin E, or green tea extract. These antioxidants help neutralize free radicals caused by UV exposure and pollution.
+חפי קרמי לחות המכילים ויטמין C, ויטמין E או תמצית תה ירוק. אנטי-חמצונים אלו עוזרים לנטרל רדיקלים חופשיים שנגרמו מחשיפה לשמש ולזיהום.
 
-**Why it matters:** Free radicals accelerate the aging process. Antioxidants are your skin's defense system against environmental stressors.
+**למה זה חשוב:** רדיקלים חופשיים מואצים את תהליך ההזדקנות. אנטי-חמצונים הם מערכת ההגנה של העור שלך מול גורמי לחץ סביבתיים.
 
-## 5. Weekly Exfoliation
+## 5. קילוף שבועי
 
-Dead skin cells build up faster in summer due to increased oil production and sweat. Gentle exfoliation reveals fresh, glowing skin underneath.
+תאי עור מתים מתעמתים מהר יותר בקיץ בגלל ייצור שמן מוגבר וזיעה. קילוף עדין חושף עור רענן וזוהר מתחת.
 
-**Best approach:** Use a chemical exfoliant (AHA/BHA) 1-2 times per week instead of harsh physical scrubs. Start with once a week and adjust based on your skin's response.
+**הגישה הטובה ביותר:** השתמשי בחומר קילוף כימי (AHA/BHA) 1-2 פעמים בשבוע במקום פילינגים פיזיים חזקים. התחילי עם פעם בשבוע והתאימי בהתבסס על תגובת העור שלך.
 
 ---
 
-*Remember: Every skin type is different. If you have specific concerns like rosacea or eczema, consult with a professional cosmetician for a personalized routine. Book a consultation with me to find the perfect summer skincare regimen for your skin.*
+*זכרי: כל סוג עור שונה. אם יש לך בעיות ספציפיות כמו רוזצאה או אקזמה, פני לקוסמטיקאית מקצועית לשגרה מותאמת אישית. תאמי ייעוץ איתי למציאת שגרת טיפוח הקיץ המושלמת לעור שלך.*

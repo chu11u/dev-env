@@ -1,6 +1,6 @@
 # Sarit Elkayam - Cosmetician Website
 # Project Memory Dump
-# Updated: May 20, 2026
+# Updated: May 22, 2026
 # Use this to continue the project in a new conversation
 
 ## HOW TO ACTIVATE AN AGENT
@@ -15,9 +15,8 @@
 
 - **Name**: Sarit Elkayam
 - **Profession**: Cosmetician
-- **Domain**: `saritelkayam.com` (external DNS, NOT via Cloudflare tunnel)
-- **Local dev**: `saritelkayam.apps.elkayam.me`
-- **External**: `saritelkayam.com` (direct DNS to server, or Cloudflare tunnel)
+- **Domain**: `saritelkayam.com` — not yet configured (user to decide hosting)
+- **Test URL**: `http://192.168.131.134:3006`
 
 ## DESIGN SYSTEM
 
@@ -32,8 +31,8 @@
 | Highlight | Gold shimmer | `#C8A979` |
 
 ### Typography
-- **Headings**: Playfair Display (serif, elegant)
-- **Body**: Inter (sans-serif, clean)
+- **Headings**: Frank Ruhl Libre (serif, elegant, supports Hebrew + Latin)
+- **Body**: Heebo (sans-serif, clean, supports Hebrew + Latin)
 
 ### Style
 - Clean whitespace, soft rounded cards, subtle scroll animations
@@ -44,10 +43,10 @@
 
 | Page | Route | Description |
 |------|-------|-------------|
-| Home | `/` | Hero section, services preview, testimonials, CTA |
+| Home | `/` | Hero, services preview, products preview, testimonials, CTA |
 | Services | `/services` | Full service catalog with pricing and descriptions |
 | Testimonials | `/testimonials` | Customer reviews with photos |
-| Products | `/shop` | Product catalog (e-commerce, Stripe - on hold) |
+| Products | `/shop` | Full product catalog (8 products, HE/EN, images) |
 | Book | `/book` | Appointment booking (on hold for now) |
 | Blog | `/blog` | Knowledge articles, beauty tips |
 | Blog Post | `/blog/[slug]` | Individual blog post |
@@ -64,21 +63,21 @@
 ### Frontend
 - **Framework**: Next.js 15 (App Router, React 19)
 - **Styling**: Tailwind CSS + Framer Motion (animations)
-- **Fonts**: Google Fonts (Playfair Display + Inter)
+- **Fonts**: Google Fonts (Phase 4: Frank Ruhl Libre + Heebo for Hebrew support)
 - **Icons**: Lucide React
 - **Images**: Next.js Image + local storage
-- **Why**: Best DX, static export support, SEO-first, easy port to Vercel/any host
+- **i18n**: React Context + dictionary (Phase 4 — lightweight, no routing)
 
 ### Backend API
-- **Runtime**: Next.js API routes (same monorepo as frontend)
+- **Runtime**: Express + TypeScript (separate from frontend)
 - **Database**: PostgreSQL + Prisma ORM
-- **Why**: One codebase, zero config complexity, exports cleanly
+- **Container**: `node:20-slim` (single-stage, OpenSSL)
 
 ### CMS
 - **Approach**: Headless CMS (markdown files + admin UI)
-- **Storage**: Markdown files in `content/` directory
+- **Storage**: Markdown files in `public/content/posts/`
 - **Admin**: Custom admin UI in Next.js (authenticated)
-- **Why**: Simple, fast, portable - just push markdown files
+- **Blog posts**: Write in Hebrew. Admin CMS supports Hebrew content.
 
 ### Media Generation
 - **Tool**: Draw Things (local AI image generation)
@@ -87,15 +86,6 @@
 - **Sampler**: DPM++ 2M Karras
 - **Settings**: `steps: 35`, `cfg_scale: 6.5`, `shift: 1`
 - **Output**: JSON with base64-encoded images
-- **Why Juggernaut XL**: Best photorealism for beauty/cosmetician imagery. Superior product photography, natural warm luxury aesthetic. Speed doesn't matter since we generate assets once.
-- **Usage**: Hero images, product photos, decorative elements, blog banners
-- **Curl command**:
-    ```bash
-  curl -s -X POST http://localhost:7860/sdapi/v1/txt2img \
-      -H "Content-Type: application/json" \
-      -d '{"prompt":"YOUR_PROMPT", "negative_prompt":"blurry, low quality, distorted, text, watermark, messy, noisy, grainy, ugly, deformed", "steps": 35, "width": 1024, "height": 1024, "cfg_scale": 6.5}' \
-      | python3 -c "import sys, base64, json; data=json.load(sys.stdin); open('output.png','wb').write(base64.b64decode(data['images'][0]))"
-    ```
 
 ### Payments (ON HOLD)
 - Planned: Stripe
@@ -113,185 +103,71 @@
 
 ```
 projects/saritelkayam/
-├── .agents/                        # Agent specifications (read-only context)
-│   ├── README.md                   # Agent system overview
-│   ├── infrastructure.md           # Docker, nginx, deploy agent
-│   ├── design-system.md            # Tailwind, UI components agent
-│   ├── frontend.md                 # Pages, sections agent
-│   ├── fullstack.md                # Prisma, API, CMS agent
-│   └── media.md                    # Image generation agent
-├── .skills/                        # Skill reference docs (read-only context)
-│   ├── nextjs-app-router.md        # Next.js 15 patterns
-│   ├── tailwind-css.md             # Tailwind config, tokens
-│   ├── framer-motion.md            # Animation patterns
-│   ├── prisma-orm.md               # Schema, queries, migrations
-│   ├── docker-deploy.md            # Containerization, nginx
-│   └── draw-things-api.md          # Image generation workflow
-├── MEMORY.md                       # This file
-├── docker-compose.yml              # (Phase 1 - Infrastructure agent)
-├── Dockerfile                      # (Phase 1 - Infrastructure agent)
+├── .agents/                          # Agent specifications (read-only context)
+├── .skills/                          # Skill reference docs (read-only context)
+├── .journal/                         # Agent work log
+│    └── status.md                     # Living journal
+├── MEMORY.md                         # This file
+├── docker-compose.yml                # Docker orchestration
 ├── backend/
-│   ├── Dockerfile                  # (Phase 1 - Infrastructure agent)
-│   ├── package.json                # (Phase 2 - Fullstack agent)
-│   ├── prisma/
-│   │   ├── schema.prisma           # (Phase 2 - Fullstack agent)
-│   │   └── migrations/             # (Phase 2 - Fullstack agent)
-│   ├── lib/
-│   │   └── db.ts                   # (Phase 2 - Fullstack agent)
-│   ├── server.ts                   # (Phase 2 - Fullstack agent)
-│   └── routes/                     # (Phase 2 - Fullstack agent)
+│    ├── Dockerfile                    # Single-stage node:20-slim + OpenSSL
+│    ├── package.json
+│    ├── prisma/
+│    │    ├── schema.prisma            # Post, Author, PostAuthor tables + PostStatus enum
+│    │    └── migrations/              # 0001_initial_schema (manual SQL)
+│    ├── lib/db.ts                     # Prisma client singleton
+│    ├── server.ts                     # Express server, CORS, routes
+│    └── routes/                       # blog.ts, auth.ts
 ├── frontend/
-│   ├── Dockerfile                  # (Phase 1 - Infrastructure agent)
-│   ├── package.json                # (Phase 1 - Design System agent)
-│   ├── next.config.js              # (Phase 1 - Design System agent)
-│   ├── tailwind.config.js          # (Phase 1 - Design System agent)
-│   ├── tsconfig.json               # (Phase 1 - Design System agent)
-│   ├── postcss.config.js           # (Phase 1 - Design System agent)
-│   ├── app/
-│   │   ├── layout.tsx              # (Phase 1 - Design System agent)
-│   │   ├── page.tsx                # (Phase 2 - Frontend agent)
-│   │   ├── not-found.tsx           # (Phase 2 - Frontend agent)
-│   │   ├── manifest.ts             # (Phase 2 - Frontend agent)
-│   │   ├── sitemap.ts              # (Phase 2 - Frontend agent)
-│   │   ├── robots.ts               # (Phase 2 - Frontend agent)
-│   │   ├── services/               # (Phase 2 - Frontend agent)
-│   │   ├── testimonials/           # (Phase 2 - Frontend agent)
-│   │   ├── shop/                   # (Phase 2 - Frontend agent)
-│   │   ├── blog/                   # (Phase 2 - Frontend agent)
-│   │   ├── book/                   # (Phase 2 - Frontend agent)
-│   │   ├── contact/                # (Phase 2 - Frontend agent)
-│   │   └── admin/                  # (Phase 2 - Fullstack agent)
-│   ├── components/
-│   │   ├── ui/                     # (Phase 1 - Design System agent)
-│   │   ├── layout/                 # (Phase 1 - Design System agent)
-│   │   ├── sections/               # (Phase 2 - Frontend agent)
-│   │   └── common/                 # (Phase 1 - Design System agent)
-│   ├── lib/                        # (Phase 2 - Frontend agent)
-│   ├── styles/
-│   │   └── globals.css             # (Phase 1 - Design System agent)
-│   └── public/
-│       ├── assets/                 # (Phase 1 - Media agent)
-│       └── content/                # (Phase 2 - Fullstack agent)
-├── project-data/                   # Persistent data (outside git)
-│   └── saritelkayam/
-│       └── db/                     # PostgreSQL data
-└── README.md
+│    ├── Dockerfile                    # Two-stage: build + serve
+│    ├── package.json
+│    ├── next.config.js
+│    ├── tailwind.config.js
+│    ├── tsconfig.json
+│    ├── postcss.config.js
+│    ├── nginx.conf                    # Nginx config (for CDN proxy setups)
+│    ├── app/                          # Next.js App Router pages
+│    ├── components/                   # UI, layout, sections, common
+│    ├── lib/                          # blog.ts (markdown parsing), api.ts
+│    ├── styles/globals.css            # Tailwind + custom animations
+│    └── public/
+│        ├── assets/                   # Generated images
+│         └── content/posts/             # Blog markdown files (3 seed posts, Hebrew + English)
+└── project-data/saritelkayam/db/     # Persistent PostgreSQL data (server only)
 ```
 
 ## DEPLOYMENT
 
+### Status: ✅ Deployed and running on server (192.168.131.134)
+
 ### Ports
-- **Frontend**: 3006
-- **Backend API**: 30061
+- **Frontend**: 3006 (`http://192.168.131.134:3006`)
+- **Backend API**: 30061 (`http://192.168.131.134:30061`)
 
-### Local Access
-- `saritelkayam.apps.elkayam.me` → nginx:80 → containers
-- Via Technitium DNS (*.apps.elkayam.me → 192.168.131.134)
+### Domain (TBD)
+- `saritelkayam.com` — not yet configured. User will decide hosting (Cloudflare, direct DNS, or NPM).
+- Test via direct IP: `http://192.168.131.134:3006`
 
-### External Access
-- `saritelkayam.com` → Cloudflare DNS → Cloudflare tunnel → nginx:80 → containers
-- Need to add Cloudflare tunnel ingress rule for `saritelkayam.com`
-- OR direct DNS A record pointing to server's public IP
+### Containers
+- `saritelkayam-frontend` — Next.js 15 on port 3006
+- `saritelkayam-backend` — Express + Prisma on port 30061
+- `saritelkayam-postgres` — PostgreSQL 16 on port 5432 (data persists in `project-data/`)
 
-### Docker Compose Pattern
-```yaml
-services:
-  frontend:
-    build: ./frontend
-    container_name: saritelkayam-frontend
-    ports: ["3006:3000"]
-    restart: unless-stopped
-    depends_on: [backend]
-    environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:30061
-      - NEXT_PUBLIC_SITE_URL=https://saritelkayam.com
-  backend:
-    build: ./backend
-    container_name: saritelkayam-backend
-    ports: ["30061:3001"]
-    restart: unless-stopped
-    depends_on:
-      postgres: { condition: service_healthy }
-    environment:
-      - DATABASE_URL=postgresql://saritelkayam:saritelkayam_password@postgres:5432/saritelkayam
-      - NODE_ENV=production
-  postgres:
-    image: postgres:16-alpine
-    container_name: saritelkayam-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: saritelkayam
-      POSTGRES_USER: saritelkayam
-      POSTGRES_PASSWORD: saritelkayam_password
-    volumes: ["../../project-data/saritelkayam/db:/var/lib/postgresql/data"]
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U saritelkayam"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-```
-
-### Deploy Workflow
-1. Create files in `projects/saritelkayam/`
-2. `cd dev-env && git add -A && git commit -m "saritelkayam: [update]" && git push origin main`
-3. SSH to server: `ssh -i ~/.ssh/dev-env-server naor@192.168.131.134 "cd /home/elkayam/dev-env && ./deploy-all.sh"`
-4. Add Cloudflare tunnel ingress rule for `saritelkayam.com` in Zero Trust dashboard
+### Rebuild Workflow
+1. Make changes in `projects/saritelkayam/`
+2. `cd dev-env && git add -A && git commit -m "saritelkayam: [desc]" && git push origin main`
+3. SSH to server: `cd /home/elkayam/dev-env && git pull && cd projects/saritelkayam && docker compose build frontend && docker compose up -d`
 
 ### Critical Deployment Notes
+- **Backend Dockerfile**: Single-stage `node:20-slim` with OpenSSL. CMD runs `npx prisma generate` before starting server.
+- **DB tables**: Created manually via `psql` (migrations were empty). Tables: Post, Author, PostAuthor + PostStatus enum.
 - **Nested .git repos**: Always `rm -rf projects/saritelkayam/.git` before committing to dev-env
-- **Nginx proxy_pass**: MUST NOT have trailing slash (preserves /api/ prefix)
-- **Data persistence**: Use `../../project-data/saritelkayam/db:/var/lib/postgresql/data` in docker-compose
 - **Container names**: Use `saritelkayam-*` prefix to avoid conflicts
-
-## MULTI-AGENT SYSTEM
-
-### Agents (all use `qwen3.6:27b-coding-nvfp4`)
-
-| Agent | Spec | Skills | Phase |
-|-------|------|--------|-------|
-| Infrastructure | `.agents/infrastructure.md` | `docker-deploy` | 1, 3 |
-| Design System | `.agents/design-system.md` | `tailwind-css`, `framer-motion` | 1 |
-| Media | `.agents/media.md` | `draw-things-api` | 1 |
-| Frontend | `.agents/frontend.md` | `nextjs-app-router`, `tailwind-css`, `framer-motion` | 2, 3 |
-| Fullstack | `.agents/fullstack.md` | `nextjs-app-router`, `prisma-orm` | 2 |
-| Journal | `.agents/journal.md` | — | Continuous |
-
-### Journal Agent
-The Journal agent maintains `.journal/status.md` — a living log of every agent's progress.
-It records: task start/completion, files created, blockers, and handoff notes.
-All agents should log their work to this file. On crash recovery, read `.journal/status.md` to resume.
-
-### Execution Order
-
-```
-Phase 1 (parallel, 3 agents):
-  Infrastructure: docker-compose, Dockerfiles, nginx config
-  Design System: Tailwind config, UI components, layout components
-  Media: Generate all image assets via Draw Things API
-
-Phase 2 (parallel, 2 agents, after Phase 1 completes):
-  Frontend: All page components, sections, routing, SEO
-  Fullstack: Prisma schema, API routes, blog CMS admin
-
-Phase 3 (sequential):
-  Frontend: Framer Motion animations, mobile polish
-  Infrastructure: Final deployment, Cloudflare tunnel config
-```
-
-### How to Activate (from a new thread)
-
-```
-Read MEMORY.md for context
-Read .agents/[agent-name].md for scope and tasks
-Read .skills/[relevant-skills].md for reference patterns
-Execute task queue in order
-Update FEATURES STATUS table when done
-```
 
 ## ENVIRONMENT VARIABLES
 
 ### Frontend
-- `NEXT_PUBLIC_API_URL` - Backend API URL
+- `NEXT_PUBLIC_API_URL` - Backend API URL (http://localhost:30061 in container)
 - `NEXT_PUBLIC_SITE_URL` - Site URL (for SEO)
 
 ### Backend
@@ -304,33 +180,163 @@ Update FEATURES STATUS table when done
 
 ## FEATURES STATUS
 
-| Feature | Status | Agent | Notes |
-|---------|--------|-------|-------|
-| Agent/Skill files | ✅ Done | Planning | All specs created |
-| Design system | ✅ Done | Design System | All 12 files: Tailwind, CSS, 6 UI, 3 layout, 2 common, root layout |
-| Media assets | ✅ Done | Media | 18 images: 2 hero, 4 service, 3 decorative, 3 testimonial, 3 blog, 3 product |
-| Docker/Deploy | ✅ Done | Infrastructure | docker-compose, Dockerfiles, nginx config all created |
-| Home page | ✅ Done | Frontend | Hero, services preview, testimonials, CTA |
-| Services page | ✅ Done | Frontend | Service catalog with pricing |
-| Testimonials | ✅ Done | Frontend | Customer reviews with photos (placeholder avatars) |
-| Shop/Products | ✅ Done | Frontend | "Coming soon" placeholder page |
-| Booking | ✅ Done | Frontend | "Coming soon" placeholder page |
-| Blog | ✅ Done | Frontend + Fullstack | Listing, post viewer, markdown CMS, 3 seed posts |
-| Contact | ✅ Done | Frontend | Contact form, location, social |
-| Admin CMS | ✅ Done | Fullstack | Auth, dashboard, post CRUD, markdown export |
-| Database | ✅ Done | Fullstack | Prisma schema (Post, Author), migrations |
-| Animations | ✅ Done | Frontend | FadeInSection, StaggeredList, scroll animations on all pages |
-| Mobile polish | ✅ Done | Frontend | Responsive breakpoints on all components |
-| Deploy | ⏳ Ready | Infrastructure | Files created. Run docker-compose + nginx enable. |
+| Feature | Status | Notes |
+|---------|--------|-------|
+| Agent/Skill files | ✅ Done | All specs created |
+| Design system | ✅ Done | Tailwind, CSS, 6 UI, 3 layout, 2 common, root layout |
+| Media assets | ✅ Done | 18 images generated via Draw Things |
+| Docker/Deploy | ✅ Live | All 3 containers running on server |
+| Home page | ✅ Done | Hero, services preview, testimonials, CTA |
+| Services page | ✅ Done | Service catalog with pricing |
+| Testimonials | ✅ Done | Customer reviews with photos |
+| Shop/Products | ✅ Done — Live | Full catalog (8 products, HE/EN, images) + home page preview |
+| Booking | ✅ Done | "Coming soon" placeholder page |
+| Blog | ✅ Done | Listing, post viewer, markdown CMS, 3 seed posts |
+| Contact | ✅ Done | Contact form, location, social |
+| Admin CMS | ✅ Done | Auth, dashboard, post CRUD, markdown export |
+| Database | ✅ Done | Post, Author, PostAuthor tables + PostStatus enum |
+| Animations | ✅ Done | FadeInSection, StaggeredList, scroll animations on all pages |
+| Mobile polish | ✅ Done | Responsive breakpoints on all components |
+| i18n (HE/EN) | ✅ Done — Live | Hebrew default (RTL), English toggle. Frank Ruhl Libre + Heebo fonts. All ~100 UI strings translated across 15 files. Cookie-persisted locale. Dynamic dir/lang via useEffect. Nav includes all 6 links |
+| i18n polish | ✅ Done — Live | Phase 5: All Hebrew translations polished to natural, fluent Hebrew. Name fixed to "שרית אלקיים". Korean char fixed. Blog posts translated to Hebrew. Dynamic dir/lang on toggle. See Phase 5 details below |
+| Domain config | ⏳ Pending | User to decide hosting for saritelkayam.com |
+
+## PHASE 4: Bilingual Hebrew/English (i18n) — P0
+
+**Goal**: Site supports both Hebrew (default) and English with a language toggle in the header.
+
+**Approach**: Lightweight React Context + dictionary object. No complex routing.
+- Hebrew as default language (`dir="rtl"`)
+- Small language switcher ("עברית | English" pill) in the header
+- All UI text goes through `useTranslation()` hook
+- `dir="rtl"` on `<html>` when Hebrew, `dir="ltr"` when English
+
+**Font changes**:
+- Playfair Display → **Frank Ruhl Libre** (serif, elegant, supports Hebrew + Latin)
+- Inter → **Heebo** (sans-serif, clean, supports Hebrew + Latin)
+- Both from Google Fonts, import via `next/font/google`
+
+**RTL layout changes**:
+- Tailwind logical properties: `ms-`/`me-` instead of `ml-`/`mr-`, `ps-`/`pe-` instead of `pl-`/`pr-`
+- Flip animation directions (slide from right in RTL)
+- Hero image: swap left/right column order in grid
+- ChevronRight icons → flip direction in RTL
+
+**Translation file**: `frontend/lib/i18n.tsx` (note: .tsx — contains JSX)
+- `const he = { ... }` and `const en = { ... }` with all ~100 UI strings
+- `LocaleProvider` context component in `frontend/components/layout/LocaleProvider.tsx`
+- Cookie-based persistence so language choice survives page reloads
+- `useTranslation()` hook returns the right dictionary
+- Wrap `app/layout.tsx` children with `<LocaleProvider>`
+
+**Files translated** (~100 strings total, one-time work):
+1. `app/layout.tsx` — fonts, metadata, html lang/dir
+2. `components/layout/Header.tsx` — nav links, brand, aria labels, language toggle
+3. `components/layout/Footer.tsx` — brand, tagline, copyright
+4. `components/sections/HeroSection.tsx` — headline, subheadline, CTAs
+5. `components/sections/ServicesPreview.tsx` — title, subtitle, service data, buttons
+6. `components/sections/TestimonialsSection.tsx` — title, subtitle, testimonial data
+7. `components/sections/CTASection.tsx` — title, subtitle, button labels
+8. `app/services/page.tsx` — page header, category data, buttons
+9. `app/testimonials/page.tsx` — page header, testimonial data, rating labels
+10. `app/contact/page.tsx` — form labels, contact info, hours, social labels
+11. `app/blog/page.tsx` + `BlogListContent.tsx` — page header, labels, meta
+12. `app/shop/page.tsx` — placeholder page text
+13. `app/book/page.tsx` — placeholder page text, step labels
+14. `app/not-found.tsx` + `app/NotFoundContent.tsx` — 404 page text, button labels
+15. `components/common/FadeInSection.tsx` + `StaggeredList.tsx` — animation direction flip
+
+**RTL layout changes implemented**:
+- `dir="rtl"` on `<html>` when Hebrew, `dir="ltr"` when English
+- Animation directions flipped (slide from right in RTL)
+- Hero image: swap left/right column order in grid
+- ChevronRight icons → flip direction in RTL
+- ArrowLeft icons → flip direction in RTL (404 page, blog post)
+
+**Build notes**:
+- `frontend/lib/i18n.ts` → renamed to `frontend/lib/i18n.tsx` (contains JSX)
+- All page components using `useTranslation()` need `"use client"` directive
+- `app/not-found.tsx` is a server component (exports `metadata`), so client UI extracted to `app/NotFoundContent.tsx`
+
+**Verify**: All 7 pages return 200 at `http://192.168.131.134:3006`
+- Hebrew default: `lang="he" dir="rtl"` in HTML, all nav strings in Hebrew
+- English toggle button in header switches to English/LTR
+
+**Blog posts**: Markdown in `public/content/posts/` — ✅ translated to Hebrew (Phase 5).
+
+**All Phase 4 translation issues resolved in Phase 5** ✅ — see Phase 5 section below.
+
+**Deploy workflow**:
+```bash
+# Copy changed files
+for f in lib/i18n.tsx components/layout/Header.tsx ...; do
+  scp -i ~/.ssh/dev-env-server "/Users/elnaor/Environments/Zed/dev-env/projects/saritelkayam/frontend/$f" \
+    "naor@192.168.131.134:/home/elkayam/dev-env/projects/saritelkayam/frontend/$f"
+done
+# Rebuild on server
+ssh -i ~/.ssh/dev-env-server naor@192.168.131.134 "cd /home/elkayam/dev-env/projects/saritelkayam && docker compose build frontend && docker compose up -d frontend"
+```
 
 ## TODO / NEXT STEPS
 
-1. ✅ Create project folder and memory dump
-2. ✅ Create agent specifications (`.agents/`)
-3. ✅ Create skill reference docs (`.skills/`)
-4. ✅ **Phase 1**: Run all 3 agents (Infrastructure ✅, Design System ✅, Media ✅ 18 images generated)
-5. ✅ **Phase 2**: Run Frontend + Fullstack agents (both complete)
-6. ✅ **Phase 3**: Animations, mobile polish (both complete)
-7. ✅ Generate media assets (18 images generated via Draw Things)
-8. ⬜ Configure external domain (saritelkayam.com)
-9. ⬜ Deploy to server + configure Cloudflare tunnel
+1. ✅ Phases 1-6 complete, deployed and running
+2. ⬜ Configure external domain (saritelkayam.com) — user to decide hosting approach
+
+## PHASE 6: Products Page (2026-05-22)
+
+**Full product catalog on `/shop`:**
+- 8 products across 4 categories: Cleansers, Serums, Moisturizers, Sun Protection
+- Bilingual product data (Hebrew default / English toggle)
+- Product cards with: image, category badge, size, name, description, price, star rating, wishlist button
+- Category filter buttons (pill-style)
+- CTA: "Ask About This Product" → `/contact`, bottom section with "Get Recommendations" / "Book Treatment"
+- Uses 3 existing product images from `public/assets/products/`
+
+**Products preview on home page:**
+- New `ProductsPreview` component between Services and Testimonials
+- Shows 3 featured products with link to full `/shop` page
+- Bilingual: `productsTitle`, `productsSubtitle`, `productsViewAll`
+
+**Also fixed:**
+- Stale Korean chars + awkward translations in `ServicesPreview.tsx` (home page)
+- i18n updated with new shop/product strings for both HE and EN
+
+**Files modified:**
+- `frontend/components/sections/ProductsPreview.tsx` (new)
+- `frontend/app/page.tsx` — added ProductsPreview to home page
+- `frontend/app/shop/page.tsx` — full rewrite (placeholder → product catalog)
+- `frontend/components/sections/ServicesPreview.tsx` — fixed stale translations
+- `frontend/components/layout/Header.tsx` — added shop link to nav (all 6 nav links)
+- `frontend/lib/i18n.tsx` — updated shop + products strings
+
+## PHASE 5: Polish Hebrew Translations (i18n) — Complete (2026-05-22)
+
+**P0 — Polish all Hebrew translations:**
+- Fixed name transliteration: "Sarit Elkayam" → "שרית אלקיים" (was "סריטל קיימ") — across all files
+- Fixed Korean char "פילינג סיגני처" → "פילינג סיגניצ'ר"
+- Fixed "עיטפי" → "גלי" (browse), "חוי" → "חופפי" (experience)
+- Rewrote all service feature strings in `services/page.tsx` (categoriesHe) — natural Hebrew
+- Rewrote all testimonial strings in `testimonials/page.tsx` (testimonialsHe) — natural Hebrew
+- Polished all `i18n.tsx` Hebrew strings for natural, fluent Hebrew
+- Updated `TestimonialsSection.tsx` (home page) to match fixed translations
+
+**P1 — Translate blog posts:**
+- Translated all 3 seed posts in `public/content/posts/` to Hebrew
+- Added `lang: he` frontmatter to all blog posts
+
+**P2 — Dynamic dir/lang:**
+- Already implemented in Phase 4 (`useEffect` in LocaleProvider updates `document.documentElement.dir` and `lang`)
+
+**Files modified:**
+- `frontend/lib/i18n.tsx` — polished all Hebrew strings, fixed name
+- `frontend/app/layout.tsx` — fixed metadata name
+- `frontend/app/not-found.tsx` — fixed metadata name
+- `frontend/components/layout/Header.tsx` — fixed aria-label name
+- `frontend/components/sections/TestimonialsSection.tsx` — fixed Korean char, name, natural Hebrew
+- `frontend/app/services/page.tsx` — rewrote all Hebrew service data
+- `frontend/app/testimonials/page.tsx` — rewrote all Hebrew testimonial data
+- `frontend/public/content/posts/understanding-skin-types.md` — translated to Hebrew
+- `frontend/public/content/posts/summer-skincare-essentials.md` — translated to Hebrew
+- `frontend/public/content/posts/natural-makeup-guide.md` — translated to Hebrew
+
+**Verify**: All 7 pages return 200. Blog posts return 200. Zero Korean chars. "שרית אלקיים" visible on all pages.

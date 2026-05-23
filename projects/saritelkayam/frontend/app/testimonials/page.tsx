@@ -7,8 +7,9 @@ import { Badge } from "@/components/ui/Badge";
 import { SectionDivider } from "@/components/common/SectionDivider";
 import { Button } from "@/components/ui/Button";
 import { Star } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
-const testimonials = [
+const testimonialsEn = [
   {
     name: "Rachel M.",
     service: "Signature Facial",
@@ -74,6 +75,72 @@ const testimonials = [
   },
 ];
 
+const testimonialsHe = [
+  {
+    name: "רחל מ'",
+    service: "פילינג סיגניצ'ר",
+    rating: 5,
+    date: "2026-05-10",
+    text: "שרית פשוט מדהימה! העור שלי מעולם לא נראה טוב יותר. הטיפול היה מרגיע והתוצאות מידיות — יצאתי מרגישה כאדם חדש. ממליצה בחום לכל מי שמחפשת מקצוענית אמיתית.",
+  },
+  {
+    name: "דנה כ'",
+    service: "אבחון עור",
+    rating: 5,
+    date: "2026-05-05",
+    text: "אבחון העור פתח את העיניים שלי — גיליתי מה שהעור שלי באמת צריך. המקצועיות והתשומת לב לפרטים של שרית עשו את כל ההבדל. קיבלתי שגרה מותאמת אישית שעובדת באמת!",
+  },
+  {
+    name: "מאיה ל'",
+    service: "איפור חתונה",
+    rating: 5,
+    date: "2026-04-28",
+    text: "שרית עשתה את איפור החתונה שלי והנראיתי מושלם כל היום! מפגש ההכנה השקט את הדעת שלי, וביום הגדול היא הייתה בדיוק בזמן, רגועה ומדהימה. כל תמונה יצאה מושלמת.",
+  },
+  {
+    name: "נועה ת'",
+    service: "פילינג הידרו-ברק",
+    rating: 5,
+    date: "2026-04-20",
+    text: "הגעתי עם עור מת ועייף ויצאתי עם הברק הזוהר ביותר שהיה לי בשנים רבות. פילינג ההידרו-ברק שינה את המראה שלי לחלוטין. כבר תאמתי את הטיפול הבא!",
+  },
+  {
+    name: "שריין ב'",
+    service: "פילינג אנטי-אייג'ינג",
+    rating: 5,
+    date: "2026-04-15",
+    text: "לאחר שלושה טיפולים, השינוי במרקם העור שלי מדהים. טיפול המיקרו-זרם מרגיש נפלא והסרום הפפטידי הוא עכשיו חלק מהשגרה היומיומית שלי. שווה כל שקל.",
+  },
+  {
+    name: "תמר ס'",
+    service: "איפור לאירוע מיוחד",
+    rating: 4,
+    date: "2026-04-10",
+    text: "קבלתי איפור מקצועי לגלה והרגשתי כמו מיליון דולר. שרית מוכשרת, נחמדה, ושמעה באמת מה שרציתי. האיפור החזיק לאורך כל הערב ללא ניקודים.",
+  },
+  {
+    name: "ליאה ג'",
+    service: "פילינג מנקה לאקנה",
+    rating: 5,
+    date: "2026-04-05",
+    text: "סבלתי מאקנה שנים. אחרי הטיפול המנקה של שרית, העור שלי היה נקי יותר מכל מה שהכרתי. היא עדינה אבל יסודית, וטיפול ה-LED הרגיש כל כך מרגיע.",
+  },
+  {
+    name: "יעל ר'",
+    service: "פילינג גוף ועטיפה",
+    rating: 5,
+    date: "2026-03-30",
+    text: "הטיפול המרנין ביותר שעשיתי אי פעם! פילינג הסוכר ועטיפת האצות השאירו את העור שלי חלק כמו משי. הארומתרפיה הייתה שמימית. חווית ספא אמיתית.",
+  },
+  {
+    name: "אביב ה'",
+    service: "איפור יומי אלגנטי",
+    rating: 5,
+    date: "2026-03-22",
+    text: "שיעור האיפור היומי שינה את שגרת הבוקר שלי לחלוטין. שרית לימדה אותי טכניקות שאני משתמשת בהן כל יום. המדריך לקחה הביתה כל כך מועיל. ההשקעה ביופי הטובה ביותר שעשיתי.",
+  },
+];
+
 function StarRating({ count }: { count: number }) {
   return (
     <div className="flex gap-0.5" aria-label={`${count} out of 5 stars`}>
@@ -91,6 +158,10 @@ function StarRating({ count }: { count: number }) {
 }
 
 export default function TestimonialsPage() {
+  const { t, locale } = useTranslation();
+  const items = locale === "he" ? testimonialsHe : testimonialsEn;
+  const dateLocale = locale === "he" ? "he-IL" : "en-US";
+
   return (
     <>
       {/* Page header */}
@@ -98,14 +169,13 @@ export default function TestimonialsPage() {
         <section className="bg-cream-100 py-8 md:py-16 lg:py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center max-w-2xl mx-auto">
-              <Badge variant="accent">Client Love</Badge>
+              <Badge variant="accent">{t.testimonialsBadge}</Badge>
               <h1 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold text-charcoal-800 mt-4 mb-4">
-                What Our Clients Say
+                {t.testimonialsTitle}
               </h1>
               <SectionDivider className="mb-4" />
               <p className="font-body text-charcoal-500">
-                Don't just take our word for it — hear from real clients who
-                have experienced the transformation.
+                {t.testimonialsSubtitlePage}
               </p>
               <div className="mt-4 flex items-center justify-center gap-2">
                 <div className="flex gap-0.5">
@@ -118,7 +188,8 @@ export default function TestimonialsPage() {
                   ))}
                 </div>
                 <span className="font-body text-sm text-charcoal-500">
-                  Average rating from {testimonials.length} reviews
+                  {t.testimonialsAverageRating} {items.length}{" "}
+                  {t.testimonialsReviews}
                 </span>
               </div>
             </div>
@@ -130,31 +201,31 @@ export default function TestimonialsPage() {
       <FadeInSection>
         <Section bg="white">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {testimonials.map((t) => (
-              <Card key={t.name} className="p-6 md:p-8 flex flex-col h-full">
+            {items.map((item) => (
+              <Card key={item.name} className="p-6 md:p-8 flex flex-col h-full">
                 {/* Avatar + name */}
                 <div className="flex items-center gap-4 mb-4">
                   <div className="w-14 h-14 rounded-full bg-gradient-to-br from-rose-200 to-rose-400 flex items-center justify-center text-white font-heading font-semibold text-xl shrink-0">
-                    {t.name.charAt(0)}
+                    {item.name.charAt(0)}
                   </div>
                   <div>
                     <p className="font-body font-semibold text-charcoal-800">
-                      {t.name}
+                      {item.name}
                     </p>
-                    <Badge variant="default">{t.service}</Badge>
+                    <Badge variant="default">{item.service}</Badge>
                   </div>
                 </div>
 
                 <div className="mb-3">
-                  <StarRating count={t.rating} />
+                  <StarRating count={item.rating} />
                 </div>
 
                 <p className="font-body text-sm text-charcoal-600 leading-relaxed flex-1 italic">
-                  "{t.text}"
+                  "{item.text}"
                 </p>
 
                 <p className="font-body text-xs text-charcoal-400 mt-4 pt-4 border-t border-cream-200">
-                  {new Date(t.date).toLocaleDateString("en-US", {
+                  {new Date(item.date).toLocaleDateString(dateLocale, {
                     year: "numeric",
                     month: "long",
                     day: "numeric",
@@ -171,14 +242,14 @@ export default function TestimonialsPage() {
         <Section bg="cream">
           <div className="text-center">
             <p className="font-body text-base md:text-lg text-charcoal-600 mb-6">
-              Ready to be our next happy client?
+              {t.testimonialsReady}
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Button variant="primary" size="lg" href="/book">
-                Book Your Appointment
+                {t.testimonialsBookAppointment}
               </Button>
               <Button variant="outline" size="lg" href="/services">
-                View Services
+                {t.testimonialsViewServices}
               </Button>
             </div>
           </div>

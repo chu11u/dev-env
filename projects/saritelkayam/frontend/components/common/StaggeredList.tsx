@@ -1,7 +1,8 @@
-'use client';
+"use client";
 
-import type { ReactNode } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+import type { ReactNode } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import { useTranslation } from "@/lib/i18n";
 
 interface StaggeredListProps {
   children: ReactNode;
@@ -17,6 +18,7 @@ export function StaggeredList({
   duration = 0.3,
 }: StaggeredListProps) {
   const shouldReduce = useReducedMotion();
+  const { isRtl } = useTranslation();
 
   const containerVariants = {
     hidden: { opacity: shouldReduce ? 1 : 0 },
@@ -30,11 +32,12 @@ export function StaggeredList({
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 16 },
+    hidden: { opacity: 0, y: 16, x: isRtl ? 16 : -16 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration, ease: 'easeOut' },
+      x: 0,
+      transition: { duration, ease: "easeOut" },
     },
   };
 
@@ -43,7 +46,7 @@ export function StaggeredList({
       variants={containerVariants}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, margin: '-100px' }}
+      viewport={{ once: true, margin: "-100px" }}
     >
       <motion.div variants={itemVariants}>{children}</motion.div>
     </motion.div>
@@ -52,20 +55,22 @@ export function StaggeredList({
 
 export function StaggerItem({ children }: { children: ReactNode }) {
   const shouldReduce = useReducedMotion();
+  const { isRtl } = useTranslation();
 
   return (
     <motion.div
       variants={{
-        hidden: { opacity: 0, y: 16 },
+        hidden: { opacity: 0, y: 16, x: isRtl ? 16 : -16 },
         visible: {
           opacity: 1,
           y: 0,
-          transition: { duration: 0.3, ease: 'easeOut' },
+          x: 0,
+          transition: { duration: 0.3, ease: "easeOut" },
         },
       }}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once: true, margin: '-100px' }}
+      viewport={{ once: true, margin: "-100px" }}
     >
       {shouldReduce ? <>{children}</> : children}
     </motion.div>

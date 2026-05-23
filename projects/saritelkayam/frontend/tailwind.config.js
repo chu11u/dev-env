@@ -66,8 +66,8 @@ module.exports = {
         },
       },
       fontFamily: {
-        heading: ["var(--font-playfair)", "serif"],
-        body: ["var(--font-inter)", "sans-serif"],
+        heading: ["var(--font-frank-ruhl)", "serif"],
+        body: ["var(--font-heebo)", "sans-serif"],
       },
       borderRadius: {
         xl: "1rem",

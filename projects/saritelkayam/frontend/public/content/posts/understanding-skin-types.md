@@ -1,106 +1,107 @@
 ---
-title: "Understanding Your Skin Type: A Complete Guide"
+title: "הכירי את סוג העור שלך: מדריך מקיף"
 slug: "understanding-skin-types"
-excerpt: "Not sure what skin type you have? Learn how to identify your skin type and choose the right products for optimal results."
-featuredImage: "/assets/blog/skin-types.jpg"
+excerpt: "לא בטוחה מה סוג העור שלך? למדי איך לזהות את סוג העור שלך ולבחור את המוצרים הנכונים לתוצאות מיטביות."
+featuredImage: "/assets/blog/featured-skincare.png"
 status: published
 publishedAt: "2026-05-05T09:00:00.000Z"
-authors: "Sarit Elkayam"
-tags: "skincare,education,skin types"
+authors: "שרית אלקיים"
+tags: "טיפוח עור,השכלה,סוגי עור"
+lang: he
 ---
 
-# Understanding Your Skin Type: A Complete Guide
+# הכירי את סוג העור שלך: מדריך מקיף
 
-One of the most common questions I get from clients is: "What products should I use?" The answer always starts with the same place: knowing your skin type. Using the wrong products for your skin type is like wearing the wrong shoe size — it might look right on the outside, but it's going to cause problems.
+אחת השאלות הנפוצות ביותר שאני מקבלת מלקוחות היא: "איזה מוצר אני צריכה להשתמש?" התשובה תמיד מתחילה מאותו מקום — להכיר את סוג העור שלך. להשתמש במוצרים לא מתאים לסוג העור שלך זה כמו ללבוש נעל במידה לא נכונה — זה עשוי להיראות נכון מבחוץ, אבל זה יגרום לבעיות.
 
-## The Five Skin Types
+## חמשת סוגי העור
 
-### 1. Normal Skin
+### 1. עור נורמלי
 
-**Characteristics:** Balanced oil production, few blemishes, minimal sensitivity, even tone, and a healthy glow.
+**מאפיינים:** ייצור שמן מאוזן, פצעונים ספורים, רגישות מינימלית, גוון אחיד וברק בריא.
 
-**If you have normal skin, congratulations!** You've won the skincare lottery. Maintain your routine with a gentle cleanser, moisturizer, and daily sunscreen. Don't get complacent — normal skin still needs protection and care.
+**אם יש לך עור נורמלי, מזל טוב!** זכית בהגרלת טיפוח העור. שמרי על שגרה עם משתף עדין, קרם לחות, ומשחה להגנה מהשמש יומית. אל תתרדפי — עור נורמלי עדיין צריך הגנה וטיפוח.
 
-**Recommended products:** Lightweight moisturizer, gentle cleanser, SPF 30+ daily.
+**מוצרים מומלצים:** קרם לחות קליל, משתף עדין, משחה להגנה מהשמש SPF 30+.
 
-### 2. Dry Skin
+### 2. עור יבש
 
-**Characteristics:** Tight feeling after washing, flakiness, dull complexion, visible fine lines, and sometimes redness.
+**מאפיינים:** תחושת מתיחות לאחר שטיפה, קילוף, מראה מת, קמטים עדינים נראים לעין ולעיתים אדמומיות.
 
-**The challenge:** Dry skin lacks both oil and moisture. Your goal is to replenish lipids (oils) and attract hydration.
+**האתגר:** לעור יבש חסר גם שמן וגם לחות. המטרה היא להשלים שומנים (שומניות) ולמשוך לחות.
 
-**Key ingredients to look for:**
-- Hyaluronic acid (attracts moisture)
-- Ceramides (repair the skin barrier)
-- Squalane (lightweight oil that mimics natural skin lipids)
-- Glycerin (humectant that draws water to the skin)
+**רכיבים מומלצים:**
+- חומצה היאלורונית (מושכת לחות)
+- צראמידים (תיקון מחסום העור)
+- סקואלן (שמן קליל המחקה שומנים טבעיים בעור)
+- גליצרין (חומר מושך לחות שמביא מים לעור)
 
-**Avoid:** Harsh cleansers, alcohol-based products, and excessive exfoliation.
+**להימנע:** משתפים חזקים, מוצרים עם אלכוהול, וקילוף מוגבר.
 
-### 3. Oily Skin
+### 3. עור שומני
 
-**Characteristics:** Shine throughout the day, enlarged pores, prone to blackheads and acne, thick skin texture.
+**מאפיינים:** ברק לאורך היום, נקבוביות מוגדלות, נוטה לשחורים ואקנה, מרקם עור עבה.
 
-**The misconception:** Oily skin doesn't mean dehydrated skin. Stripping oily skin with harsh products actually triggers *more* oil production as your skin tries to compensate.
+**התפיסה השגויה:** עור שומני לא אומר עור מותז מלחות. הסרת עור שומני עם מוצרים חזקים למעשה מעודדת *יותר* ייצור שמן כי העור מנסה לפצות.
 
-**Key ingredients to look for:**
-- Niacinamide (regulates oil production)
-- Salicylic acid (BHA — penetrates pores to clear blockages)
-- Clay (absorbs excess oil)
-- Lightweight, non-comedogenic moisturizers
+**רכיבים מומלצים:**
+- ניאצינאמיד (מאזן ייצור שמן)
+- חומצה סליצילית (BHA — חודרת לנקבוביות ומנקה סתימות)
+- חמר (סופג שמן עודף)
+- קרמי לחות קלילים ולא קומדוגניים
 
-**Pro tip:** Don't skip moisturizer! Even oily skin needs hydration — just choose an oil-free formula.
+**טיפ מקצועי:** אל תדלגי על קרם לחות! גם לעור שומני יש צורך בלחות — פשוט בחרו נוסחה חופשית משומנים.
 
-### 4. Combination Skin
+### 4. עור משולב
 
-**Characteristics:** Oily T-zone (forehead, nose, chin) with normal to dry cheeks. This is the most common skin type.
+**מאפיינים:** אזור T שומני (מצח, אף, לחייים) עם לחיים נורמליות עד יבשות. זהו סוג העור הנפוץ ביותר.
 
-**The strategy:** You may need to use different products on different areas of your face. This is called "zoning."
+**האסטרטגיה:** ייתכן שתצטרכי להשתמש במוצרים שונים לאזורים שונים בפנים. זה נקרא "פיצול אזורים".
 
-**My recommendation:**
-- Use a gel cleanser for the whole face
-- Apply a lightweight moisturizer overall
-- Add extra hydration to dry areas (cheeks)
-- Use a mattifying product on the T-zone
+**ההמלצה שלי:**
+- השתמשי במשתף ג'ל לכל הפנים
+- משי קרם לחות קליל בכל הפנים
+- הוסיפי לחות נוספת לאזורים יבשים (לחיים)
+- השתמשי במוצר מ מטאטף באזור T
 
-### 5. Sensitive Skin
+### 5. עור רגיש
 
-**Characteristics:** Reacts easily to products, redness, stinging or burning sensations, possible conditions like rosacea or eczema.
+**מאפיינים:** מגיב בקלות למוצרים, אדמומיות, תחושת צריבה או שריפה, ומחלות אפשריות כמו רוזצאה או אקזמה.
 
-**The golden rule:** Less is more. A simple routine with minimal ingredients is your best friend.
+**הכלל הזהב:** פחות זה יותר. שגרה פשוטה עם מינימום רכיבים היא החברה הטובה ביותר שלך.
 
-**Key ingredients to look for:**
-- Centella asiatica (calming)
-- Aloe vera (soothing)
-- Oat extract (anti-inflammatory)
-- Allantoin (healing)
+**רכיבים מומלצים:**
+- צנטלה אסיאטיקה (מרגיע)
+- אלוורה (מרגיע)
+- תמצית שיבולת שועל (נגד דלקת)
+- אלנטואין (מרפא)
 
-**Avoid:** Fragrance, essential oils, alcohol, retinoids (unless recommended by a dermatologist), and physical scrubs.
+**להימנע:** ניחוח, שמנים אתריים, אלכוהול, רטינואידים (אלא אם כן הומלץ על ידי רופא עור), ופילינג פיזי.
 
-## How to Determine Your Skin Type
+## איך קובעים את סוג העור שלך
 
-Try the "bare face test":
+ניסי את "בדיקת הפנים הערומה":
 
-1. Wash your face with a gentle cleanser
-2. Pat dry and apply no products
-3. Wait one hour
-4. Observe your skin:
-   - **Normal:** Comfortable, no shine or tightness
-   - **Dry:** Tight, possibly flaky
-   - **Oily:** Shine all over
-   - **Combination:** Shine in T-zone, normal/dry elsewhere
-   - **Sensitive:** Redness, itching, or irritation
+1. שטפי את הפנים עם משתף עדין
+2. ייבשי בעדינות ואל תמשי מוצרים
+3. חכי שעה
+4. שימי לב לעור:
+    - **נורמלי:** נוח, ללא ברק או מתיחות
+    - **יבש:** מת, אולי מתקלף
+    - **שומני:** ברק בכל הפנים
+    - **משולב:** ברק באזור T, נורמלי/יבש בשאר האזורים
+    - **רגיש:** אדמומיות, גרד או גירוי
 
-## Can Your Skin Type Change?
+## סוג העור יכול להשתנות?
 
-Absolutely! Your skin type can change due to:
+בוודאי! סוג העור שלך יכול להשתנות בגלל:
 
-- **Seasons:** Many people are oily in summer and dry in winter
-- **Hormones:** Menstrual cycle, pregnancy, menopause
-- **Age:** Skin tends to become drier as we age
-- **Climate:** Moving to a different environment
-- **Products:** Using the wrong products can alter your skin's balance
+- **עונות:** אנ רבים הם שומניים בקיץ ויבשים בחורף
+- **הורמונים:** מחזור חודשי, הריון, גיל המעבר
+- **גיל:** עור נוטה להתייבש ככל שאנחנו מזדקנים
+- **אקלים:** מעבר לסביבה שונה
+- **מוצרים:** שימוש במוצרים לא מתאים יכול לשנות את האיזון של העור
 
 ---
 
-*Not sure about your skin type? Come in for a complimentary skin analysis. I'll assess your skin type, concerns, and create a personalized product recommendation just for you.*
+*לא בטוחה לגבי סוג העור שלך? בואי לפגישה עם אבחון עור חינם. אתחנן את סוג העור שלך, אשקול את הבעיות, ואכין לך המלצת מוצרים מותאמת אישית.*

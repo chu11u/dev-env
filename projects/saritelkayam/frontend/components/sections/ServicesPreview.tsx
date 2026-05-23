@@ -1,40 +1,71 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/Card";
 import { Section } from "@/components/layout/Section";
-import { ImagePlaceholder } from "@/components/common/ImagePlaceholder";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Clock, Star } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
-const featuredServices = [
+const featuredServicesEn = [
   {
     title: "Signature Facial",
     description:
       "A luxurious deep-cleansing facial tailored to your skin type, featuring gentle exfoliation, custom mask, and hydrating serum application.",
     duration: "60 min",
-    price: "$120",
+    price: "₪120",
     badge: "Most Popular",
-    imageLabel: "Signature Facial treatment",
+    image: "/assets/services/facial-treatment.png",
   },
   {
     title: "Skin Analysis & Consultation",
     description:
       "Comprehensive skin assessment using advanced technology to identify your unique needs and create a personalized treatment plan.",
     duration: "45 min",
-    price: "$80",
+    price: "₪80",
     badge: "Essential",
-    imageLabel: "Skin analysis session",
+    image: "/assets/services/skin-analysis.png",
   },
   {
     title: "Bridal Makeup",
     description:
       "Flawless, long-lasting makeup artistry for your special day. Includes trial session and day-of application.",
     duration: "90 min",
-    price: "$250",
+    price: "₪250",
     badge: "Premium",
-    imageLabel: "Bridal makeup",
+    image: "/assets/services/makeup.png",
+  },
+];
+
+const featuredServicesHe = [
+  {
+    title: "פילינג סיגניצ'ר",
+    description:
+      "פילינג מפנק ומעמיק המותאם לסוג העור שלך, הכולל קילוף עדין, מסכה מותאמת אישית והזרמת סרום מלחלח.",
+    duration: "60 דק'",
+    price: "₪120",
+    badge: "הכי נמכר",
+    image: "/assets/services/facial-treatment.png",
+  },
+  {
+    title: "אבחון עור וייעוץ",
+    description:
+      "הערכת עור מקיפה באמצעות טכנולוגיה מתקדמת לזיהוי הצרכים הייחודיים שלך ויצירת תוכנית טיפול מותאמת אישית.",
+    duration: "45 דק'",
+    price: "₪80",
+    badge: "חיוני",
+    image: "/assets/services/skin-analysis.png",
+  },
+  {
+    title: "איפור חתונה",
+    description:
+      "איפור מושלם ועמיד ליום המיוחד שלך. כולל מפגש הכנה ויישום ביום החתונה.",
+    duration: "90 דק'",
+    price: "₪250",
+    badge: "פרימיום",
+    image: "/assets/services/makeup.png",
   },
 ];
 
@@ -48,12 +79,11 @@ const cardVariants = {
 };
 
 export function ServicesPreview() {
+  const { t, locale } = useTranslation();
+  const services = locale === "he" ? featuredServicesHe : featuredServicesEn;
+
   return (
-    <Section
-      title="Featured Services"
-      subtitle="Discover the treatments that will transform your skin and boost your confidence"
-      bg="white"
-    >
+    <Section title={t.servicesTitle} subtitle={t.servicesSubtitle} bg="white">
       <motion.div
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
         variants={{
@@ -67,10 +97,17 @@ export function ServicesPreview() {
         whileInView="visible"
         viewport={{ once: true, margin: "-100px" }}
       >
-        {featuredServices.map((service) => (
+        {services.map((service) => (
           <motion.div key={service.title} variants={cardVariants}>
             <Card className="overflow-hidden flex flex-col h-full hover:-translate-y-1 transition-transform duration-200 ease-[0.4,0,0.2,1]">
-              <ImagePlaceholder height="h-48" className="rounded-t-2xl" />
+              <div className="relative h-48">
+                <Image
+                  src={service.image}
+                  alt={service.title}
+                  fill
+                  className="object-cover rounded-t-2xl"
+                />
+              </div>
 
               <div className="p-6 flex flex-col flex-1">
                 <div className="flex items-center justify-between mb-3">
@@ -95,7 +132,7 @@ export function ServicesPreview() {
                 </p>
 
                 <Button variant="outline" size="sm" href="/services">
-                  Learn More
+                  {t.servicesLearnMore}
                 </Button>
               </div>
             </Card>
@@ -105,7 +142,7 @@ export function ServicesPreview() {
 
       <div className="text-center mt-10">
         <Button variant="secondary" size="md" href="/services">
-          View All Services
+          {t.servicesViewAll}
         </Button>
       </div>
     </Section>

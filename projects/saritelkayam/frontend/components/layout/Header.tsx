@@ -3,17 +3,30 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
+import { useTranslation, type Translations } from "@/lib/i18n";
+
+type NavLabelKey = keyof Pick<
+  Translations,
+  | "navHome"
+  | "navServices"
+  | "navTestimonials"
+  | "navBlog"
+  | "navShop"
+  | "navContact"
+>;
 
 const navLinks = [
-  { label: "Home", href: "/" },
-  { label: "Services", href: "/services" },
-  { label: "Testimonials", href: "/testimonials" },
-  { label: "Blog", href: "/blog" },
-  { label: "Contact", href: "/contact" },
+  { labelKey: "navHome" as NavLabelKey, href: "/" },
+  { labelKey: "navServices" as NavLabelKey, href: "/services" },
+  { labelKey: "navTestimonials" as NavLabelKey, href: "/testimonials" },
+  { labelKey: "navBlog" as NavLabelKey, href: "/blog" },
+  { labelKey: "navShop" as NavLabelKey, href: "/shop" },
+  { labelKey: "navContact" as NavLabelKey, href: "/contact" },
 ];
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  const { t, locale, setLocale, isRtl } = useTranslation();
 
   const toggleMenu = () => setIsOpen((prev) => !prev);
 
@@ -24,30 +37,43 @@ export function Header() {
     >
       <nav
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
-        aria-label="Main navigation"
+        aria-label={isRtl ? "ניווט ראשי" : "Main navigation"}
       >
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <a
             href="/"
             className="font-heading text-xl font-semibold text-charcoal-800 hover:text-rose-400 transition-colors"
-            aria-label="Sarit Elkayam - Home"
+            aria-label={
+              isRtl ? "שרית אלקיים - דף הבית" : "Sarit Elkayam - Home"
+            }
           >
-            Sarit Elkayam
+            {t.siteNameFull}
           </a>
 
-          {/* Desktop nav */}
+          {/* Desktop nav + lang toggle */}
           <ul className="hidden md:flex items-center gap-8" role="menubar">
             {navLinks.map((link) => (
-              <li key={link.label} role="menuitem">
+              <li key={link.href} role="menuitem">
                 <a
                   href={link.href}
                   className="font-body text-sm text-charcoal-600 hover:text-rose-400 transition-colors p-3"
                 >
-                  {link.label}
+                  {t[link.labelKey]}
                 </a>
               </li>
             ))}
+
+            {/* Language toggle */}
+            <li role="menuitem">
+              <button
+                onClick={() => setLocale(locale === "he" ? "en" : "he")}
+                className="font-body text-sm text-charcoal-600 hover:text-rose-400 transition-colors p-3 border border-cream-200 rounded-full px-3 py-1"
+                aria-label="Toggle language"
+              >
+                {locale === "he" ? "English" : "עברית"}
+              </button>
+            </li>
           </ul>
 
           {/* Mobile toggle */}
@@ -56,7 +82,7 @@ export function Header() {
             onClick={toggleMenu}
             aria-expanded={isOpen}
             aria-controls="mobile-menu"
-            aria-label={isOpen ? "Close menu" : "Open menu"}
+            aria-label={isOpen ? t.closeMenu : t.openMenu}
           >
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -76,16 +102,26 @@ export function Header() {
             >
               <ul className="flex flex-col gap-1 pt-3 pb-4">
                 {navLinks.map((link) => (
-                  <li key={link.label} role="menuitem">
+                  <li key={link.href} role="menuitem">
                     <a
                       href={link.href}
                       className="block py-3 px-4 font-body text-sm text-charcoal-600 hover:text-rose-400 transition-colors min-h-[44px] flex items-center"
                       onClick={() => setIsOpen(false)}
                     >
-                      {link.label}
+                      {t[link.labelKey]}
                     </a>
                   </li>
                 ))}
+
+                {/* Mobile lang toggle */}
+                <li role="menuitem">
+                  <button
+                    onClick={() => setLocale(locale === "he" ? "en" : "he")}
+                    className="block py-3 px-4 font-body text-sm text-charcoal-600 hover:text-rose-400 transition-colors min-h-[44px] flex items-center"
+                  >
+                    {locale === "he" ? "English" : "עברית"}
+                  </button>
+                </li>
               </ul>
             </motion.div>
           )}

@@ -9,6 +9,7 @@ import { SectionDivider } from "@/components/common/SectionDivider";
 import { ImagePlaceholder } from "@/components/common/ImagePlaceholder";
 import { Button } from "@/components/ui/Button";
 import { Clock, DollarSign, ChevronRight } from "lucide-react";
+import { useTranslation } from "@/lib/i18n";
 
 interface Service {
   title: string;
@@ -18,7 +19,7 @@ interface Service {
   features?: string[];
 }
 
-const categories = [
+const categoriesEn = [
   {
     name: "Facials",
     icon: "💆‍♀️",
@@ -28,7 +29,7 @@ const categories = [
         description:
           "A luxurious deep-cleansing facial tailored to your skin type, featuring gentle exfoliation, custom mask, and hydrating serum.",
         duration: "60 min",
-        price: "$120",
+        price: "₪120",
         features: [
           "Deep cleansing",
           "Custom mask",
@@ -41,7 +42,7 @@ const categories = [
         description:
           "Advanced treatment targeting fine lines and wrinkles with collagen-boosting serums and microcurrent therapy.",
         duration: "75 min",
-        price: "$160",
+        price: "₪160",
         features: [
           "Microcurrent therapy",
           "Peptide serum",
@@ -54,7 +55,7 @@ const categories = [
         description:
           "Targeted treatment for blemish-prone skin with deep pore cleansing, antibacterial masks, and soothing botanicals.",
         duration: "60 min",
-        price: "$130",
+        price: "₪130",
         features: [
           "Deep pore cleansing",
           "Antibacterial mask",
@@ -67,7 +68,7 @@ const categories = [
         description:
           "Intense hydration treatment using hyaluronic acid and vitamin C for a radiant, dewy complexion.",
         duration: "60 min",
-        price: "$140",
+        price: "₪140",
         features: [
           "Hydra-dermabrasion",
           "Vitamin C infusion",
@@ -86,7 +87,7 @@ const categories = [
         description:
           "Comprehensive skin assessment using advanced VISIA technology to identify your unique needs.",
         duration: "45 min",
-        price: "$80",
+        price: "₪80",
         features: [
           "VISIA 3D imaging",
           "Skin map report",
@@ -99,7 +100,7 @@ const categories = [
         description:
           "Track your skin progress and adjust your treatment plan based on measurable results.",
         duration: "30 min",
-        price: "$50",
+        price: "₪50",
         features: [
           "Progress comparison",
           "Plan adjustment",
@@ -117,7 +118,7 @@ const categories = [
         description:
           "Deep cleansing treatment for back and chest acne, using specialized products and extractions.",
         duration: "60 min",
-        price: "$110",
+        price: "₪110",
         features: [
           "Gentle exfoliation",
           "Extractions",
@@ -130,7 +131,7 @@ const categories = [
         description:
           "Exfoliating body scrub followed by a nourishing wrap for silky, rejuvenated skin.",
         duration: "90 min",
-        price: "$150",
+        price: "₪150",
         features: [
           "Sugar scrub",
           "Seaweed wrap",
@@ -143,7 +144,7 @@ const categories = [
         description:
           "Luxurious hand spa with cuticle care, exfoliation, hydrating mask, and manicure.",
         duration: "45 min",
-        price: "$70",
+        price: "₪70",
         features: [
           "Cuticle care",
           "Exfoliating scrub",
@@ -162,7 +163,7 @@ const categories = [
         description:
           "Flawless, long-lasting makeup for your special day. Includes trial session and day-of application.",
         duration: "90 min",
-        price: "$250",
+        price: "₪250",
         features: [
           "Trial session",
           "Day-of application",
@@ -175,7 +176,7 @@ const categories = [
         description:
           "Professional makeup for galas, photoshoots, or any special occasion that calls for your best look.",
         duration: "60 min",
-        price: "$150",
+        price: "₪150",
         features: [
           "Custom color palette",
           "Long-wear formula",
@@ -188,7 +189,7 @@ const categories = [
         description:
           "Learn to achieve your perfect everyday look with a customized routine and application lesson.",
         duration: "60 min",
-        price: "$100",
+        price: "₪100",
         features: [
           "Technique lesson",
           "Product selection",
@@ -200,7 +201,175 @@ const categories = [
   },
 ];
 
-function ServiceCard({ service }: { service: Service }) {
+const categoriesHe = [
+  {
+    name: "פילינגים",
+    icon: "💆‍♀️",
+    services: [
+      {
+        title: "פילינג סיגניצ'ר",
+        description:
+          "פילינג מפנק ומעמיק המותאם לסוג העור שלך, הכולל קילוף עדין, מסכה מותאמת אישית והזרמת סרום מלחלח.",
+        duration: "60 דק'",
+        price: "₪120",
+        features: ["ניקוי עמוק", "מסכה מותאמת", "סרום מלחלח", "קרם לחות"],
+      },
+      {
+        title: "פילינג אנטי-אייג'ינג",
+        description:
+          "טיפול מתקדם להפחתת קמטים עדינים וקמטים, הכולל הזרמת סרום לעידוד ייצור קולגן וטיפול במיקרו-זרם.",
+        duration: "75 דק'",
+        price: "₪160",
+        features: [
+          "טיפול במיקרו-זרם",
+          "סרום פפטידים",
+          "טיפול באזור העיניים",
+          "טיפול בצוואר ובדקולטה",
+        ],
+      },
+      {
+        title: "פילינג מנקה לאקנה",
+        description:
+          "טיפול ממוקד לעור נוטה לאקנה, הכולל ניקוי עמוק של הנקבוביות, מסכה אנטיבקטריאלית ורכיבים צמחיים מרגיעים.",
+        duration: "60 דק'",
+        price: "₪130",
+        features: [
+          "ניקוי עמוק של הנקבוביות",
+          "מסכה אנטיבקטריאלית",
+          "טיפול באור LED",
+          "קרם לחות לא קומדוגני",
+        ],
+      },
+      {
+        title: "פילינג הידרו-ברק",
+        description:
+          "טיפול לחות אינטנסיבי עם חומצה היאלורונית וויטמין C למראה זוהר ולחות עמוקה.",
+        duration: "60 דק'",
+        price: "₪140",
+        features: [
+          "הידרו-דרמבראזיה",
+          "הזרמת ויטמין C",
+          "מסכה מבהירה",
+          "הגנת SPF",
+        ],
+      },
+    ],
+  },
+  {
+    name: "אבחון עור",
+    icon: "🔬",
+    services: [
+      {
+        title: "אבחון עור וייעוץ",
+        description:
+          "הערכת עור מקיפה באמצעות טכנולוגיית VISIA מתקדמת לזיהוי הצרכים הייחודיים שלך.",
+        duration: "45 דק'",
+        price: "₪80",
+        features: [
+          "דימות תלת-ממדי VISIA",
+          "דוח מפת עור",
+          "תוכנית טיפול מותאמת אישית",
+          "המלצות מוצרים",
+        ],
+      },
+      {
+        title: "אבחון מעקב",
+        description:
+          "מעקב אחר התקדמות העור והתאמת תוכנית הטיפול בהתבסס על תוצאות מדידה.",
+        duration: "30 דק'",
+        price: "₪50",
+        features: ["השוואת התקדמות", "התאמת תוכנית", "המלצות מוצרים מעודכנות"],
+      },
+    ],
+  },
+  {
+    name: "טיפולי גוף",
+    icon: "✨",
+    services: [
+      {
+        title: "טיפול גב וחזה",
+        description:
+          "טיפול ניקוי עמוק לאקנה בגב ובחזה, באמצעות מוצרים ייעודיים וטיפול הוצאת פצעים.",
+        duration: "60 דק'",
+        price: "₪110",
+        features: [
+          "קילוף עדין",
+          "הוצאת פצעים",
+          "טיפול אנטיבקטריאלי",
+          "מסכה מרגיעה",
+        ],
+      },
+      {
+        title: "פילינג גוף ועטיפה",
+        description: "פילינג גוף מנקה לאחריו עטיפה מזינה לעור חלק וחיוני.",
+        duration: "90 דק'",
+        price: "₪150",
+        features: ["פילינג סוכר", "עטיפת אצות", "קרם לחות לגוף", "ארומתרפיה"],
+      },
+      {
+        title: "טיפול ידיים וציפורניים",
+        description:
+          "טיפול ספא מפנק לידיים הכולל טיפול בקוטיקולות, קילוף, מסכת לחות ומניקור.",
+        duration: "45 דק'",
+        price: "₪70",
+        features: [
+          "טיפול בקוטיקולות",
+          "פילינג ידיים",
+          "מסכת לחות",
+          "אפשרות לק ג'ל",
+        ],
+      },
+    ],
+  },
+  {
+    name: "איפור",
+    icon: "💄",
+    services: [
+      {
+        title: "איפור חתונה",
+        description:
+          "איפור מושלם ועמיד ליום המיוחד שלך. כולל מפגש הכנה ויישום ביום החתונה.",
+        duration: "90 דק'",
+        price: "₪250",
+        features: [
+          "מפגש הכנה",
+          "יישום ביום החתונה",
+          "ערכת ניקודים",
+          "עיצוב גבות כלול",
+        ],
+      },
+      {
+        title: "איפור לאירוע מיוחד",
+        description:
+          "איפור מקצועי לגאלות, צילומים, או כל אירוע שבו את רוצה להיראות במיטבך.",
+        duration: "60 דק'",
+        price: "₪150",
+        features: [
+          "בחירת צבעים מותאמת אישית",
+          "נוסחה עמידה",
+          "ספריי קיבוע",
+          "טיפים לניקודים",
+        ],
+      },
+      {
+        title: "איפור יומי אלגנטי",
+        description:
+          "למדי להשיג את המראה היומי המושלם שלך עם שגרה מותאמת אישית ושעור יישום.",
+        duration: "60 דק'",
+        price: "₪100",
+        features: [
+          "שיעור טכניקות",
+          "בחירת מוצרים",
+          "מדריך צעד אחר צעד",
+          "כרטיס המצא להביתה",
+        ],
+      },
+    ],
+  },
+];
+
+function ServiceCard({ service, t }: { service: Service; t: any }) {
+  const { isRtl } = t;
   return (
     <div className="h-full hover:-translate-y-1 transition-transform duration-200 ease-[0.4,0,0.2,1]">
       <Card className="p-6 flex flex-col h-full">
@@ -229,7 +398,10 @@ function ServiceCard({ service }: { service: Service }) {
                 key={feature}
                 className="flex items-center gap-2 text-sm text-charcoal-600"
               >
-                <ChevronRight size={12} className="text-rose-400" />
+                <ChevronRight
+                  size={12}
+                  className={`text-rose-400 ${isRtl ? "rotate-180" : ""}`}
+                />
                 {feature}
               </li>
             ))}
@@ -237,7 +409,7 @@ function ServiceCard({ service }: { service: Service }) {
         )}
 
         <Button variant="outline" size="sm" href="/book">
-          Book This Service
+          {t.servicesBookThis}
         </Button>
       </Card>
     </div>
@@ -245,6 +417,9 @@ function ServiceCard({ service }: { service: Service }) {
 }
 
 export default function ServicesPage() {
+  const { t, locale } = useTranslation();
+  const categories = locale === "he" ? categoriesHe : categoriesEn;
+
   return (
     <>
       {/* Page header */}
@@ -252,14 +427,13 @@ export default function ServicesPage() {
         <section className="bg-cream-100 py-8 md:py-16 lg:py-20">
           <Container>
             <div className="text-center max-w-2xl mx-auto">
-              <Badge variant="accent">Our Services</Badge>
+              <Badge variant="accent">{t.servicesPageBadge}</Badge>
               <h1 className="font-heading text-3xl md:text-4xl lg:text-5xl font-bold text-charcoal-800 mt-4 mb-4">
-                Professional Beauty Treatments
+                {t.servicesPageTitle}
               </h1>
               <SectionDivider className="mb-4" />
               <p className="font-body text-charcoal-500">
-                Each treatment is customized to your unique needs. All products
-                are premium, dermatologically tested, and cruelty-free.
+                {t.servicesPageSubtitle}
               </p>
             </div>
           </Container>
@@ -272,14 +446,17 @@ export default function ServicesPage() {
           <Section
             title={`${category.icon} ${category.name}`}
             bg={
-              category.name === "Skin Analysis" || category.name === "Makeup"
+              category.name === "Skin Analysis" ||
+              category.name === "Makeup" ||
+              category.name === "אבחון עור" ||
+              category.name === "איפור"
                 ? "cream"
                 : "white"
             }
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {category.services.map((service) => (
-                <ServiceCard key={service.title} service={service} />
+                <ServiceCard key={service.title} service={service} t={t} />
               ))}
             </div>
           </Section>
@@ -291,14 +468,14 @@ export default function ServicesPage() {
         <Section bg="cream">
           <div className="text-center">
             <p className="font-body text-charcoal-600 mb-4">
-              Not sure which treatment is right for you?
+              {t.servicesPageNotSure}
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Button variant="primary" href="/contact">
-                Get a Recommendation
+                {t.servicesPageRecommendation}
               </Button>
               <Button variant="outline" href="/book">
-                Book a Consultation
+                {t.servicesPageConsultation}
               </Button>
             </div>
           </div>
