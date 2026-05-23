@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url       = env("DATABASE_URL")
 }
 
 enum PostStatus {
@@ -12,17 +12,19 @@ enum PostStatus {
   PUBLISHED
 }
 
+// ─── Blog ──────────────────────────────────────────────────
+
 model Post {
-  id            String     @id @default(cuid())
+  id            String      @id @default(cuid())
   title         String
-  slug          String     @unique
+  slug          String      @unique
   excerpt       String
-  content       String     @db.Text
+  content       String      @db.Text
   featuredImage String?
-  status        PostStatus @default(DRAFT)
+  status        PostStatus  @default(DRAFT)
   publishedAt   DateTime?
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 
   authors Author[]
 
@@ -32,11 +34,87 @@ model Post {
 }
 
 model Author {
-  id        String @id @default(cuid())
+  id        String   @id @default(cuid())
   name      String
-  email     String @unique
+  email     String   @unique
   avatar    String?
-  bio       String? @db.Text
+  bio       String?  @db.Text
   posts     Post[]
   createdAt DateTime @default(now())
+}
+
+// ─── Testimonials ──────────────────────────────────────────
+
+model Testimonial {
+  id        String   @id @default(cuid())
+  nameEn    String
+  nameHe    String
+  textEn    String   @db.Text
+  textHe    String   @db.Text
+  serviceEn String
+  serviceHe String
+  rating    Int
+  avatar    String?
+  featured  Boolean  @default(false)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([featured])
+}
+
+// ─── Products ──────────────────────────────────────────────
+
+model Product {
+  id            String   @id @default(cuid())
+  nameEn        String
+  nameHe        String
+  category      String
+  descriptionEn String   @db.Text
+  descriptionHe String   @db.Text
+  price         String
+  size          String
+  image         String?
+  badge         String?
+  rating        Int      @default(5)
+  featured      Boolean  @default(false)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([category])
+  @@index([featured])
+}
+
+// ─── Services ──────────────────────────────────────────────
+
+model Service {
+  id            String   @id @default(cuid())
+  category      String
+  titleEn       String
+  titleHe       String
+  descriptionEn String   @db.Text
+  descriptionHe String   @db.Text
+  duration      String
+  price         String
+  featuresEn    String[]
+  featuresHe    String[]
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([category])
+}
+
+// ─── Site Settings ─────────────────────────────────────────
+
+model SiteSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  valueEn   String   @db.Text
+  valueHe   String   @db.Text
+  category  String   @default("general")
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
 }

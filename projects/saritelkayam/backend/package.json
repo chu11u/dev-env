@@ -8,7 +8,8 @@
     "build": "tsc",
     "migrate": "prisma migrate dev",
     "migrate:deploy": "prisma migrate deploy",
-    "generate": "prisma generate"
+    "generate": "prisma generate",
+    "seed": "npx ts-node seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.0.0",
