@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { AuthProvider, useAuth } from "@/app/admin/auth";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { LocaleProvider } from "@/lib/i18n";
@@ -21,21 +21,34 @@ export default function AdminLayout({
 
 function AdminInnerLayout({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
+  const [clientPath, setClientPath] = useState<string | null>(null);
 
+  // Only runs on client — safely get current path
   useEffect(() => {
-    if (!isAuthenticated) {
-      const path = window.location.pathname;
-      if (path !== "/admin" && path.startsWith("/admin")) {
+    setClientPath(window.location.pathname);
+  }, []);
+
+  // Redirect unauthenticated users from nested admin routes
+  useEffect(() => {
+    if (!isAuthenticated && clientPath && clientPath !== "/admin") {
+      if (clientPath.startsWith("/admin")) {
         window.location.href = "/admin";
       }
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, clientPath]);
 
+  // SSR fallback or still loading — show placeholder
+  if (clientPath === null) {
+    return (
+      <div className="min-h-screen bg-cream-50 flex items-center justify-center">
+        <p className="font-body text-charcoal-500">Loading...</p>
+      </div>
+    );
+  }
+
+  // Not authenticated — only show login form on /admin
   if (!isAuthenticated) {
-    const path = window.location.pathname;
-    if (path !== "/admin") {
-      return null;
-    }
+    return null;
   }
 
   return (
