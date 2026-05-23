@@ -6,6 +6,8 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { getPosts } from "@/lib/api";
+import { getTestimonials, getProducts, getServices } from "@/lib/admin-api";
+import { useTranslation } from "@/lib/i18n";
 
 interface Post {
   id: string;
@@ -19,6 +21,7 @@ function Login() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { login } = useAuth();
+  const { t } = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +43,7 @@ function Login() {
         {/* Brand */}
         <div className="text-center mb-8">
           <h1 className="font-heading text-3xl font-bold text-charcoal-800 mb-2">
-            Sarit Elkayam
+            {t.siteName}
           </h1>
           <p className="font-body text-charcoal-500">Admin Panel</p>
         </div>
@@ -85,7 +88,7 @@ function Login() {
             href="/"
             className="font-body text-sm text-rose-400 hover:text-rose-500 transition-colors"
           >
-            ← Back to site
+            ← {t.navHome}
           </a>
         </div>
       </div>
@@ -94,13 +97,25 @@ function Login() {
 }
 
 function Dashboard() {
+  const { t } = useTranslation();
   const [posts, setPosts] = useState<Post[]>([]);
+  const [testimonialCount, setTestimonialCount] = useState(0);
+  const [productCount, setProductCount] = useState(0);
+  const [serviceCount, setServiceCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadPosts = async () => {
+  const loadData = async () => {
     try {
-      const data = await getPosts();
-      setPosts(data);
+      const [postsData, testimonials, products, services] = await Promise.all([
+        getPosts(),
+        getTestimonials(),
+        getProducts(),
+        getServices(),
+      ]);
+      setPosts(postsData);
+      setTestimonialCount(testimonials.length);
+      setProductCount(products.length);
+      setServiceCount(services.length);
     } catch {
       setPosts([]);
     } finally {
@@ -112,27 +127,27 @@ function Dashboard() {
     <div>
       <div className="mb-8">
         <h1 className="font-heading text-3xl font-bold text-charcoal-800 mb-2">
-          Dashboard
+          {t.adminDashboard}
         </h1>
         <p className="font-body text-charcoal-500">
-          Welcome to the admin panel. Manage your blog content here.
+          Welcome to the admin panel. Manage all your site content here.
         </p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="font-body text-sm text-charcoal-500 mb-1">
-                Total Posts
+                {t.adminBlog}
               </p>
               <p className="font-heading text-3xl font-bold text-charcoal-800">
-                {posts.length}
+                {isLoading ? "..." : posts.length}
               </p>
             </div>
             <div className="w-12 h-12 bg-rose-100 rounded-xl flex items-center justify-center">
-              <span className="font-heading text-rose-600 text-xl">✦</span>
+              <span className="text-rose-600 text-xl">📝</span>
             </div>
           </div>
         </Card>
@@ -141,14 +156,14 @@ function Dashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="font-body text-sm text-charcoal-500 mb-1">
-                Published
+                {t.adminTestimonials}
               </p>
               <p className="font-heading text-3xl font-bold text-charcoal-800">
-                {posts.filter((p) => p.status === "PUBLISHED").length}
+                {isLoading ? "..." : testimonialCount}
               </p>
             </div>
             <div className="w-12 h-12 bg-gold-100 rounded-xl flex items-center justify-center">
-              <span className="font-heading text-gold-600 text-xl">★</span>
+              <span className="text-gold-600 text-xl">⭐</span>
             </div>
           </div>
         </Card>
@@ -156,13 +171,31 @@ function Dashboard() {
         <Card className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-body text-sm text-charcoal-500 mb-1">Drafts</p>
+              <p className="font-body text-sm text-charcoal-500 mb-1">
+                {t.adminProducts}
+              </p>
               <p className="font-heading text-3xl font-bold text-charcoal-800">
-                {posts.filter((p) => p.status === "DRAFT").length}
+                {isLoading ? "..." : productCount}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-cream-200 rounded-xl flex items-center justify-center">
+              <span className="text-charcoal-600 text-xl">🛍️</span>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-body text-sm text-charcoal-500 mb-1">
+                {t.adminServices}
+              </p>
+              <p className="font-heading text-3xl font-bold text-charcoal-800">
+                {isLoading ? "..." : serviceCount}
               </p>
             </div>
             <div className="w-12 h-12 bg-charcoal-100 rounded-xl flex items-center justify-center">
-              <span className="font-heading text-charcoal-600 text-xl">✎</span>
+              <span className="text-charcoal-600 text-xl">💆</span>
             </div>
           </div>
         </Card>
@@ -173,13 +206,111 @@ function Dashboard() {
         <h2 className="font-heading text-xl font-semibold text-charcoal-800 mb-4">
           Quick Actions
         </h2>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-3">
           <Button href="/admin/blog/new" variant="primary">
-            + New Blog Post
+            + {t.adminBlog}
           </Button>
-          <Button href="/admin/blog" variant="outline">
-            Manage Posts
+          <Button href="/admin/testimonials/new" variant="outline">
+            + {t.adminTestimonials}
           </Button>
+          <Button href="/admin/products/new" variant="outline">
+            + {t.adminProducts}
+          </Button>
+          <Button href="/admin/services/new" variant="outline">
+            + {t.adminServices}
+          </Button>
+        </div>
+      </div>
+
+      {/* Manage Content */}
+      <div className="mb-8">
+        <h2 className="font-heading text-xl font-semibold text-charcoal-800 mb-4">
+          Manage Content
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <Card className="p-6">
+            <h3 className="font-heading text-lg font-semibold text-charcoal-800 mb-2">
+              📝 {t.adminBlog}
+            </h3>
+            <p className="font-body text-sm text-charcoal-500 mb-4">
+              Manage blog posts, articles, and beauty tips.
+            </p>
+            <div className="flex gap-2">
+              <Button href="/admin/blog" variant="outline" size="sm">
+                Manage
+              </Button>
+              <Button href="/admin/blog/new" variant="primary" size="sm">
+                New
+              </Button>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="font-heading text-lg font-semibold text-charcoal-800 mb-2">
+              ⭐ {t.adminTestimonials}
+            </h3>
+            <p className="font-body text-sm text-charcoal-500 mb-4">
+              Manage client testimonials and reviews.
+            </p>
+            <div className="flex gap-2">
+              <Button href="/admin/testimonials" variant="outline" size="sm">
+                Manage
+              </Button>
+              <Button
+                href="/admin/testimonials/new"
+                variant="primary"
+                size="sm"
+              >
+                New
+              </Button>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="font-heading text-lg font-semibold text-charcoal-800 mb-2">
+              🛍️ {t.adminProducts}
+            </h3>
+            <p className="font-body text-sm text-charcoal-500 mb-4">
+              Manage product catalog and recommendations.
+            </p>
+            <div className="flex gap-2">
+              <Button href="/admin/products" variant="outline" size="sm">
+                Manage
+              </Button>
+              <Button href="/admin/products/new" variant="primary" size="sm">
+                New
+              </Button>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="font-heading text-lg font-semibold text-charcoal-800 mb-2">
+              💆 {t.adminServices}
+            </h3>
+            <p className="font-body text-sm text-charcoal-500 mb-4">
+              Manage beauty treatments and services.
+            </p>
+            <div className="flex gap-2">
+              <Button href="/admin/services" variant="outline" size="sm">
+                Manage
+              </Button>
+              <Button href="/admin/services/new" variant="primary" size="sm">
+                New
+              </Button>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h3 className="font-heading text-lg font-semibold text-charcoal-800 mb-2">
+              ⚙️ {t.adminSettings}
+            </h3>
+            <p className="font-body text-sm text-charcoal-500 mb-4">
+              Manage site settings and configuration.
+            </p>
+            <Button href="/admin/settings" variant="outline" size="sm">
+              Edit Settings
+            </Button>
+          </Card>
         </div>
       </div>
 
@@ -226,8 +357,8 @@ function Dashboard() {
                     <span
                       className={`
                         inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
-                        ${post.status === "PUBLISHED" ? "bg-gold-100 text-gold-700" : "bg-charcoal-100 text-charcoal-600"}
-                        `}
+                         ${post.status === "PUBLISHED" ? "bg-gold-100 text-gold-700" : "bg-charcoal-100 text-charcoal-600"}
+                         `}
                     >
                       {post.status === "PUBLISHED" ? "Published" : "Draft"}
                     </span>

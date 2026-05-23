@@ -3,6 +3,8 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "./auth";
+import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { LocaleProvider } from "@/lib/i18n";
 
 export default function AdminLayout({
   children,
@@ -42,43 +44,14 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-cream-50">
-      {isAuthenticated && (
-        <div className="bg-white border-b border-cream-200 px-6 py-4">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <a
-              href="/admin"
-              className="font-heading text-xl font-semibold text-charcoal-800 hover:text-rose-400 transition-colors"
-            >
-              Sarit Elkayam{" "}
-              <span className="text-sm font-body font-normal text-charcoal-400">
-                — Admin
-              </span>
-            </a>
-            <div className="flex items-center gap-4">
-              <a
-                href="/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-body text-sm text-rose-400 hover:text-rose-500 transition-colors"
-              >
-                View Site
-              </a>
-              <button
-                onClick={() => {
-                  localStorage.removeItem("admin_token");
-                  window.location.href = "/admin";
-                }}
-                className="font-body text-sm text-charcoal-500 hover:text-burgundy-500 transition-colors"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+    <LocaleProvider>
+      <div className="min-h-screen bg-cream-50">
+        {isAuthenticated && <AdminSidebar />}
 
-      <main className="max-w-7xl mx-auto px-6 py-8">{children}</main>
-    </div>
+        <main className="lg:me-64">
+          <div className="p-6 lg:p-8 pt-20 lg:pt-8">{children}</div>
+        </main>
+      </div>
+    </LocaleProvider>
   );
 }

@@ -178,6 +178,34 @@ const he = {
   // ── Language toggle
   langHebrew: "עברית",
   langEnglish: "English",
+
+  // ── Admin Panel
+  adminDashboard: "לוח בקרה",
+  adminBlog: "בלוג",
+  adminTestimonials: "המלצות",
+  adminProducts: "מוצרים",
+  adminServices: "טיפולים",
+  adminSettings: "הגדרות",
+  adminLogout: "התנתק",
+  adminSave: "שמור",
+  adminCancel: "ביטול",
+  adminDelete: "מחק",
+  adminAddNew: "הוסף חדש",
+  adminConfirmDelete: "אשר מחיקה",
+  testimonialListTitle: "ניהול המלצות",
+  testimonialListSubtitle: "נהל המלצות ובקורות של לקוחות",
+  testimonialNewTitle: "המלצה חדשה",
+  testimonialEditTitle: "עריכת המלצה",
+  productListTitle: "ניהול מוצרים",
+  productListSubtitle: "נהל את מוצרי הקטלוג שלך",
+  productNewTitle: "מוצר חדש",
+  productEditTitle: "עריכת מוצר",
+  serviceListTitle: "ניהול טיפולים",
+  serviceListSubtitle: "נהל טיפולי יופי ושירותים",
+  serviceNewTitle: "טיפול חדש",
+  serviceEditTitle: "עריכת טיפול",
+  settingsTitle: "הגדרות האתר",
+  settingsSubtitle: "נהל הגדרות ותצורה של האתר",
 };
 
 const en = {
@@ -350,6 +378,34 @@ const en = {
   // ── Language toggle
   langHebrew: "עברית",
   langEnglish: "English",
+
+  // ── Admin Panel
+  adminDashboard: "Dashboard",
+  adminBlog: "Blog Posts",
+  adminTestimonials: "Testimonials",
+  adminProducts: "Products",
+  adminServices: "Services",
+  adminSettings: "Settings",
+  adminLogout: "Logout",
+  adminSave: "Save",
+  adminCancel: "Cancel",
+  adminDelete: "Delete",
+  adminAddNew: "Add New",
+  adminConfirmDelete: "Confirm Delete",
+  testimonialListTitle: "Manage Testimonials",
+  testimonialListSubtitle: "Manage client testimonials and reviews",
+  testimonialNewTitle: "New Testimonial",
+  testimonialEditTitle: "Edit Testimonial",
+  productListTitle: "Manage Products",
+  productListSubtitle: "Manage your product catalog",
+  productNewTitle: "New Product",
+  productEditTitle: "Edit Product",
+  serviceListTitle: "Manage Services",
+  serviceListSubtitle: "Manage beauty treatments and services",
+  serviceNewTitle: "New Service",
+  serviceEditTitle: "Edit Service",
+  settingsTitle: "Site Settings",
+  settingsSubtitle: "Manage site-wide settings and configuration",
 };
 
 const dictionaries = { he, en };
