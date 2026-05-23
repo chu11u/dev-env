@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { AuthProvider, useAuth } from "./auth";
+import { AuthProvider, useAuth } from "@/app/admin/auth";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { LocaleProvider } from "@/lib/i18n";
 
