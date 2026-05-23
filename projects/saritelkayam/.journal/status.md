@@ -1,6 +1,6 @@
 # Sarit Elkayam - Agent Work Journal
 # Auto-maintained by Journal agent. Read this on crash recovery.
-# Last updated: 2026-05-22
+# Last updated: 2026-05-23
 
 ## Infrastructure Agent
 - **Status**: complete
@@ -33,156 +33,66 @@
 
 ---
 
-## Deployment Status (2026-05-21)
+## Phase 7: Final Polish — Complete (2026-05-23)
 
-### Containers — All Running ✅
-```
-saritelkayam-frontend   Up   port 3006    (Next.js 15)
-saritelkayam-backend    Up   port 30061 (Express + Prisma)
-saritelkayam-postgres   Up   port 5432    (PostgreSQL 16)
-```
+### Changes:
+1. **Blog preview on home page** — New BlogPreview component between Testimonials and CTA
+   - Shows 3 recent posts with cover images
+   - Bilingual content (HE/EN)
+   - Links to /blog for full catalog
+2. **All prices converted to NIS (₪)** — Services, shop, products preview
+   - Changed from $ to ₪ across all price displays (24 values total)
+3. **Hero image fixed** — Replaced ImagePlaceholder with real image (/assets/hero/hero-main.png)
+4. **Service images fixed** — Replaced ImagePlaceholder with real images per service
+   - facial-treatment.png, skin-analysis.png, makeup.png
+5. **Blog image references fixed** — Corrected featuredImage paths in all 3 markdown posts
+   - featured-skincare.png, featured-seasonal.png, featured-beauty-tip.png
 
-### Verified Working
-- All 7 frontend pages return 200 OK: `/`, `/services`, `/testimonials`, `/blog`, `/contact`, `/shop`, `/book`
-- Backend health check: `GET /health` → `{"status":"ok"}`
-- Blog API: `GET /api/blog/posts` → `[]` (empty — no DB posts, markdown posts available)
-- Frontend accessible at: `http://192.168.131.134:3006`
+### Files modified:
+- `frontend/app/page.tsx` — Added BlogPreview
+- `frontend/components/sections/BlogPreview.tsx` — New file
+- `frontend/components/sections/HeroSection.tsx` — Real image
+- `frontend/components/sections/ServicesPreview.tsx` — Real images + ₪ prices
+- `frontend/components/sections/ProductsPreview.tsx` — ₪ prices
+- `frontend/app/shop/page.tsx` — ₪ prices
+- `frontend/app/services/page.tsx` — ₪ prices
+- `frontend/lib/i18n.tsx` — Added blog preview strings (blogReadMore, blogViewAll)
+- `frontend/public/content/posts/*.md` — Fixed image references
 
-### Bugs Fixed During Deployment
-1. **Prisma binary incompatibility** — switched backend to single-stage `node:20-slim`
-2. **Prisma client init** — added `npx prisma generate` at runtime
-3. **Empty migration SQL** — created tables manually via `psql`
-4. **Missing PostStatus enum** — created `PostStatus` enum type
-5. **Migration lock format** — fixed `migration_lock.toml`, removed `migrate deploy` from CMD
-
----
-
-## Phase 4: Bilingual Hebrew/English — Complete (2026-05-21)
-
-### Implementation
-- Created `frontend/lib/i18n.tsx` with he/en dictionaries (~100 strings each) + `useTranslation()` hook + cookie persistence
-- Created `frontend/components/layout/LocaleProvider.tsx` wrapper component
-- Replaced fonts: Playfair Display → Frank Ruhl Libre, Inter → Heebo (both with Hebrew subset)
-- Added `dir="rtl"`/`lang="he"` to `<html>`, LTR for English
-- Translated all ~100 UI strings across 15 frontend files
-- Flipped RTL layouts: animation directions, hero column order, chevron/arrow icons
-- Language toggle pill in header (desktop + mobile)
-
-### Files modified
-- `frontend/lib/i18n.tsx` (new)
-- `frontend/components/layout/LocaleProvider.tsx` (new)
-- `frontend/app/NotFoundContent.tsx` (new — extracted from not-found.tsx)
-- `frontend/app/layout.tsx` — fonts, metadata (Hebrew), LocaleProvider wrapper
-- `frontend/tailwind.config.js` — font families
-- `frontend/styles/globals.css` — RTL/LTR text alignment
-- `frontend/components/layout/Header.tsx` — i18n nav, language toggle
-- `frontend/components/layout/Footer.tsx` — i18n content
-- `frontend/components/sections/HeroSection.tsx` — i18n content, RTL layout
-- `frontend/components/sections/ServicesPreview.tsx` — i18n content, service data
-- `frontend/components/sections/TestimonialsSection.tsx` — i18n content, testimonial data
-- `frontend/components/sections/CTASection.tsx` — i18n content
-- `frontend/components/common/FadeInSection.tsx` — RTL animation direction
-- `frontend/components/common/StaggeredList.tsx` — RTL animation direction
-- `frontend/app/services/page.tsx` — full bilingual service catalog
-- `frontend/app/testimonials/page.tsx` — bilingual testimonial page
-- `frontend/app/contact/page.tsx` — bilingual contact form + info
-- `frontend/app/shop/page.tsx` — bilingual placeholder
-- `frontend/app/book/page.tsx` — bilingual placeholder
-- `frontend/app/not-found.tsx` — server wrapper + client component split
-- `frontend/app/blog/BlogListContent.tsx` — bilingual blog list
-- `frontend/app/blog/[slug]/BlogPostContent.tsx` — bilingual blog post viewer
-
-### Build issues resolved
-- `i18n.ts` → `i18n.tsx` (JSX in .ts file caused webpack error)
-- Server component/client component split for `not-found.tsx`
-- TypeScript index signature fix for `t[labelKey]` in Header
-- Docker disk full — pruned 8.9GB to make room for rebuild
-
-### Deploy Status
-- All 7 pages: 200 OK at `http://192.168.131.134:3006`
-- Default language: Hebrew with `dir="rtl"`
-- Language toggle: English button in header
-- Fonts: Frank Ruhl Libre + Heebo loaded from Google Fonts
-
-### All Phase 4 translation issues resolved in Phase 5 ✅ (2026-05-22)
+### Deploy:
+- Committed to git: `37965a9` (31 files changed, +2577/-901 lines)
+- Pushed to GitHub: `github.com/chu11u/dev-env`
+- Deployed via `deploy-all.sh` (proper git-based pipeline)
+- All 4 projects deployed successfully
+- Verified: all pages return 200
 
 ---
 
-## Phase 5: Polish Hebrew Translations — Complete (2026-05-22)
+## Current State (2026-05-23)
 
-- Fixed name transliteration across all files: "סריטל קיימ" → "שרית אלקיים"
-- Fixed Korean character: "פילינג סיגני처" → "פילינג סיגניצ'ר"
-- Fixed all awkward translations: "עיטפי" → "גלי", "חוי" → "חופפי", etc.
-- Rewrote all service/testimonial strings for natural Hebrew
-- Translated all 3 blog seed posts to Hebrew with `lang: he` frontmatter
-- Dynamic dir/lang already working (useEffect in LocaleProvider from Phase 4)
-- 10 files modified, all deployed, all 7 pages + 3 blog posts return 200
+### Home page section order:
+1. Hero (with real image)
+2. Services Preview (with real images)
+3. Products Preview (with real images)
+4. Testimonials (hardcoded data)
+5. Blog Preview (new, fetches from DB)
+6. CTA (call to action)
 
----
+### Hardcoded content that needs CMS:
+- **Testimonials** — Hardcoded in `TestimonialsSection.tsx` (3 EN + 3 HE) and `testimonials/page.tsx` (10 EN + 10 HE)
+- **Products** — Hardcoded in `shop/page.tsx` (8 EN + 8 HE) and `ProductsPreview.tsx` (3 EN + 3 HE)
+- **Services** — Hardcoded in `services/page.tsx` (4 categories × 3 services × 2 langs) and `ServicesPreview.tsx` (3 EN + 3 HE)
+- **Site settings** — Hardcoded in `i18n.tsx` (name, tagline, contact info, hours, social links)
 
-## Phase 6: Products Page — Complete (2026-05-22)
+### What's working:
+- Blog CMS: Full CRUD via `/admin` (create, edit, delete, draft/publish)
+- Markdown pipeline: Posts saved as .md files in public/content/posts/
+- All 7 pages return 200
+- Bilingual i18n working
+- RTL/LTR layout switching
 
-- Replaced "coming soon" placeholder with full product catalog on `/shop`
-- 8 products with bilingual data (HE/EN): cleansers, serums, moisturizers, sunscreen
-- Product cards with images, badges, ratings, sizes, prices
-- Category filter buttons (All, Cleansers, Serums, Moisturizers, Sun Protection)
-- Wishlist button on each product
-- CTA section with contact/book links
-- **Products preview on home page** — new `ProductsPreview` component between Services and Testimonials
-- Fixed stale Korean chars + awkward translations in `ServicesPreview.tsx` (home page)
-- Updated i18n strings for new shop/product content
-- All product images from `public/assets/products/` (3 image files reused)
-- Verified: zero Korean chars in source files, all 7 pages return 200
-
-### Files modified
-- `frontend/components/sections/ProductsPreview.tsx` (new)
-- `frontend/app/page.tsx` — added ProductsPreview to home page
-- `frontend/app/shop/page.tsx` — full rewrite (placeholder → product catalog)
-- `frontend/components/sections/ServicesPreview.tsx` — fixed stale translations
-- `frontend/components/layout/Header.tsx` — added shop link to nav (6 links total)
-- `frontend/lib/i18n.tsx` — updated shop + products strings
-
----
-
-## Current Nav Links (all 6, desktop + mobile)
-
-Home → Services → Testimonials → Blog → Shop → Contact
-
-## DEPLOY WORKFLOW
-
-### Quick rebuild (frontend only):
-```bash
-# Local: copy files to server
-for f in frontend/app/layout.tsx frontend/components/layout/Header.tsx ...; do
-  scp -i ~/.ssh/dev-env-server "$f" naor@192.168.131.134:/home/elkayam/dev-env/projects/saritelkayam/$f
-done
-
-# Server: rebuild and redeploy
-ssh -i ~/.ssh/dev-env-server naor@192.168.131.134 "cd /home/elkayam/dev-env/projects/saritelkayam && docker compose build frontend && docker compose up -d frontend"
-
-# Verify
-curl -s -o /dev/null -w '%{http_code}' http://localhost:3006/
-```
-
-### SSH details:
-- Key: `~/.ssh/dev-env-server`
-- User: `naor@192.168.131.134`
-- Project: `/home/elkayam/dev-env/projects/saritelkayam/`
-
-### Critical constraints:
-- No local `node/npm/npx` — build only via Docker on server
-- Docker disk is tight (32G loop) — prune if full: `docker system prune -af --volumes`
-- `frontend/lib/i18n.tsx` — note the `.tsx` extension (contains JSX)
-- `app/not-found.tsx` is server component — UI is in `app/NotFoundContent.tsx`
-- Always copy to `/home/elkayam/dev-env/projects/saritelkayam/frontend/` — NOT nested `frontend/frontend/`
-- `Footer` needs `"use client"` directive (uses hooks)
-- Components using `useTranslation()` need `"use client"` directive
-- Dockerfile copies `node_modules` into builder — `COPY . .` includes them, invalidate cache with `--no-cache` if lib files change
-
----
-
-### What's Left
-| Priority | Work | Blocker |
-|----------|------|---------|
-| P3 | Translate admin CMS pages | Low priority |
-| P4 | Configure external domain (saritelkayam.com) | User to decide hosting |
+### What's needed:
+- Full content management system for testimonials, products, services, and site settings
+- Admin i18n (translate to Hebrew)
+- Image upload in admin
+- Consider: should we use a headless CMS (Directus, Sanity) or extend our Prisma setup?
