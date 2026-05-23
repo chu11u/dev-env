@@ -1,7 +1,5 @@
 // Admin API client for managing all site content
-// All calls go through NEXT_PUBLIC_API_URL
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:30061';
+// All calls go through relative /api/ (proxied by Next.js rewrites)
 
 // ─── TypeScript Interfaces ──────────────────────────────────
 
@@ -127,9 +125,9 @@ export interface UpdateSettingData {
 // ─── Helper: fetch with error handling ──────────────────────
 
 async function apiFetch(path: string, options?: RequestInit): Promise<any> {
-  const res = await fetch(`${API_URL}${path}`, options);
+  const res = await fetch(path, options);
   if (!res.ok) {
-    const error = await res.json().catch(() => ({ error: 'Request failed' }));
+    const error = await res.json().catch(() => ({ error: "Request failed" }));
     throw new Error(error.error || `Request failed with status ${res.status}`);
   }
   return res.json();
@@ -138,117 +136,132 @@ async function apiFetch(path: string, options?: RequestInit): Promise<any> {
 // ─── Testimonials API ───────────────────────────────────────
 
 export async function getTestimonials(): Promise<Testimonial[]> {
-  return apiFetch('/api/admin/testimonials');
+  return apiFetch("/api/admin/testimonials");
 }
 
 export async function getPublicTestimonials(): Promise<Testimonial[]> {
-  return apiFetch('/api/testimonials');
+  return apiFetch("/api/testimonials");
 }
 
 export async function getFeaturedTestimonials(): Promise<Testimonial[]> {
-  return apiFetch('/api/testimonials/featured');
+  return apiFetch("/api/testimonials/featured");
 }
 
-export async function createTestimonial(data: CreateTestimonialData): Promise<Testimonial> {
-  return apiFetch('/api/admin/testimonials', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+export async function createTestimonial(
+  data: CreateTestimonialData,
+): Promise<Testimonial> {
+  return apiFetch("/api/admin/testimonials", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
 }
 
-export async function updateTestimonial(id: string, data: UpdateTestimonialData): Promise<Testimonial> {
+export async function updateTestimonial(
+  id: string,
+  data: UpdateTestimonialData,
+): Promise<Testimonial> {
   return apiFetch(`/api/admin/testimonials/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
 }
 
 export async function deleteTestimonial(id: string): Promise<void> {
-  await apiFetch(`/api/admin/testimonials/${id}`, { method: 'DELETE' });
+  await apiFetch(`/api/admin/testimonials/${id}`, { method: "DELETE" });
 }
 
 // ─── Products API ───────────────────────────────────────────
 
 export async function getProducts(): Promise<Product[]> {
-  return apiFetch('/api/admin/products');
+  return apiFetch("/api/admin/products");
 }
 
 export async function getPublicProducts(): Promise<Product[]> {
-  return apiFetch('/api/products');
+  return apiFetch("/api/products");
 }
 
 export async function getFeaturedProducts(): Promise<Product[]> {
-  return apiFetch('/api/products/featured');
+  return apiFetch("/api/products/featured");
 }
 
-export async function getProductsByCategory(category: string): Promise<Product[]> {
+export async function getProductsByCategory(
+  category: string,
+): Promise<Product[]> {
   return apiFetch(`/api/products/category/${category}`);
 }
 
 export async function createProduct(data: CreateProductData): Promise<Product> {
-  return apiFetch('/api/admin/products', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  return apiFetch("/api/admin/products", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
 }
 
-export async function updateProduct(id: string, data: UpdateProductData): Promise<Product> {
+export async function updateProduct(
+  id: string,
+  data: UpdateProductData,
+): Promise<Product> {
   return apiFetch(`/api/admin/products/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
 }
 
 export async function deleteProduct(id: string): Promise<void> {
-  await apiFetch(`/api/admin/products/${id}`, { method: 'DELETE' });
+  await apiFetch(`/api/admin/products/${id}`, { method: "DELETE" });
 }
 
 // ─── Services API ───────────────────────────────────────────
 
 export async function getServices(): Promise<Service[]> {
-  return apiFetch('/api/admin/services');
+  return apiFetch("/api/admin/services");
 }
 
 export async function getPublicServices(): Promise<Service[]> {
-  return apiFetch('/api/services');
+  return apiFetch("/api/services");
 }
 
-export async function getServicesByCategory(category: string): Promise<Service[]> {
+export async function getServicesByCategory(
+  category: string,
+): Promise<Service[]> {
   return apiFetch(`/api/services/category/${category}`);
 }
 
 export async function createService(data: CreateServiceData): Promise<Service> {
-  return apiFetch('/api/admin/services', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  return apiFetch("/api/admin/services", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
 }
 
-export async function updateService(id: string, data: UpdateServiceData): Promise<Service> {
+export async function updateService(
+  id: string,
+  data: UpdateServiceData,
+): Promise<Service> {
   return apiFetch(`/api/admin/services/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
 }
 
 export async function deleteService(id: string): Promise<void> {
-  await apiFetch(`/api/admin/services/${id}`, { method: 'DELETE' });
+  await apiFetch(`/api/admin/services/${id}`, { method: "DELETE" });
 }
 
 // ─── Settings API ───────────────────────────────────────────
 
 export async function getSettings(): Promise<Setting[]> {
-  return apiFetch('/api/admin/settings');
+  return apiFetch("/api/admin/settings");
 }
 
 export async function getPublicSettings(): Promise<Setting[]> {
-  return apiFetch('/api/settings');
+  return apiFetch("/api/settings");
 }
 
 export async function getSetting(key: string): Promise<Setting> {
@@ -256,44 +269,42 @@ export async function getSetting(key: string): Promise<Setting> {
 }
 
 export async function createSetting(data: CreateSettingData): Promise<Setting> {
-  return apiFetch('/api/admin/settings', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  return apiFetch("/api/admin/settings", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
 }
 
-export async function updateSetting(key: string, data: UpdateSettingData): Promise<Setting> {
+export async function updateSetting(
+  key: string,
+  data: UpdateSettingData,
+): Promise<Setting> {
   return apiFetch(`/api/admin/settings/${key}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
 }
 
 export async function deleteSetting(key: string): Promise<void> {
-  await apiFetch(`/api/admin/settings/${key}`, { method: 'DELETE' });
+  await apiFetch(`/api/admin/settings/${key}`, { method: "DELETE" });
 }
 
 // ─── Constants ──────────────────────────────────────────────
 
 export const PRODUCT_CATEGORIES = [
-  'Cleansers',
-  'Serums',
-  'Moisturizers',
-  'Sun Protection',
+  "Cleansers",
+  "Serums",
+  "Moisturizers",
+  "Sun Protection",
 ];
 
 export const SERVICE_CATEGORIES = [
-  'Facials',
-  'Skin Analysis',
-  'Body Treatments',
-  'Makeup',
+  "Facials",
+  "Skin Analysis",
+  "Body Treatments",
+  "Makeup",
 ];
 
-export const SETTING_CATEGORIES = [
-  'General',
-  'Contact',
-  'Social',
-  'Hours',
-];
+export const SETTING_CATEGORIES = ["General", "Contact", "Social", "Hours"];
