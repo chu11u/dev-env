@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAuth } from "./auth";
+import { AuthProvider, useAuth } from "./auth";
+import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -378,7 +379,14 @@ function Dashboard() {
 }
 
 export default function AdminPage() {
-  const { isAuthenticated } = useAuth();
+  return (
+    <AuthProvider>
+      <AdminPageInner />
+    </AuthProvider>
+  );
+}
 
+function AdminPageInner() {
+  const { isAuthenticated } = useAuth();
   return isAuthenticated ? <Dashboard /> : <Login />;
 }
