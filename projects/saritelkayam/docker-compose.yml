@@ -13,8 +13,8 @@ services:
       - backend
     environment:
       - NEXT_PUBLIC_SITE_URL=https://saritelkayam.com
-      - NEXT_PUBLIC_API_HOST=backend
-      - NEXT_PUBLIC_API_PORT=3001
+      - BACKEND_HOST=backend
+      - BACKEND_PORT=3001
 
   backend:
     build:

@@ -8,8 +8,8 @@ const nextConfig = {
 
   // Proxy /api/ requests to the backend
   async rewrites() {
-    const apiHost = process.env.NEXT_PUBLIC_API_HOST || "localhost";
-    const apiPort = process.env.NEXT_PUBLIC_API_PORT || "30061";
+    const apiHost = process.env.BACKEND_HOST || "localhost";
+    const apiPort = process.env.BACKEND_PORT || "30061";
     return [
       {
         source: "/api/:path*",
