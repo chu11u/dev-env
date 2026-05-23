@@ -3,6 +3,7 @@ import {
   useContext,
   useState,
   useEffect,
+  useCallback,
   type ReactNode,
 } from "react";
 
@@ -10,34 +11,35 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (password: string) => Promise<void>;
   logout: () => void;
-  isLoading: boolean;
+}
+
+function getAuthState() {
+  try {
+    return localStorage.getItem("admin_token") === "admin-authenticated";
+  } catch {
+    return false;
+  }
 }
 
 const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   login: async () => {},
   logout: () => {},
-  isLoading: true,
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(getAuthState);
 
+  // Keep localStorage in sync across tabs
   useEffect(() => {
-    try {
-      const token = localStorage.getItem("admin_token");
-      if (token === "admin-authenticated") {
-        setIsAuthenticated(true);
-      }
-    } catch {
-      // localStorage may be unavailable (private browsing, extensions)
-    } finally {
-      setIsLoading(false);
-    }
+    const handleStorage = () => {
+      setIsAuthenticated(getAuthState());
+    };
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
-  const login = async (password: string) => {
+  const login = useCallback(async (password: string) => {
     const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:30061";
     const res = await fetch(`${apiBase}/api/auth/login`, {
       method: "POST",
@@ -50,16 +52,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } else {
       throw new Error("Invalid password");
     }
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem("admin_token");
     setIsAuthenticated(false);
     window.location.href = "/admin";
-  };
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

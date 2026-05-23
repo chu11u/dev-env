@@ -20,25 +20,16 @@ export default function AdminLayout({
 }
 
 function AdminInnerLayout({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
-    if (isLoading) return;
     if (!isAuthenticated) {
       const path = window.location.pathname;
       if (path !== "/admin" && path.startsWith("/admin")) {
         window.location.href = "/admin";
       }
     }
-  }, [isAuthenticated, isLoading]);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-cream-50 flex items-center justify-center">
-        <p className="font-body text-charcoal-500">Loading...</p>
-      </div>
-    );
-  }
+  }, [isAuthenticated]);
 
   if (!isAuthenticated) {
     const path = window.location.pathname;
