@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import { AuthProvider, useAuth } from "@/app/admin/auth";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
-import { LocaleProvider } from "@/lib/i18n";
 
+// Admin layout — wraps admin routes with AuthProvider
+// LocaleProvider is already provided by the root layout
 export default function AdminLayout({
   children,
 }: {
@@ -12,9 +13,7 @@ export default function AdminLayout({
 }) {
   return (
     <AuthProvider>
-      <LocaleProvider>
-        <AdminInnerLayout>{children}</AdminInnerLayout>
-      </LocaleProvider>
+      <AdminInnerLayout>{children}</AdminInnerLayout>
     </AuthProvider>
   );
 }
@@ -46,9 +45,12 @@ function AdminInnerLayout({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // Not authenticated — only show login form on /admin
+  // Not authenticated — show login form on /admin
   if (!isAuthenticated) {
-    return null;
+    if (clientPath === "/admin") {
+      return <div className="min-h-screen bg-cream-50">{children}</div>;
+    }
+    return null; // Redirecting to login...
   }
 
   return (
