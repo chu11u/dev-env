@@ -1,28 +1,28 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { getProducts, deleteProduct, updateProduct } from '@/lib/admin-api';
-import type { Product } from '@/lib/admin-api';
-import { PRODUCT_CATEGORIES } from '@/lib/admin-api';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { useTranslation } from '@/lib/i18n';
+import { useState, useEffect } from "react";
+import { getProducts, deleteProduct, updateProduct } from "@/lib/admin-api";
+import type { Product } from "@/lib/admin-api";
+import { PRODUCT_CATEGORIES } from "@/lib/admin-api";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
+import { useTranslation } from "@/lib/i18n";
 
 export default function ProductsListPage() {
   const { t } = useTranslation();
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const loadProducts = async () => {
     try {
       const data = await getProducts();
       setProducts(data);
     } catch {
-      setError('Failed to load products.');
+      setError("Failed to load products.");
     } finally {
       setIsLoading(false);
     }
@@ -35,32 +35,34 @@ export default function ProductsListPage() {
   const handleDelete = async (id: string) => {
     try {
       await deleteProduct(id);
-      setProducts(prev => prev.filter(p => p.id !== id));
+      setProducts((prev) => prev.filter((p) => p.id !== id));
       setConfirmDelete(null);
-      setSuccess('Product deleted successfully.');
-      setTimeout(() => setSuccess(''), 3000);
+      setSuccess("Product deleted successfully.");
+      setTimeout(() => setSuccess(""), 3000);
     } catch {
-      setError('Failed to delete product.');
+      setError("Failed to delete product.");
     }
   };
 
   const toggleFeatured = async (product: Product) => {
     try {
       await updateProduct(product.id, { featured: !product.featured });
-      setProducts(prev =>
-        prev.map(p => p.id === product.id ? { ...p, featured: !p.featured } : p)
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === product.id ? { ...p, featured: !p.featured } : p,
+        ),
       );
-      setSuccess('Product updated.');
-      setTimeout(() => setSuccess(''), 3000);
+      setSuccess("Product updated.");
+      setTimeout(() => setSuccess(""), 3000);
     } catch {
-      setError('Failed to update product.');
+      setError("Failed to update product.");
     }
   };
 
   const getBadgeVariant = (badge: string | null) => {
-    if (!badge) return '';
-    if (badge === 'popular') return 'accent';
-    return 'default';
+    if (!badge) return "default";
+    if (badge === "popular") return "accent";
+    return "default";
   };
 
   return (
@@ -70,9 +72,7 @@ export default function ProductsListPage() {
           <h1 className="font-heading text-3xl font-bold text-charcoal-800 mb-2">
             {t.adminProducts}
           </h1>
-          <p className="font-body text-charcoal-500">
-            Manage product catalog
-          </p>
+          <p className="font-body text-charcoal-500">Manage product catalog</p>
         </div>
         <Button href="/admin/products/new" variant="primary">
           + {t.adminAddNew}
@@ -133,7 +133,10 @@ export default function ProductsListPage() {
               </thead>
               <tbody>
                 {products.map((product) => (
-                  <tr key={product.id} className="border-b border-cream-100 hover:bg-cream-50 transition-colors">
+                  <tr
+                    key={product.id}
+                    className="border-b border-cream-100 hover:bg-cream-50 transition-colors"
+                  >
                     <td className="px-6 py-4">
                       <div>
                         <p className="font-body font-medium text-charcoal-800">
