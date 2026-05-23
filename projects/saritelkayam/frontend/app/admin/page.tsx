@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "./auth";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -122,6 +122,10 @@ function Dashboard() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadData();
+  }, []);
 
   return (
     <div>

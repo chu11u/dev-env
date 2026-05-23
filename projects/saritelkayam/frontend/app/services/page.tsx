@@ -8,7 +8,7 @@ import { Section } from "@/components/layout/Section";
 import { SectionDivider } from "@/components/common/SectionDivider";
 import { ImagePlaceholder } from "@/components/common/ImagePlaceholder";
 import { Button } from "@/components/ui/Button";
-import { Clock, DollarSign, ChevronRight } from "lucide-react";
+import { Clock, ChevronRight } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 
 interface Service {
@@ -382,7 +382,7 @@ function ServiceCard({ service, t }: { service: Service; t: any }) {
               <Clock size={14} /> {service.duration}
             </span>
             <span className="flex items-center gap-1 font-medium text-rose-400">
-              <DollarSign size={14} /> {service.price}
+              {service.price}
             </span>
           </div>
         </div>
