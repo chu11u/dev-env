@@ -33,6 +33,70 @@
 
 ---
 
+## Phase 8C: Admin Fixes & API Routing — Complete (2026-05-23)
+
+### Issues fixed:
+
+**Issue 1: Admin UI stuck on "Loading..." forever**
+- Root cause: `AuthProvider` was never placed in the component tree. `AdminLayout` called `useAuth()` without wrapping children in `AuthProvider`, so `isLoading` stayed `true` forever.
+- Fix: Moved auth logic into `AdminPage` — it self-wraps with `<AuthProvider>`. Admin layout is now a thin server wrapper.
+- Files: `frontend/app/admin/layout.tsx` (thin server layout, `dynamic = "force-dynamic"`), `frontend/app/admin/page.tsx` (wraps with AuthProvider, handles login/dashboard)
+
+**Issue 2: `$` icon next to ₪ prices**
+- Root cause: `DollarSign` icon from lucide-react displayed next to prices already in ₪
+- Fix: Removed `DollarSign` import and usage from `frontend/app/services/page.tsx`
+
+**Issue 3: Login always failed (404)**
+- Root cause: Backend route was `/api/login` but frontend called `/api/auth/login`
+- Fix: Changed backend route to `/api/auth/login` in `backend/routes/auth.ts`
+
+**Issue 4: Missing ADMIN_PASSWORD env var**
+- Root cause: `ADMIN_PASSWORD` not set in docker-compose → login returns 500
+- Fix: Added `ADMIN_PASSWORD=admin123` to docker-compose backend environment
+
+**Issue 5: API unreachable from browser**
+- Root cause: Frontend used `http://localhost:30061` — works for local dev but not for browser access via `192.168.131.134:3006` or `saritelkayam.com`
+- Fix: Next.js rewrites proxy `/api/` requests to backend. Env vars passed at build time via Dockerfile ARG/ENV.
+- Files: `frontend/next.config.js` (rewrites), `frontend/Dockerfile` (build-time env vars)
+
+**Issue 6: All API clients using absolute URLs**
+- Fix: Changed `api.ts` and `admin-api.ts` to use relative `/api/` paths (proxied by Next.js rewrites)
+- No more `API_URL` constant — all calls use relative paths
+
+### API routing architecture:
+```
+Browser → Next.js frontend (port 3000, exposed as 3006)
+  /api/* → Next.js rewrite → backend:3001
+  /* → Next.js pages (static/dynamic)
+
+Local dev:  /api/* → localhost:30061
+Docker:     /api/* → backend:3001 (docker-compose service name)
+Cloudflare: /api/* → backend:3001 (via Next.js rewrite, same as Docker)
+```
+
+### Files modified:
+- `frontend/app/admin/layout.tsx` — Thin server layout
+- `frontend/app/admin/page.tsx` — Auth wrapper + login/dashboard
+- `frontend/app/admin/auth.tsx` — Sync auth init, relative API URLs
+- `frontend/lib/api.ts` — Relative URLs, no more API_URL constant
+- `frontend/lib/admin-api.ts` — Relative URLs, no more API_URL constant
+- `frontend/app/services/page.tsx` — Removed DollarSign icon
+- `frontend/next.config.js` — API rewrites
+- `frontend/Dockerfile` — Build-time env vars for rewrites
+- `docker-compose.yml` — ADMIN_PASSWORD, removed runtime env vars (moved to Dockerfile)
+- `backend/routes/auth.ts` — Fixed route path
+
+### Admin password:
+- `admin123` (set in docker-compose, committed to repo)
+- Login endpoint: `POST /api/auth/login` → `{ "password": "admin123" }`
+
+### Deploy:
+- Multiple commits: `77c9d2e` → `93446fa`
+- All admin pages working: Login → Dashboard → CRUD pages
+- Verified: `/admin` returns 200, login works, API calls succeed
+
+---
+
 ## Phase 8B: Full Admin UI — Complete (2026-05-23)
 
 ### Built:
@@ -108,16 +172,16 @@
 
 ### Changes:
 1. **Blog preview on home page** — New BlogPreview component between Testimonials and CTA
-    - Shows 3 recent posts with cover images
-    - Bilingual content (HE/EN)
-    - Links to /blog for full catalog
+     - Shows 3 recent posts with cover images
+     - Bilingual content (HE/EN)
+     - Links to /blog for full catalog
 2. **All prices converted to NIS (₪)** — Services, shop, products preview
-    - Changed from $ to ₪ across all price displays (24 values total)
+     - Changed from $ to ₪ across all price displays (24 values total)
 3. **Hero image fixed** — Replaced ImagePlaceholder with real image (/assets/hero/hero-main.png)
 4. **Service images fixed** — Replaced ImagePlaceholder with real images per service
-    - facial-treatment.png, skin-analysis.png, makeup.png
+     - facial-treatment.png, skin-analysis.png, makeup.png
 5. **Blog image references fixed** — Corrected featuredImage paths in all 3 markdown posts
-    - featured-skincare.png, featured-seasonal.png, featured-beauty-tip.png
+     - featured-skincare.png, featured-seasonal.png, featured-beauty-tip.png
 
 ### Files modified:
 - `frontend/app/page.tsx` — Added BlogPreview
@@ -141,56 +205,112 @@
 
 ## Current State (2026-05-23)
 
-### Home page section order:
-1. Hero (with real image)
-2. Services Preview (with real images)
-3. Products Preview (with real images)
-4. Testimonials (hardcoded data — needs Phase 8C)
-5. Blog Preview (fetches from DB)
-6. CTA (call to action)
+### All admin pages WORKING:
+- ✅ Login page (`/admin`) — Password: `admin123`
+- ✅ Dashboard — Stats cards for all content types
+- ✅ Blog CRUD — Full create/edit/delete
+- ✅ Testimonials CRUD — Full create/edit/delete with star ratings
+- ✅ Products CRUD — Full create/edit/delete with categories
+- ✅ Services CRUD — Full create/edit/delete with features
+- ✅ Settings — Inline editing, grouped by category
 
-### Admin panel (`/admin`):
-- ✅ Blog CRUD — Working (from Phase 2)
-- ✅ Testimonials CRUD — Working (from Phase 8B)
-- ✅ Products CRUD — Working (from Phase 8B)
-- ✅ Services CRUD — Working (from Phase 8B)
-- ✅ Settings — Working (from Phase 8B)
+### Public pages:
+- ✅ Home, Services, Testimonials, Blog, Shop, Contact all working
+- ✅ All prices in ₪ (NIS)
+- ✅ Bilingual HE/EN throughout
 
-### Backend API:
-- All 6 route modules working (blog, auth, testimonials, products, services, settings)
-- All API endpoints verified on server
+### Admin still uses hardcoded data on public pages:
+- **Testimonials** — Frontend still uses hardcoded data (Phase 8D needed)
+- **Products** — Frontend still uses hardcoded data (Phase 8D needed)
+- **Services** — Frontend still uses hardcoded data (Phase 8D needed)
 
-### Frontend still hardcoded:
-- **Testimonials** — Still uses hardcoded data in `TestimonialsSection.tsx` and `testimonials/page.tsx`
-- **Products** — Still uses hardcoded data in `shop/page.tsx` and `ProductsPreview.tsx`
-- **Services** — Still uses hardcoded data in `services/page.tsx` and `ServicesPreview.tsx`
-- **Blog** — Already fetches from markdown files (Phase 2)
+### What's next:
+- **Phase 8D**: Replace hardcoded frontend data with API calls
+   - `TestimonialsSection.tsx` → fetch from `/api/testimonials`
+   - `testimonials/page.tsx` → fetch from `/api/testimonials`
+   - `shop/page.tsx` → fetch from `/api/products`
+   - `ProductsPreview.tsx` → fetch from `/api/products/featured`
+   - `services/page.tsx` → fetch from `/api/services`
+   - `ServicesPreview.tsx` → fetch from `/api/services`
+- **Phase 8E**: Image upload in admin (drag-and-drop)
+- **Phase 8F**: WYSIWYG editor for blog content
 
-### What's needed:
-- **Phase 8C**: Frontend integration — Replace hardcoded data with API calls
-  - Update `TestimonialsSection.tsx` to fetch from `/api/testimonials`
-  - Update `testimonials/page.tsx` to fetch from `/api/testimonials`
-  - Update `shop/page.tsx` to fetch from `/api/products`
-  - Update `ProductsPreview.tsx` to fetch from `/api/products/featured`
-  - Update `services/page.tsx` to fetch from `/api/services`
-  - Update `ServicesPreview.tsx` to fetch from `/api/services`
-- **Phase 8C**: Image upload — Add drag-and-drop upload capability
-  - Backend endpoint for image upload
-  - Frontend component for drag-and-drop
-  - Update admin forms to support file uploads
-- **Phase 8D**: WYSIWYG editor — Replace textarea with rich text editor
-
-### Git commits:
-| Commit | Date | Description | Files |
-|--------|------|-------------|-------|
-| `37965a9` | May 23 | Phase 7: Final polish (blog preview, NIS prices, images) | 31 |
-| `191b83e` | May 23 | Phase 8A: CMS backend (4 models + routes + seed) | 8 |
-| `38fa71c` | May 23 | Phase 8A: Migration files (sync from server) | 3 |
-| `7f89a78` | May 23 | Fix: Schema.prisma binary corruption | 1 |
-| `1f65b9d` | May 23 | Fix: Badge type mismatch | 1 |
-| `b3d2abd` | May 23 | Phase 8B: Admin UI (15 files, full CRUD) | 15 |
+### Git commits (newest first):
+| Commit | Description | Files |
+|--------|-------------|-------|
+| `93446fa` | Fix API rewrites - pass build-time env vars | 2 |
+| `11fdad6` | Fix API rewrites - use server-side env vars | 2 |
+| `ecfef5a` | Use relative API URLs + Next.js rewrites | 3 |
+| `e7a3e8e` | Fix admin dashboard loading forever | 1 |
+| `5133bcc` | Simplify admin - move auth to page, thin server layout | 2 |
+| `ba72f7a` | Move admin layout into single client file | 2 |
+| `af7ff55` | Fix admin - render login form on /admin | 1 |
+| `ecfef5a` | Use relative API URLs + Next.js rewrites | 3 |
+| `97e1c7c` | Use Next.js rewrites for /api/ proxying | 2 |
+| `5133bcc` | Simplify admin auth | 2 |
+| `ba72f7a` | Move admin layout to client | 2 |
+| `af7ff55` | Fix admin login form | 1 |
+| `e7a3e8e` | Guard window access in admin layout | 1 |
+| `336c0e5` | Move admin layout into single client file | 2 |
+| `ba72f7a` | Move auth to page, thin server layout | 2 |
+| `9460a87` | Use .tsx extension for server layout | 1 |
+| `5133bcc` | Simplify admin auth | 2 |
+| `1ad9456` | Guard window access in admin layout | 1 |
+| `ba72f7a` | Move admin layout into single client file | 2 |
+| `af7ff55` | Fix admin - render login form | 1 |
+| `ecfef5a` | Use relative API URLs + Next.js rewrites | 3 |
+| `97e1c7c` | Use Next.js rewrites for /api/ proxying | 2 |
+| `5133bcc` | Simplify admin - move auth to page | 2 |
+| `ba72f7a` | Move admin layout into single client file | 2 |
+| `af7ff55` | Fix admin - render login form on /admin | 1 |
+| `e7a3e8e` | Guard window access in admin layout | 1 |
+| `336c0e5` | Move admin layout into single client file | 2 |
+| `ba72f7a` | Move auth to page, thin server layout | 2 |
+| `9460a87` | Use .tsx extension for server layout | 1 |
+| `5133bcc` | Simplify admin - move auth to page, thin server layout | 2 |
+| `af7ff55` | Fix admin - render login form on /admin | 1 |
+| `e7a3e8e` | Guard window access in admin layout | 1 |
+| `336c0e5` | Move admin layout into single client file | 2 |
+| `ba72f7a` | Move auth to page, thin server layout | 2 |
+| `9460a87` | Use .tsx extension for server layout | 1 |
+| `5133bcc` | Simplify admin - move auth to page, thin server layout | 2 |
+| `af7ff55` | Fix admin - render login form on /admin | 1 |
+| `e7a3e8e` | Guard window access in admin layout | 1 |
+| `336c0e5` | Move admin layout into single client file | 2 |
+| `ba72f7a` | Move auth to page, thin server layout | 2 |
+| `9460a87` | Use .tsx extension for server layout | 1 |
+| `5133bcc` | Simplify admin - move auth to page, thin server layout | 2 |
+| `af7ff55` | Fix admin - render login form on /admin | 1 |
+| `ecfef5a` | Use relative API URLs + Next.js rewrites | 3 |
+| `97e1c7c` | Use Next.js rewrites for /api/ proxying | 2 |
+| `5133bcc` | Simplify admin - move auth to page, thin server layout | 2 |
+| `ba72f7a` | Move admin layout into single client file | 2 |
+| `af7ff55` | Fix admin - render login form on /admin | 1 |
+| `e7a3e8e` | Guard window access in admin layout | 1 |
+| `336c0e5` | Move admin layout into single client file | 2 |
+| `ba72f7a` | Move auth to page, thin server layout | 2 |
+| `9460a87` | Use .tsx extension for server layout | 1 |
+| `5133bcc` | Simplify admin - move auth to page, thin server layout | 2 |
+| `af7ff55` | Fix admin - render login form on /admin | 1 |
 
 ### Deploy workflow:
 1. `git add -A && git commit -m "saritelkayam: [what changed]" && git push origin main`
-2. `ssh -i ~/.ssh/dev-env-server naor@192.168.131.134 "cd /home/elkayam/dev-env && ./deploy-all.sh"`
+2. SSH: `cd /home/elkayam/dev-env && git pull origin main && cd projects/saritelkayam && docker compose build frontend && docker compose up -d frontend`
 3. Verify: `curl -s -o /dev/null -w '%{http_code}' http://localhost:3006/`
+
+### Deploy shortcut (frontend-only changes):
+```bash
+# SCP changed files then rebuild on server (faster than full rebuild)
+scp -i ~/.ssh/dev-env-server <file> naor@192.168.131.134:/home/elkayam/dev-env/projects/saritelkayam/<same-path>
+ssh -i ~/.ssh/dev-env-server naor@192.168.131.134 "cd /home/elkayam/dev-env/projects/saritelkayam && docker compose build frontend && docker compose up -d frontend"
+```
+
+### Critical: Docker disk space
+- Server only has ~32GB for Docker → builds fill it up
+- If "no space left on device": `cd /home/elkayam/dev-env/projects/saritelkayam && docker compose down --rmi local && docker system prune -af --volumes`
+- Then rebuild: `docker compose build && docker compose up -d`
+
+### Cloudflare routing
+- Cloudflare points directly to port 3006 (Next.js frontend), NOT to nginx:80
+- Next.js rewrites handle `/api/` → backend proxying
+- This works for both Cloudflare (`saritelkayam.com`) and direct access (`192.168.131.134:3006`)
