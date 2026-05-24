@@ -33,6 +33,48 @@
 
 ---
 
+## Phase 8D: Frontend API Integration — Complete (2026-05-24)
+
+### Changes:
+Replaced all hardcoded data in public-facing components with API calls:
+- `TestimonialsSection.tsx` → fetches from `/api/testimonials/featured`
+- `testimonials/page.tsx` → fetches from `/api/testimonials`
+- `shop/page.tsx` → fetches from `/api/products` (with dynamic category filter)
+- `ProductsPreview.tsx` → fetches from `/api/products/featured`
+- `services/page.tsx` → fetches from `/api/services` (grouped by category)
+- `ServicesPreview.tsx` → fetches from `/api/services` (first 3 as featured)
+
+### Architecture:
+- Added to `lib/api.ts`: 3 public types (`ApiTestimonial`, `ApiProduct`, `ApiService`)
+- Locale-aware adapt helpers: `adaptTestimonial()`, `adaptProduct()`, `adaptService()`
+- Fetch wrappers: `fetchTestimonials(featuredOnly?)`, `fetchProducts(featuredOnly?)`, `fetchServices()`
+- Category translation maps: `PRODUCT_CATEGORY_LABELS`, `SERVICE_CATEGORY_META`, `getCategoryLabel()`, `getServiceCategoryLabel()`, `getServiceCategoryIcon()`
+- Each component uses `useState` with fallback data + `useEffect` to fetch from API
+- Fallback data shown immediately (no loading flash), replaced when API responds
+- Silent error handling — falls back to hardcoded data if API fails
+- All components re-fetch on locale change
+
+### Key design decisions:
+- Services have no `image` or `badge` fields in DB — ServicesPreview uses index-based defaults
+- Shop page category filter is dynamic (derived from fetched products) with Hebrew translation
+- Category icons for services use `SERVICE_CATEGORY_META` map instead of hardcoded per-category data
+
+### Files modified (7):
+- `frontend/lib/api.ts` — Added public types, adapt helpers, fetch wrappers, category maps (+128 lines)
+- `frontend/components/sections/TestimonialsSection.tsx` — API integration
+- `frontend/components/sections/ProductsPreview.tsx` — API integration
+- `frontend/components/sections/ServicesPreview.tsx` — API integration, simplified badge/image defaults
+- `frontend/app/testimonials/page.tsx` — API integration, dynamic avg rating
+- `frontend/app/shop/page.tsx` — API integration, dynamic category filter with i18n
+- `frontend/app/services/page.tsx` — API integration, dynamic category grouping
+
+### Deploy:
+- Committed: `2cfa61a` (7 files, +466/-669 lines)
+- Pushed to GitHub ✅
+- **Server deploy pending** — needs `git pull` + `docker compose build frontend && docker compose up -d frontend`
+
+---
+
 ## Phase 8C: Admin Fixes & API Routing — Complete (2026-05-23)
 
 ### Issues fixed:
@@ -218,20 +260,12 @@ Cloudflare: /api/* → backend:3001 (via Next.js rewrite, same as Docker)
 - ✅ Home, Services, Testimonials, Blog, Shop, Contact all working
 - ✅ All prices in ₪ (NIS)
 - ✅ Bilingual HE/EN throughout
+- ✅ All public components now fetch from API (Phase 8D)
 
-### Admin still uses hardcoded data on public pages:
-- **Testimonials** — Frontend still uses hardcoded data (Phase 8D needed)
-- **Products** — Frontend still uses hardcoded data (Phase 8D needed)
-- **Services** — Frontend still uses hardcoded data (Phase 8D needed)
+### Phase 8D is done — pending server deploy.
 
 ### What's next:
-- **Phase 8D**: Replace hardcoded frontend data with API calls
-   - `TestimonialsSection.tsx` → fetch from `/api/testimonials`
-   - `testimonials/page.tsx` → fetch from `/api/testimonials`
-   - `shop/page.tsx` → fetch from `/api/products`
-   - `ProductsPreview.tsx` → fetch from `/api/products/featured`
-   - `services/page.tsx` → fetch from `/api/services`
-   - `ServicesPreview.tsx` → fetch from `/api/services`
+- **Deploy Phase 8D to server** (when you're back on the network)
 - **Phase 8E**: Image upload in admin (drag-and-drop)
 - **Phase 8F**: WYSIWYG editor for blog content
 
