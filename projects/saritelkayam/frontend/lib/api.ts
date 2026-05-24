@@ -146,7 +146,9 @@ export function adaptService(s: ApiService, locale: string) {
 }
 
 /** Fetch testimonials from public API */
-export async function fetchTestimonials(featuredOnly = false) {
+export async function fetchTestimonials(
+  featuredOnly = false,
+): Promise<ApiTestimonial[]> {
   const url = featuredOnly ? "/api/testimonials/featured" : "/api/testimonials";
   const res = await fetch(url);
   if (!res.ok) throw new Error("Failed to fetch testimonials");
@@ -154,7 +156,9 @@ export async function fetchTestimonials(featuredOnly = false) {
 }
 
 /** Fetch products from public API */
-export async function fetchProducts(featuredOnly = false) {
+export async function fetchProducts(
+  featuredOnly = false,
+): Promise<ApiProduct[]> {
   const url = featuredOnly ? "/api/products/featured" : "/api/products";
   const res = await fetch(url);
   if (!res.ok) throw new Error("Failed to fetch products");
@@ -162,7 +166,7 @@ export async function fetchProducts(featuredOnly = false) {
 }
 
 /** Fetch services from public API */
-export async function fetchServices() {
+export async function fetchServices(): Promise<ApiService[]> {
   const res = await fetch("/api/services");
   if (!res.ok) throw new Error("Failed to fetch services");
   return res.json();
