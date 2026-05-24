@@ -18,7 +18,7 @@ External:        Cloudflare DNS (*.elkayam.fun) → cloudflared tunnel → nginx
 - `clock.apps.elkayam.me` → Clock dashboard (static HTML, port 3002)
 - `arcade.apps.elkayam.me` / `arcade.elkayam.fun` → Family Arcade (React + Express, ports 3003/30031)
 - `dinnerplan.apps.elkayam.me` / `dinnerplan.elkayam.fun` → Dinner planner (React + Express, ports 3004/30041)
-- `saritelkayam.apps.elkayam.me` / `saritelkayam.com` → Sarit Elkayam cosmetician website (Next.js 15, ports 3006/30061)
+- `saritelkayam.apps.elkayam.me` / `saritelkayam.com` → Sarit Elkayam cosmetician website (Next.js 15, ports 3006/30061, Cloudflare direct to port 3006)
 
 **Cloudflare tunnel** (`docker-compose.cloudflare.yml`):
 - Single `cloudflared` container with `network_mode: host`
