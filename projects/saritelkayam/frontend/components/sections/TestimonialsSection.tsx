@@ -1,59 +1,46 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/Card";
 import { Section } from "@/components/layout/Section";
 import { Badge } from "@/components/ui/Badge";
 import { Star } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
+import { fetchTestimonials, adaptTestimonial } from "@/lib/api";
 
-const testimonialsEn = [
+const fallbackItems = [
   {
     name: "Rachel M.",
     service: "Signature Facial",
     rating: 5,
-    text: "Sarit is absolutely amazing! My skin has never looked better. The facial was relaxing and the results were immediate. I walked out feeling like a new person.",
+    text: "Sarit is absolutely amazing! My skin has never looked better.",
     avatarLabel: "Rachel M.",
   },
   {
     name: "Dana K.",
     service: "Skin Analysis",
     rating: 5,
-    text: "The skin analysis opened my eyes to what my skin really needs. Sarit's expertise and attention to detail made all the difference. Highly recommend!",
+    text: "The skin analysis opened my eyes to what my skin really needs.",
     avatarLabel: "Dana K.",
   },
   {
     name: "Maya L.",
     service: "Bridal Makeup",
     rating: 5,
-    text: "Sarit did my bridal makeup and I looked flawless all day! The trial session put my mind at ease, and on the big day she was punctual, calm, and brilliant.",
+    text: "Sarit did my bridal makeup and I looked flawless all day!",
     avatarLabel: "Maya L.",
   },
 ];
 
-const testimonialsHe = [
-  {
-    name: "רחל מ'",
-    service: "פילינג סיגניצ'ר",
-    rating: 5,
-    text: "שרית פשוט מדהימה! העור שלי מעולם לא נראה טוב יותר. הטיפול היה מרגיע והתוצאות מידיות — יצאתי מרגישה כאדם חדש.",
-    avatarLabel: "רחל מ'",
-  },
-  {
-    name: "דנה כ'",
-    service: "אבחון עור",
-    rating: 5,
-    text: "אבחון העור פתח את העיניים שלי — גיליתי מה שהעור שלי באמת צריך. המקצועיות והתשומת לב לפרטים של שרית עשו את כל ההבדל. ממליצה בחום!",
-    avatarLabel: "דנה כ'",
-  },
-  {
-    name: "מאיה ל'",
-    service: "איפור חתונה",
-    rating: 5,
-    text: "שרית עשתה את איפור החתונה שלי והנראיתי מושלם כל היום! מפגש ההכנה השקט את הדעת שלי, וביום הגדול היא הייתה בדיוק בזמן, רגועה ומדהימה.",
-    avatarLabel: "מאיה ל'",
-  },
-];
+interface TestimonialItem {
+  id: string;
+  name: string;
+  service: string;
+  rating: number;
+  text: string;
+  avatar: string | null;
+}
 
 function StarRating({ count }: { count: number }) {
   return (
@@ -82,7 +69,19 @@ const cardVariants = {
 
 export function TestimonialsSection() {
   const { t, locale } = useTranslation();
-  const items = locale === "he" ? testimonialsHe : testimonialsEn;
+  const [items, setItems] = useState<TestimonialItem[]>(
+    fallbackItems.map((item) => ({ ...item, id: item.name, avatar: null })),
+  );
+
+  useEffect(() => {
+    fetchTestimonials(true)
+      .then((data) =>
+        setItems(data.map((api) => adaptTestimonial(api, locale))),
+      )
+      .catch(() => {
+        /* keep fallback */
+      });
+  }, [locale]);
 
   return (
     <Section
@@ -104,12 +103,20 @@ export function TestimonialsSection() {
         viewport={{ once: true, margin: "-100px" }}
       >
         {items.map((item) => (
-          <motion.div key={item.name} variants={cardVariants}>
+          <motion.div key={item.id} variants={cardVariants}>
             <Card className="p-6 md:p-8 flex flex-col h-full">
               {/* Avatar + name */}
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 rounded-full bg-rose-200 flex items-center justify-center text-rose-700 font-heading font-semibold text-lg shrink-0">
-                  {item.name.charAt(0)}
+                  {item.avatar ? (
+                    <img
+                      src={item.avatar}
+                      alt={item.name}
+                      className="w-12 h-12 rounded-full object-cover"
+                    />
+                  ) : (
+                    item.name.charAt(0)
+                  )}
                 </div>
                 <div>
                   <p className="font-body font-medium text-charcoal-800">

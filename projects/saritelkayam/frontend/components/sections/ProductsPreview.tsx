@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/Card";
@@ -8,9 +9,20 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Star } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
+import { fetchProducts, adaptProduct } from "@/lib/api";
 
-const featuredProductsEn = [
+interface ProductItem {
+  id: string;
+  name: string;
+  description: string;
+  price: string;
+  image: string;
+  badge: string | null;
+}
+
+const fallbackProducts: ProductItem[] = [
   {
+    id: "1",
     name: "Gentle Gel Cleanser",
     description:
       "A pH-balanced gel cleanser that removes impurities without stripping the skin's natural moisture barrier.",
@@ -19,6 +31,7 @@ const featuredProductsEn = [
     badge: "Best Seller",
   },
   {
+    id: "2",
     name: "Vitamin C Brightening Serum",
     description:
       "A potent 15% Vitamin C serum that brightens, evens skin tone, and boosts collagen production.",
@@ -27,39 +40,13 @@ const featuredProductsEn = [
     badge: "Staff Pick",
   },
   {
+    id: "3",
     name: "Mineral Sunscreen SPF 50",
     description:
       "A lightweight, non-comedogenic mineral sunscreen with SPF 50. Invisible on all skin tones.",
     price: "₪42",
     image: "/assets/products/luxury-bottle.png",
     badge: "Essential",
-  },
-];
-
-const featuredProductsHe = [
-  {
-    name: "ג'ל ניקוי עדין",
-    description:
-      "ג'ל ניקוי מאוזן pH שמסיר זיהום מבלי לפגוע במחסום הלחות הטבעי של העור.",
-    price: "₪38",
-    image: "/assets/products/luxury-bottle.png",
-    badge: "הכי נמכר",
-  },
-  {
-    name: "סרום ויטמין C מבהיר",
-    description:
-      "סרום ויטמין C ריכוזי של 15% שמבהיר, מיישר גוון עור ומעודד ייצור קולגן.",
-    price: "₪65",
-    image: "/assets/products/serum-bottle.png",
-    badge: "ההמלצה של הצוות",
-  },
-  {
-    name: "משחה מינרלית SPF 50",
-    description:
-      "משחה להגנה מהשמש מינרלית קלילה ולא קומדוגנית עם SPF 50. בלתי נראה בכל גוונים.",
-    price: "₪42",
-    image: "/assets/products/luxury-bottle.png",
-    badge: "חיוני",
   },
 ];
 
@@ -74,7 +61,22 @@ const cardVariants = {
 
 export function ProductsPreview() {
   const { t, locale } = useTranslation();
-  const products = locale === "he" ? featuredProductsHe : featuredProductsEn;
+  const [products, setProducts] = useState<ProductItem[]>(fallbackProducts);
+
+  useEffect(() => {
+    fetchProducts(true)
+      .then((data) =>
+        setProducts(
+          data.map((api) => ({
+            ...adaptProduct(api, locale),
+            badge: api.badge || null,
+          })),
+        ),
+      )
+      .catch(() => {
+        /* keep fallback */
+      });
+  }, [locale]);
 
   return (
     <Section title={t.productsTitle} subtitle={t.productsSubtitle} bg="cream">
@@ -92,7 +94,7 @@ export function ProductsPreview() {
         viewport={{ once: true, margin: "-100px" }}
       >
         {products.map((product) => (
-          <motion.div key={product.name} variants={cardVariants}>
+          <motion.div key={product.id} variants={cardVariants}>
             <Card className="overflow-hidden flex flex-col h-full hover:-translate-y-1 transition-transform duration-200 ease-[0.4,0,0.2,1]">
               {/* Image */}
               <div className="relative h-48 bg-cream-100">
@@ -102,9 +104,11 @@ export function ProductsPreview() {
                   fill
                   className="object-cover"
                 />
-                <div className="absolute top-3 start-3">
-                  <Badge variant="accent">{product.badge}</Badge>
-                </div>
+                {product.badge && (
+                  <div className="absolute top-3 start-3">
+                    <Badge variant="accent">{product.badge}</Badge>
+                  </div>
+                )}
               </div>
 
               <div className="p-6 flex flex-col flex-1">

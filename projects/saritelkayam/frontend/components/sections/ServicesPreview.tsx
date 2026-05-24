@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/Card";
@@ -8,9 +9,22 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Clock, Star } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
+import { fetchServices, adaptService } from "@/lib/api";
 
-const featuredServicesEn = [
+interface ServiceItem {
+  id: string;
+  title: string;
+  description: string;
+  duration: string;
+  price: string;
+  badge: string;
+  image: string;
+}
+
+// Fallback data - used while loading or on error
+const fallbackServicesEn: ServiceItem[] = [
   {
+    id: "1",
     title: "Signature Facial",
     description:
       "A luxurious deep-cleansing facial tailored to your skin type, featuring gentle exfoliation, custom mask, and hydrating serum application.",
@@ -20,6 +34,7 @@ const featuredServicesEn = [
     image: "/assets/services/facial-treatment.png",
   },
   {
+    id: "2",
     title: "Skin Analysis & Consultation",
     description:
       "Comprehensive skin assessment using advanced technology to identify your unique needs and create a personalized treatment plan.",
@@ -29,6 +44,7 @@ const featuredServicesEn = [
     image: "/assets/services/skin-analysis.png",
   },
   {
+    id: "3",
     title: "Bridal Makeup",
     description:
       "Flawless, long-lasting makeup artistry for your special day. Includes trial session and day-of application.",
@@ -39,8 +55,9 @@ const featuredServicesEn = [
   },
 ];
 
-const featuredServicesHe = [
+const fallbackServicesHe: ServiceItem[] = [
   {
+    id: "1",
     title: "פילינג סיגניצ'ר",
     description:
       "פילינג מפנק ומעמיק המותאם לסוג העור שלך, הכולל קילוף עדין, מסכה מותאמת אישית והזרמת סרום מלחלח.",
@@ -50,6 +67,7 @@ const featuredServicesHe = [
     image: "/assets/services/facial-treatment.png",
   },
   {
+    id: "2",
     title: "אבחון עור וייעוץ",
     description:
       "הערכת עור מקיפה באמצעות טכנולוגיה מתקדמת לזיהוי הצרכים הייחודיים שלך ויצירת תוכנית טיפול מותאמת אישית.",
@@ -59,6 +77,7 @@ const featuredServicesHe = [
     image: "/assets/services/skin-analysis.png",
   },
   {
+    id: "3",
     title: "איפור חתונה",
     description:
       "איפור מושלם ועמיד ליום המיוחד שלך. כולל מפגש הכנה ויישום ביום החתונה.",
@@ -68,6 +87,17 @@ const featuredServicesHe = [
     image: "/assets/services/makeup.png",
   },
 ];
+
+// Default images for services (since the API doesn't store images yet)
+// Map by sortOrder index (0, 1, 2) since title matching is fragile
+const defaultServiceImages = [
+  "/assets/services/facial-treatment.png",
+  "/assets/services/skin-analysis.png",
+  "/assets/services/makeup.png",
+];
+
+const defaultBadgesEn = ["Most Popular", "Essential", "Premium"];
+const defaultBadgesHe = ["הכי נמכר", "חיוני", "פרימיום"];
 
 const cardVariants = {
   hidden: { opacity: 0, y: 24 },
@@ -80,7 +110,27 @@ const cardVariants = {
 
 export function ServicesPreview() {
   const { t, locale } = useTranslation();
-  const services = locale === "he" ? featuredServicesHe : featuredServicesEn;
+  const [services, setServices] = useState<ServiceItem[]>(
+    locale === "he" ? fallbackServicesHe : fallbackServicesEn,
+  );
+
+  useEffect(() => {
+    fetchServices()
+      .then((data) => {
+        const badges = locale === "he" ? defaultBadgesHe : defaultBadgesEn;
+        // Take first 3 services from API as "featured"
+        const adapted = data.slice(0, 3).map((api, i) => ({
+          ...adaptService(api, locale),
+          badge: badges[i] || "",
+          image:
+            defaultServiceImages[i] || "/assets/services/facial-treatment.png",
+        }));
+        setServices(adapted);
+      })
+      .catch(() => {
+        /* keep fallback */
+      });
+  }, [locale]);
 
   return (
     <Section title={t.servicesTitle} subtitle={t.servicesSubtitle} bg="white">
@@ -98,7 +148,7 @@ export function ServicesPreview() {
         viewport={{ once: true, margin: "-100px" }}
       >
         {services.map((service) => (
-          <motion.div key={service.title} variants={cardVariants}>
+          <motion.div key={service.id} variants={cardVariants}>
             <Card className="overflow-hidden flex flex-col h-full hover:-translate-y-1 transition-transform duration-200 ease-[0.4,0,0.2,1]">
               <div className="relative h-48">
                 <Image

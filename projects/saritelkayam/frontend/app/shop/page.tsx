@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
 import { FadeInSection } from "@/components/common/FadeInSection";
 import { Card } from "@/components/ui/Card";
@@ -9,6 +10,12 @@ import { SectionDivider } from "@/components/common/SectionDivider";
 import { Button } from "@/components/ui/Button";
 import { Star, ShoppingBag, Heart } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
+import {
+  fetchProducts,
+  adaptProduct,
+  getCategoryLabel,
+  PRODUCT_CATEGORY_LABELS,
+} from "@/lib/api";
 
 interface Product {
   id: string;
@@ -18,13 +25,13 @@ interface Product {
   price: string;
   size: string;
   image: string;
-  badge?: string;
+  badge: string | null;
   rating: number;
 }
 
-const productsEn: Product[] = [
+const fallbackProducts: Product[] = [
   {
-    id: "gentle-gel-cleanser",
+    id: "1",
     name: "Gentle Gel Cleanser",
     category: "Cleansers",
     description:
@@ -36,7 +43,7 @@ const productsEn: Product[] = [
     rating: 5,
   },
   {
-    id: "vitamin-c-serum",
+    id: "2",
     name: "Vitamin C Brightening Serum",
     category: "Serums",
     description:
@@ -48,7 +55,7 @@ const productsEn: Product[] = [
     rating: 5,
   },
   {
-    id: "hydrating-moisturizer",
+    id: "3",
     name: "Hydrating Day Cream",
     category: "Moisturizers",
     description:
@@ -56,168 +63,10 @@ const productsEn: Product[] = [
     price: "₪52",
     size: "50ml",
     image: "/assets/products/cream-jar.png",
-    rating: 5,
-  },
-  {
-    id: "night-recovery-cream",
-    name: "Night Recovery Cream",
-    category: "Moisturizers",
-    description:
-      "An intensive overnight treatment that repairs and regenerates while you sleep. Contains retinol, peptides, and plant stem cells.",
-    price: "₪72",
-    size: "50ml",
-    image: "/assets/products/cream-jar.png",
-    rating: 4,
-  },
-  {
-    id: "retinol-serum",
-    name: "Retinol Renewal Serum",
-    category: "Serums",
-    description:
-      "A gentle 0.5% retinol serum that reduces fine lines, improves texture, and reveals younger-looking skin. Ideal for retinol beginners.",
-    price: "₪58",
-    size: "30ml",
-    image: "/assets/products/serum-bottle.png",
-    rating: 5,
-  },
-  {
-    id: "mineral-spf",
-    name: "Mineral Sunscreen SPF 50",
-    category: "Sun Protection",
-    description:
-      "A lightweight, non-comedogenic mineral sunscreen with SPF 50. Invisible on all skin tones — no white cast. Reef-safe formula.",
-    price: "₪42",
-    size: "50ml",
-    image: "/assets/products/luxury-bottle.png",
-    badge: "Essential",
-    rating: 5,
-  },
-  {
-    id: "exfoliating-toner",
-    name: "Exfoliating Toner (AHA/BHA)",
-    category: "Cleansers",
-    description:
-      "A gentle chemical exfoliant with 5% glycolic acid and 1% salicylic acid. Use 2-3 times per week for smoother, brighter skin.",
-    price: "₪35",
-    size: "200ml",
-    image: "/assets/products/luxury-bottle.png",
-    rating: 4,
-  },
-  {
-    id: "eye-serum",
-    name: "Peptide Eye Serum",
-    category: "Serums",
-    description:
-      "A targeted eye treatment that reduces dark circles, puffiness, and fine lines. Lightweight formula absorbs instantly without irritation.",
-    price: "₪48",
-    size: "15ml",
-    image: "/assets/products/serum-bottle.png",
+    badge: null,
     rating: 5,
   },
 ];
-
-const productsHe: Product[] = [
-  {
-    id: "ג'ל-ניקוי-עדין",
-    name: "ג'ל ניקוי עדין",
-    category: "משתפים",
-    description:
-      "ג'ל ניקוי מאוזן pH שמסיר זיהום מבלי לפגוע במחסום הלחות הטבעי של העור. מושלם לכל סוגי העור.",
-    price: "₪38",
-    size: "150ml",
-    image: "/assets/products/luxury-bottle.png",
-    badge: "הכי נמכר",
-    rating: 5,
-  },
-  {
-    id: "סרום-ויטמין-C",
-    name: "סרום ויטמין C מבהיר",
-    category: "סרומים",
-    description:
-      "סרום ויטמין C ריכוזי של 15% שמבהיר, מיישר גוון עור ומעודד ייצור קולגן. תוצאות נראות לעין כבר בתוך 2 שבועות.",
-    price: "₪65",
-    size: "30ml",
-    image: "/assets/products/serum-bottle.png",
-    badge: "ההמלצה של הצוות",
-    rating: 5,
-  },
-  {
-    id: "קרם-לחות-יומי",
-    name: "קרם לחות יומי",
-    category: "קרמים",
-    description:
-      "קרם יום עשיר אך קליל עם חומצה היאלורונית וצראמידים. מספק לחות ל-24 שעות ומחזק את מחסום העור.",
-    price: "₪52",
-    size: "50ml",
-    image: "/assets/products/cream-jar.png",
-    rating: 5,
-  },
-  {
-    id: "קרם-לילה-משקם",
-    name: "קרם לילה משקם",
-    category: "קרמים",
-    description:
-      "טיפול לילה אינטנסיבי שמשקם ומחדש בזמן השינה. מכיל רטינול, פפטידים ותאי גזע צמחיים.",
-    price: "₪72",
-    size: "50ml",
-    image: "/assets/products/cream-jar.png",
-    rating: 4,
-  },
-  {
-    id: "סרום-רטינול",
-    name: "סרום רטינול מחדיש",
-    category: "סרומים",
-    description:
-      "סרום רטינול עדין של 0.5% שמפחית קמטים, משפר מרקם וחושף עור צעיר יותר. אידיאלי למתחילים בשימוש ברטינול.",
-    price: "₪58",
-    size: "30ml",
-    image: "/assets/products/serum-bottle.png",
-    rating: 5,
-  },
-  {
-    id: "משחה-מינרלית",
-    name: "משחה מינרלית SPF 50",
-    category: "הגנה מהשמש",
-    description:
-      "משחה להגנה מהשמש מינרלית קלילה ולא קומדוגנית עם SPF 50. בלתי נראה בכל גוונים — ללא סימן לבן. נוסחה בטוחה לשוניות האלמוגים.",
-    price: "₪42",
-    size: "50ml",
-    image: "/assets/products/luxury-bottle.png",
-    badge: "חיוני",
-    rating: 5,
-  },
-  {
-    id: "טונר-מקלף",
-    name: "טונר מקלף (AHA/BHA)",
-    category: "משתפים",
-    description:
-      "חומר קילוף כימי עדין עם 5% חומצה גליקולית ו-1% חומצה סליצילית. השתמשי 2-3 פעמים בשבוע לעור חלק ובהיר יותר.",
-    price: "₪35",
-    size: "200ml",
-    image: "/assets/products/luxury-bottle.png",
-    rating: 4,
-  },
-  {
-    id: "סרום-עיניים",
-    name: "סרום פפטידים לעיניים",
-    category: "סרומים",
-    description:
-      "טיפול ייעודי לעיניים שמפחית עיגולים כהים, נפיחות וקמטים עדינים. נוסחה קלילה שנבלעת מיידית ללא גירוי.",
-    price: "₪48",
-    size: "15ml",
-    image: "/assets/products/serum-bottle.png",
-    rating: 5,
-  },
-];
-
-const categoriesEn = [
-  "All",
-  "Cleansers",
-  "Serums",
-  "Moisturizers",
-  "Sun Protection",
-];
-const categoriesHe = ["הכול", "משתפים", "סרומים", "קרמים", "הגנה מהשמש"];
 
 function StarRating({ count }: { count: number }) {
   return (
@@ -236,6 +85,8 @@ function StarRating({ count }: { count: number }) {
 }
 
 function ProductCard({ product, t }: { product: Product; t: any }) {
+  const displayCategory = getCategoryLabel(product.category, t.locale || "en");
+
   return (
     <Card className="overflow-hidden group">
       {/* Image */}
@@ -263,7 +114,7 @@ function ProductCard({ product, t }: { product: Product; t: any }) {
       {/* Content */}
       <div className="p-5">
         <div className="flex items-center justify-between mb-2">
-          <Badge variant="neutral">{product.category}</Badge>
+          <Badge variant="neutral">{displayCategory}</Badge>
           <span className="text-xs text-charcoal-400">{product.size}</span>
         </div>
 
@@ -300,8 +151,41 @@ function ProductCard({ product, t }: { product: Product; t: any }) {
 
 export default function ShopPage() {
   const { t, locale } = useTranslation();
-  const products = locale === "he" ? productsHe : productsEn;
-  const categories = locale === "he" ? categoriesHe : categoriesEn;
+  const [products, setProducts] = useState<Product[]>(fallbackProducts);
+  const [activeCategory, setActiveCategory] = useState<string>("all");
+
+  useEffect(() => {
+    fetchProducts(false)
+      .then((data) => setProducts(data.map((api) => adaptProduct(api, locale))))
+      .catch(() => {
+        /* keep fallback */
+      });
+  }, [locale]);
+
+  // Derive unique categories from fetched products
+  const categories = useMemo(() => {
+    const unique = [...new Set(products.map((p) => p.category))];
+    const allLabel = locale === "he" ? "הכול" : "All";
+    return [allLabel, ...unique.map((cat) => getCategoryLabel(cat, locale))];
+  }, [products, locale]);
+
+  // Filter products by active category
+  const filteredProducts = useMemo(() => {
+    if (
+      activeCategory === "all" ||
+      activeCategory === (locale === "he" ? "הכול" : "All")
+    ) {
+      return products;
+    }
+    // Find the original English category name from the label
+    const reverseMap: Record<string, string> = Object.fromEntries(
+      Object.entries(PRODUCT_CATEGORY_LABELS).map(([k, v]) => [v, k]),
+    );
+    const originalCategory = reverseMap[activeCategory] || activeCategory;
+    return products.filter(
+      (p) => getCategoryLabel(p.category, locale) === activeCategory,
+    );
+  }, [products, activeCategory, locale]);
 
   return (
     <>
@@ -326,19 +210,31 @@ export default function ShopPage() {
         <section className="bg-white py-6">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-wrap justify-center gap-2">
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  className={`px-4 py-2 rounded-full text-sm font-body transition-colors ${
-                    cat ===
-                    (locale === "he" ? categoriesHe[0] : categoriesEn[0])
-                      ? "bg-rose-400 text-white"
-                      : "bg-cream-100 text-charcoal-600 hover:bg-rose-100 hover:text-rose-600"
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
+              {categories.map((cat) => {
+                const isActive =
+                  cat === activeCategory ||
+                  (cat === (locale === "he" ? "הכול" : "All") &&
+                    activeCategory === "all");
+                return (
+                  <button
+                    key={cat}
+                    onClick={() =>
+                      setActiveCategory(
+                        cat === (locale === "he" ? "הכול" : "All")
+                          ? "all"
+                          : cat,
+                      )
+                    }
+                    className={`px-4 py-2 rounded-full text-sm font-body transition-colors ${
+                      isActive
+                        ? "bg-rose-400 text-white"
+                        : "bg-cream-100 text-charcoal-600 hover:bg-rose-100 hover:text-rose-600"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -348,7 +244,7 @@ export default function ShopPage() {
       <FadeInSection>
         <Section bg="cream">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            {products.map((product) => (
+            {filteredProducts.map((product) => (
               <ProductCard key={product.id} product={product} t={t} />
             ))}
           </div>
