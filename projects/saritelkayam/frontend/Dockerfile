@@ -3,8 +3,8 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Install dependencies
-COPY package.json package-lock.json* ./
-RUN npm ci
+COPY package.json ./
+RUN npm install --legacy-peer-deps
 
 # Copy source and build
 COPY . .
@@ -22,8 +22,8 @@ FROM node:20-alpine
 WORKDIR /app
 
 # Install production dependencies only
-COPY package.json package-lock.json* ./
-RUN npm ci --omit=dev
+COPY package.json ./
+RUN npm install --omit=dev --legacy-peer-deps
 
 # Copy built output
 COPY --from=builder /app/.next ./.next
