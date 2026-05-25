@@ -15,11 +15,12 @@ import { getPublicSettings } from "@/lib/admin-api";
 
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
-  const { t, isRtl } = useTranslation();
+  const { t } = useTranslation();
 
   // Fetch settings for dynamic contact info
   const [email, setEmail] = useState("hello@saritelkayam.com");
   const [phone, setPhone] = useState("+972-50-000-0000");
+  const [address, setAddress] = useState("");
   const [instagramUrl, setInstagramUrl] = useState(
     "https://instagram.com/sarit.elkayam",
   );
@@ -30,25 +31,30 @@ export default function ContactPage() {
   useEffect(() => {
     getPublicSettings()
       .then((settings) => {
-        const getEmail = (s: typeof settings) =>
-          s.find((x) => x.key === "email")?.valueHe ||
-          s.find((x) => x.key === "email")?.valueEn ||
-          "hello@saritelkayam.com";
-        const getPhone = (s: typeof settings) =>
-          s.find((x) => x.key === "phone")?.valueHe ||
-          s.find((x) => x.key === "phone")?.valueEn ||
-          "+972-50-000-0000";
-        const getInstagram = (s: typeof settings) =>
-          s.find((x) => x.key === "instagram")?.valueEn ||
-          "https://instagram.com/sarit.elkayam";
-        const getFacebook = (s: typeof settings) =>
-          s.find((x) => x.key === "facebook")?.valueEn ||
-          "https://facebook.com/sarit.elkayam";
-
-        setEmail(getEmail(settings));
-        setPhone(getPhone(settings));
-        setInstagramUrl(getInstagram(settings));
-        setFacebookUrl(getFacebook(settings));
+        const settingKey = (key: string) => settings.find((x) => x.key === key);
+        setEmail(
+          settingKey("email")?.valueHe ||
+            settingKey("email")?.valueEn ||
+            "hello@saritelkayam.com",
+        );
+        setPhone(
+          settingKey("phone")?.valueHe ||
+            settingKey("phone")?.valueEn ||
+            "+972-50-000-0000",
+        );
+        setAddress(
+          settingKey("address")?.valueHe ||
+            settingKey("address")?.valueEn ||
+            t.contactLocationDetail,
+        );
+        setInstagramUrl(
+          settingKey("instagram")?.valueEn ||
+            "https://instagram.com/sarit.elkayam",
+        );
+        setFacebookUrl(
+          settingKey("facebook")?.valueEn ||
+            "https://facebook.com/sarit.elkayam",
+        );
       })
       .catch(() => {
         // Fall back to hardcoded defaults (already set above)
@@ -162,7 +168,7 @@ export default function ContactPage() {
                         {t.contactLocation}
                       </p>
                       <p className="font-body text-sm text-charcoal-500">
-                        {t.contactLocationDetail}
+                        {address || t.contactLocationDetail}
                         <br />
                         <span className="text-xs">{t.contactLocationNote}</span>
                       </p>
