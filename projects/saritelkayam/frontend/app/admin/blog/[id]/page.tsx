@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
+import { WysiwygEditor } from "@/components/admin/WysiwygEditor";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 
 interface PostData {
@@ -172,13 +173,10 @@ export default function EditPostPage() {
           />
 
           {/* Content */}
-          <Textarea
-            label="Content (Markdown)"
-            name="content"
-            placeholder="Write your post content here..."
+          <WysiwygEditor
+            label="Content"
             value={content}
-            onChange={(e) => setContent(e.target.value)}
-            rows={16}
+            onChange={(val) => setContent(val)}
             required
           />
 

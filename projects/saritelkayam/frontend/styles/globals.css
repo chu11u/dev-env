@@ -57,3 +57,116 @@
         @apply outline-none ring-2 ring-rose-400 border-rose-400;
     }
 }
+
+/* ─── React-Quill WYSIWYG Editor Styling ────────────────────── */
+
+.quill-editor-wrapper .ql-toolbar {
+    border-color: #e8c4b8;
+    border-radius: 0.75rem 0.75rem 0 0;
+    background-color: #faf6f2;
+    font-family: "Heebo", sans-serif;
+}
+
+.quill-editor-wrapper .ql-container {
+    border-color: #e8c4b8;
+    border-radius: 0 0 0.75rem 0.75rem;
+    font-family: "Heebo", sans-serif;
+    font-size: 1rem;
+    min-height: 320px;
+}
+
+.quill-editor-wrapper .ql-editor {
+    min-height: 320px;
+    color: #3d2b2b;
+    line-height: 1.75;
+    padding: 1rem 1.25rem;
+}
+
+.quill-editor-wrapper .ql-editor.ql-blank::before {
+    color: #9ca3af;
+    font-style: normal;
+    left: 1.25rem;
+}
+
+.quill-editor-wrapper .ql-editor h1,
+.quill-editor-wrapper .ql-editor h2,
+.quill-editor-wrapper .ql-editor h3 {
+    font-family: "Frank Ruhl Libre", serif;
+    color: #3d2b2b;
+    margin-bottom: 0.5rem;
+}
+
+.quill-editor-wrapper .ql-editor h1 {
+    font-size: 2rem;
+    font-weight: 700;
+}
+.quill-editor-wrapper .ql-editor h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+.quill-editor-wrapper .ql-editor h3 {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.quill-editor-wrapper .ql-editor p {
+    margin-bottom: 0.75rem;
+}
+
+.quill-editor-wrapper .ql-editor blockquote {
+    border-left: 3px solid #d4a59a;
+    padding-left: 1rem;
+    margin: 0.75rem 0;
+    color: #6b3a3a;
+    font-style: italic;
+}
+
+.quill-editor-wrapper .ql-editor a {
+    color: #d4a59a;
+    text-decoration: underline;
+}
+
+.quill-editor-wrapper .ql-editor img {
+    border-radius: 0.5rem;
+    max-width: 100%;
+    height: auto;
+    margin: 1rem 0;
+}
+
+.quill-editor-wrapper .ql-editor ul,
+.quill-editor-wrapper .ql-editor ol {
+    padding-left: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.quill-editor-wrapper .ql-editor li {
+    margin-bottom: 0.25rem;
+}
+
+.quill-editor-wrapper .ql-snow .ql-picker.ql-header .ql-picker-label::before,
+.quill-editor-wrapper .ql-snow .ql-picker.ql-header .ql-picker-item::before {
+    font-family: "Frank Ruhl Libre", serif;
+}
+
+.quill-editor-wrapper
+    .ql-snow
+    .ql-picker.ql-header
+    .ql-picker-item[data-value="1"]::before {
+    content: "Heading 1";
+}
+.quill-editor-wrapper
+    .ql-snow
+    .ql-picker.ql-header
+    .ql-picker-item[data-value="2"]::before {
+    content: "Heading 2";
+}
+.quill-editor-wrapper
+    .ql-snow
+    .ql-picker.ql-header
+    .ql-picker-item[data-value="3"]::before {
+    content: "Heading 3";
+}
+
+.quill-editor-wrapper .ql-snow a {
+    color: #d4a59a;
+}

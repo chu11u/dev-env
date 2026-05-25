@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
+import { WysiwygEditor } from "@/components/admin/WysiwygEditor";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 
 function generateSlug(title: string): string {
@@ -143,18 +144,12 @@ export default function NewPostPage() {
           />
 
           {/* Content */}
-          <Textarea
-            label="Content (Markdown)"
-            name="content"
-            placeholder="Write your post content here using Markdown syntax..."
+          <WysiwygEditor
+            label="Content"
             value={content}
-            onChange={(e) => setContent(e.target.value)}
-            rows={16}
+            onChange={(val) => setContent(val)}
             required
           />
-          <p className="font-body text-xs text-charcoal-400">
-            Supports Markdown: **bold**, *italic*, [links](url), - lists, etc.
-          </p>
 
           {/* Publish Toggle */}
           <div className="flex items-center gap-3 pt-4 border-t border-cream-200">
