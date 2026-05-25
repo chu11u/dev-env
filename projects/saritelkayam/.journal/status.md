@@ -77,6 +77,55 @@ Replaced all hardcoded data in public-facing components with API calls:
 
 ---
 
+## Phase 8E: Image Upload — Complete (2026-05-25)
+
+### Backend:
+- **`backend/routes/upload.ts`** — New route module:
+  - `POST /api/upload/image` — Upload image via multipart/form-data (multer, 5MB limit, image-only)
+  - `DELETE /api/upload/image/:filename` — Delete uploaded image (path-traversal protected)
+  - Auto-generates filenames: `{timestamp}-{random}.{ext}` (e.g., `1716800000-abc123.jpg`)
+- **`backend/server.ts`** — Registered upload routes + static file serving at `/uploads`
+- **`backend/package.json`** — Added `multer`, `@types/multer`
+- **`backend/Dockerfile`** — Added `RUN mkdir -p /app/uploads`
+
+### Frontend:
+- **`frontend/components/admin/ImageUpload.tsx`** — New drag-and-drop upload component:
+  - Drag & drop or click to browse
+  - Immediate local preview (FileReader / URL.createObjectURL)
+  - Upload progress spinner
+  - Success state with green checkmark + thumbnail
+  - Error state with retry button
+  - Delete/clear button
+  - File type + size validation (image/*, max 5MB)
+
+### Integrated into 6 admin forms:
+- `admin/products/new/page.tsx` — Product image
+- `admin/products/[id]/page.tsx` — Product image
+- `admin/testimonials/new/page.tsx` — Avatar image
+- `admin/testimonials/[id]/page.tsx` — Avatar image
+- `admin/blog/new/page.tsx` — Featured image
+- `admin/blog/[id]/page.tsx` — Featured image
+
+### Docker:
+- **`docker-compose.yml`** — Added persistent volume for uploads: `../../project-data/saritelkayam/uploads:/app/uploads`
+
+### Architecture:
+```
+Admin form → ImageUpload component → POST /api/upload/image (FormData)
+  → Backend multer handler → Save to /app/uploads/{timestamp}-{random}.{ext}
+  → Returns { url: "/uploads/{filename}" }
+  → Stored in DB (featuredImage, image, avatar fields)
+  → Served by Express static middleware at /uploads/
+  → Persisted via Docker volume across container restarts
+```
+
+### Deploy:
+- Committed: `c2f4a5f` (13 files), `5717d20` (lockfile fix)
+- Both backend + frontend rebuilt on server
+- Verified: all containers running, all endpoints 200
+
+---
+
 ## Phase 8C: Admin Fixes & API Routing — Complete (2026-05-23)
 
 ### Issues fixed:
@@ -266,13 +315,16 @@ Cloudflare: /api/* → backend:3001 (via Next.js rewrite, same as Docker)
 
 ### Phase 8D is deployed ✅ — all public components fetch from API.
 
+### Phase 8E deployed ✅ — drag-and-drop image upload in admin panel.
+
 ### What's next:
-- **Phase 8E**: Image upload in admin (drag-and-drop)
 - **Phase 8F**: WYSIWYG editor for blog content
 
 ### Git commits (newest first):
 | Commit | Description | Files |
 |--------|-------------|-------|
+| `5717d20` | Update backend package-lock.json with multer deps | 1 |
+| `c2f4a5f` | Phase 8E - Image upload (drag-and-drop) in admin panel | 13 |
 | `ad421a3` | Fix TypeScript types for public API fetch functions | 1 |
 | `12ac5b0` | Update journal for Phase 8D completion | 1 |
 | `2cfa61a` | Phase 8D - Replace hardcoded data with API calls in all public components | 7 |
