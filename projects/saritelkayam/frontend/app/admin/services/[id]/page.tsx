@@ -35,6 +35,7 @@ export default function EditServicePage() {
   const [success, setSuccess] = useState("");
 
   useEffect(() => {
+    if (!serviceId) return;
     const loadService = async () => {
       try {
         const all = await getServices();
@@ -75,7 +76,7 @@ export default function EditServicePage() {
 
     setIsSubmitting(true);
     try {
-      await updateService(serviceId, {
+      await updateService(serviceId!, {
         category,
         titleEn: titleEn || titleHe,
         titleHe,

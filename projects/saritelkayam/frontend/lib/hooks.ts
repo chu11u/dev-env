@@ -1,15 +1,12 @@
 "use client";
 
-import { use } from "react";
 import { useParams } from "next/navigation";
 
 /**
  * Safely get the `id` param from a `[id]` dynamic route.
- *
- * Next.js 15.5+ changed `useParams()` to return a Promise.
- * Using `use()` from React handles both sync (15.0–15.4) and async (15.5+) params.
+ * Wraps useParams() with null-check to avoid crashes during SSR/hydration.
  */
-export function useParamId(): string {
-  const params = use(useParams());
-  return String(params.id);
+export function useParamId(): string | undefined {
+  const params = useParams();
+  return params ? String(params.id) : undefined;
 }

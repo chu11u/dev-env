@@ -36,6 +36,7 @@ export default function EditProductPage() {
   const [success, setSuccess] = useState("");
 
   useEffect(() => {
+    if (!productId) return;
     const loadProduct = async () => {
       try {
         const all = await getProducts();
@@ -77,7 +78,7 @@ export default function EditProductPage() {
 
     setIsSubmitting(true);
     try {
-      await updateProduct(productId, {
+      await updateProduct(productId!, {
         nameEn: nameEn || nameHe,
         nameHe,
         category,

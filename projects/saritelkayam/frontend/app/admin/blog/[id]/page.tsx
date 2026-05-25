@@ -39,8 +39,12 @@ export default function EditPostPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
+    if (!postId) return;
+
+    let cancelled = false;
     getPost(postId)
       .then((data) => {
+        if (cancelled) return;
         setPost(data);
         setTitle(data.title);
         setSlug(data.slug);
@@ -52,9 +56,13 @@ export default function EditPostPage() {
         setIsLoading(false);
       })
       .catch(() => {
+        if (cancelled) return;
         setError("Failed to load post.");
         setIsLoading(false);
       });
+    return () => {
+      cancelled = true;
+    };
   }, [postId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -68,7 +76,7 @@ export default function EditPostPage() {
 
     setIsSubmitting(true);
     try {
-      await updatePost(postId, {
+      await updatePost(postId!, {
         title,
         slug,
         excerpt,

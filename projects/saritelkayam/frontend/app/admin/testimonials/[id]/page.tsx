@@ -33,6 +33,7 @@ export default function EditTestimonialPage() {
   const [success, setSuccess] = useState("");
 
   useEffect(() => {
+    if (!testimonialId) return;
     const loadTestimonial = async () => {
       try {
         const all = await getTestimonials();
@@ -72,7 +73,7 @@ export default function EditTestimonialPage() {
 
     setIsSubmitting(true);
     try {
-      await updateTestimonial(testimonialId, {
+      await updateTestimonial(testimonialId!, {
         nameEn: nameEn || nameHe,
         nameHe,
         textEn: textEn || textHe,
