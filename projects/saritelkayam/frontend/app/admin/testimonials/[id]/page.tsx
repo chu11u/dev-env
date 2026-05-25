@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { getTestimonials, updateTestimonial } from "@/lib/admin-api";
 import type { Testimonial } from "@/lib/admin-api";
 import { Card } from "@/components/ui/Card";
@@ -10,11 +10,11 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { useTranslation } from "@/lib/i18n";
 import { ImageUpload } from "@/components/admin/ImageUpload";
+import { useParamId } from "@/lib/hooks";
 
 export default function EditTestimonialPage() {
   const router = useRouter();
-  const { id } = useParams();
-  const testimonialId = String(id);
+  const testimonialId = useParamId();
   const { t } = useTranslation();
 
   const [testimonial, setTestimonial] = useState<Testimonial | null>(null);

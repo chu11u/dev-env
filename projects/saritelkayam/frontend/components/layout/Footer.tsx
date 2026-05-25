@@ -1,10 +1,44 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Instagram, Facebook, Mail } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
+import { getPublicSettings } from "@/lib/admin-api";
 
 export function Footer() {
   const { t, locale } = useTranslation();
+
+  // Fetch settings for dynamic contact info
+  const [email, setEmail] = useState("hello@saritelkayam.com");
+  const [instagramUrl, setInstagramUrl] = useState(
+    "https://instagram.com/sarit.elkayam",
+  );
+  const [facebookUrl, setFacebookUrl] = useState(
+    "https://facebook.com/sarit.elkayam",
+  );
+
+  useEffect(() => {
+    getPublicSettings()
+      .then((settings) => {
+        const settingKey = (key: string) => settings.find((x) => x.key === key);
+        setEmail(
+          settingKey("email")?.valueHe ||
+            settingKey("email")?.valueEn ||
+            "hello@saritelkayam.com",
+        );
+        setInstagramUrl(
+          settingKey("instagram")?.valueEn ||
+            "https://instagram.com/sarit.elkayam",
+        );
+        setFacebookUrl(
+          settingKey("facebook")?.valueEn ||
+            "https://facebook.com/sarit.elkayam",
+        );
+      })
+      .catch(() => {
+        // Fall back to hardcoded defaults
+      });
+  }, []);
 
   return (
     <footer
@@ -32,7 +66,7 @@ export function Footer() {
             }
           >
             <a
-              href="https://instagram.com/sarit.elkayam"
+              href={instagramUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="text-cream-200 hover:text-rose-300 transition-colors"
@@ -41,7 +75,7 @@ export function Footer() {
               <Instagram size={20} />
             </a>
             <a
-              href="https://facebook.com/sarit.elkayam"
+              href={facebookUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="text-cream-200 hover:text-rose-300 transition-colors"
@@ -50,7 +84,7 @@ export function Footer() {
               <Facebook size={20} />
             </a>
             <a
-              href="mailto:hello@saritelkayam.com"
+              href={`mailto:${email}`}
               className="text-cream-200 hover:text-rose-300 transition-colors"
               aria-label="Email"
             >

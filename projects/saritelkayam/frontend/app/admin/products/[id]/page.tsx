@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { getProducts, updateProduct } from "@/lib/admin-api";
 import type { Product } from "@/lib/admin-api";
 import { PRODUCT_CATEGORIES } from "@/lib/admin-api";
@@ -11,11 +11,11 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { useTranslation } from "@/lib/i18n";
 import { ImageUpload } from "@/components/admin/ImageUpload";
+import { useParamId } from "@/lib/hooks";
 
 export default function EditProductPage() {
   const router = useRouter();
-  const { id } = useParams();
-  const productId = String(id);
+  const productId = useParamId();
   const { t } = useTranslation();
 
   const [product, setProduct] = useState<Product | null>(null);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { getPost, updatePost } from "@/lib/api";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { WysiwygEditor } from "@/components/admin/WysiwygEditor";
 import { ImageUpload } from "@/components/admin/ImageUpload";
+import { useParamId } from "@/lib/hooks";
 
 interface PostData {
   id: string;
@@ -24,8 +25,7 @@ interface PostData {
 
 export default function EditPostPage() {
   const router = useRouter();
-  const { id } = useParams();
-  const postId = String(id);
+  const postId = useParamId();
   const [post, setPost] = useState<PostData | null>(null);
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");

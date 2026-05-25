@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Button } from "@/components/ui/Button";
@@ -11,10 +11,49 @@ import { Badge } from "@/components/ui/Badge";
 import { FadeInSection } from "@/components/common/FadeInSection";
 import { MapPin, Mail, Phone, Instagram, Facebook } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
+import { getPublicSettings } from "@/lib/admin-api";
 
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
   const { t, isRtl } = useTranslation();
+
+  // Fetch settings for dynamic contact info
+  const [email, setEmail] = useState("hello@saritelkayam.com");
+  const [phone, setPhone] = useState("+972-50-000-0000");
+  const [instagramUrl, setInstagramUrl] = useState(
+    "https://instagram.com/sarit.elkayam",
+  );
+  const [facebookUrl, setFacebookUrl] = useState(
+    "https://facebook.com/sarit.elkayam",
+  );
+
+  useEffect(() => {
+    getPublicSettings()
+      .then((settings) => {
+        const getEmail = (s: typeof settings) =>
+          s.find((x) => x.key === "email")?.valueHe ||
+          s.find((x) => x.key === "email")?.valueEn ||
+          "hello@saritelkayam.com";
+        const getPhone = (s: typeof settings) =>
+          s.find((x) => x.key === "phone")?.valueHe ||
+          s.find((x) => x.key === "phone")?.valueEn ||
+          "+972-50-000-0000";
+        const getInstagram = (s: typeof settings) =>
+          s.find((x) => x.key === "instagram")?.valueEn ||
+          "https://instagram.com/sarit.elkayam";
+        const getFacebook = (s: typeof settings) =>
+          s.find((x) => x.key === "facebook")?.valueEn ||
+          "https://facebook.com/sarit.elkayam";
+
+        setEmail(getEmail(settings));
+        setPhone(getPhone(settings));
+        setInstagramUrl(getInstagram(settings));
+        setFacebookUrl(getFacebook(settings));
+      })
+      .catch(() => {
+        // Fall back to hardcoded defaults (already set above)
+      });
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -139,10 +178,10 @@ export default function ContactPage() {
                         {t.contactEmailLabel}
                       </p>
                       <a
-                        href="mailto:hello@saritelkayam.com"
+                        href={`mailto:${email}`}
                         className="font-body text-sm text-rose-400 hover:underline"
                       >
-                        hello@saritelkayam.com
+                        {email}
                       </a>
                     </div>
                   </div>
@@ -156,10 +195,10 @@ export default function ContactPage() {
                         {t.contactPhoneLabel}
                       </p>
                       <a
-                        href="tel:+972500000000"
+                        href={`tel:${phone}`}
                         className="font-body text-sm text-rose-400 hover:underline"
                       >
-                        +972-50-000-0000
+                        {phone}
                       </a>
                     </div>
                   </div>
@@ -174,7 +213,7 @@ export default function ContactPage() {
                 </h3>
                 <div className="flex gap-4">
                   <a
-                    href="https://instagram.com/sarit.elkayam"
+                    href={instagramUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-12 h-12 rounded-xl bg-rose-100 flex items-center justify-center text-rose-400 hover:bg-rose-400 hover:text-white transition-colors p-3"
@@ -183,7 +222,7 @@ export default function ContactPage() {
                     <Instagram size={20} />
                   </a>
                   <a
-                    href="https://facebook.com/sarit.elkayam"
+                    href={facebookUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-12 h-12 rounded-xl bg-rose-100 flex items-center justify-center text-rose-400 hover:bg-rose-400 hover:text-white transition-colors p-3"

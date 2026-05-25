@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { getServices, updateService } from "@/lib/admin-api";
 import type { Service } from "@/lib/admin-api";
 import { SERVICE_CATEGORIES } from "@/lib/admin-api";
@@ -11,11 +11,11 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { useTranslation } from "@/lib/i18n";
+import { useParamId } from "@/lib/hooks";
 
 export default function EditServicePage() {
   const router = useRouter();
-  const { id } = useParams();
-  const serviceId = String(id);
+  const serviceId = useParamId();
   const { t } = useTranslation();
 
   const [service, setService] = useState<Service | null>(null);
