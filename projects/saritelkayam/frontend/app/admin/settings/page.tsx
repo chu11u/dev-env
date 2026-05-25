@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getSettings, updateSetting, deleteSetting } from "@/lib/admin-api";
+import {
+  getSettings,
+  updateSetting,
+  deleteSetting,
+  matchSettingCategory,
+} from "@/lib/admin-api";
 import type { Setting } from "@/lib/admin-api";
 import { SETTING_CATEGORIES } from "@/lib/admin-api";
 import { Card } from "@/components/ui/Card";
@@ -48,7 +53,9 @@ export default function SettingsPage() {
 
   const groupedSettings = SETTING_CATEGORIES.map((category) => ({
     category,
-    settings: settings.filter((s) => s.category === category),
+    settings: settings.filter((s) =>
+      matchSettingCategory(s.category, category),
+    ),
   }));
 
   const startEditing = (key: string) => {

@@ -310,3 +310,11 @@ export const SERVICE_CATEGORIES = [
 ];
 
 export const SETTING_CATEGORIES = ["General", "Contact", "Social", "Hours"];
+
+/** Match category names case-insensitively (seed uses lowercase, frontend uses Title Case) */
+export function matchSettingCategory(
+  settingCategory: string,
+  categoryName: string,
+): boolean {
+  return settingCategory.toLowerCase() === categoryName.toLowerCase();
+}
