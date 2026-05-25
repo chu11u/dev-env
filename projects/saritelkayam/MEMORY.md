@@ -293,6 +293,8 @@ docker compose build && docker compose up -d
 | Frontend integration (API → components) | ✅ Complete | 8D |
 | Image upload (drag-and-drop) | ✅ Complete | 8E |
 | WYSIWYG editor (react-quill) | ✅ Complete | 8F |
+| Services image upload | ✅ Complete | 8G |
+| Settings image upload | ✅ Complete | 8G |
 | Booking integration | ⏸️ On hold | — |
 | Payment integration | ⏸️ On hold | — |
 

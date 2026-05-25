@@ -2,7 +2,39 @@
 # Auto-maintained by Journal agent. Read this on crash recovery.
 # Last updated: 2026-05-25
 
-## Phase 8F: WYSIWYG Editor for Blog Admin — Complete (2026-05-25)
+## Phase 8G: Image Upload for Services + Settings (2026-05-25)
+### Backend:
+- `backend/prisma/schema.prisma` — added `image String?` to Service model
+- `backend/prisma/migrations/20260525_add_service_image/` — manual migration to add column
+- `backend/routes/services.ts` — accept `image` in POST (PUT already spreads all fields)
+- `backend/Dockerfile` — added `prisma migrate deploy` to startup CMD
+
+### Frontend:
+- `frontend/lib/admin-api.ts` — added `image` to Service, CreateServiceData types
+- `frontend/lib/api.ts` — added `image` to ApiService + adaptService
+- `frontend/app/admin/services/new/page.tsx` — ImageUpload component + image state
+- `frontend/app/admin/services/[id]/page.tsx` — ImageUpload component + image state
+- `frontend/app/admin/settings/page.tsx` — ImageUpload for logo/favicon settings
+
+### Issues fixed:
+- Fixed corrupted `migration_lock.toml` (binary content → P3019 error)
+- `npm install --legacy-peer-deps` for react-quill React 19 compat
+
+### Deploy:
+- Committed `542205b`, `b158973`, `0d5f43c`, `9050116`
+- All routes 200 ✅
+
+### Files modified (8):
+1. `backend/prisma/schema.prisma` — added image column
+2. `backend/prisma/migrations/20260525_add_service_image/` — new migration
+3. `backend/prisma/migrations/migration_lock.toml` — fixed corruption
+4. `backend/routes/services.ts` — accept image in POST
+5. `backend/Dockerfile` — prisma migrate deploy on startup
+6. `frontend/lib/admin-api.ts` — image in Service types
+7. `frontend/lib/api.ts` — image in ApiService + adaptService
+8. `frontend/app/admin/services/new/page.tsx` — ImageUpload
+9. `frontend/app/admin/services/[id]/page.tsx` — ImageUpload
+10. `frontend/app/admin/settings/page.tsx` — ImageUpload for logo/favicon
 ### Dependencies:
 - Added `react-quill` (rich text editor), `marked` (markdown→HTML), `turndown` (HTML→markdown)
 - Added `@types/turndown` (dev)
