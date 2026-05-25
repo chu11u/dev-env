@@ -41,7 +41,7 @@ router.get("/blog/posts/:slug", async (req: Request, res: Response) => {
 
 // ─── Admin Routes ────────────────────────────────────────
 
-// GET /api/admin/blog/posts — List all posts (including drafts)
+// GET /admin/blog/posts — List all posts (including drafts)
 router.get("/admin/blog/posts", async (_req: Request, res: Response) => {
   try {
     const posts = await db.post.findMany({
@@ -52,6 +52,23 @@ router.get("/admin/blog/posts", async (_req: Request, res: Response) => {
   } catch (error) {
     console.error("GET /admin/blog/posts error:", error);
     res.status(500).json({ error: "Failed to fetch posts" });
+  }
+});
+
+// GET /admin/blog/posts/:id — Single post by ID (for editing)
+router.get("/admin/blog/posts/:id", async (req: Request, res: Response) => {
+  try {
+    const post = await db.post.findUnique({
+      where: { id: String(req.params.id) },
+      include: { authors: true },
+    });
+    if (!post) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+    res.json(post);
+  } catch (error) {
+    console.error("GET /admin/blog/posts/:id error:", error);
+    res.status(500).json({ error: "Failed to fetch post" });
   }
 });
 

@@ -91,28 +91,36 @@ export default function SettingsPage() {
     if (!setting) return;
 
     try {
-      await updateSetting(key, {
+      console.log(`Saving setting ${key}:`, {
         valueEn: setting.valueEn,
         valueHe: setting.valueHe,
       });
-      setSettings((prev) =>
-        prev.map((s) => (s.key === key ? { ...s, isEditing: false } : s)),
-      );
+      const updated = await updateSetting(key, {
+        valueEn: setting.valueEn,
+        valueHe: setting.valueHe,
+      });
+      console.log(`Setting ${key} saved:`, updated);
+      // Re-fetch from server to ensure we have the latest data
+      await loadSettings();
       setSuccess(`Setting "${key}" updated.`);
       setTimeout(() => setSuccess(""), 3000);
-    } catch {
-      setError(`Failed to update "${key}".`);
+    } catch (err) {
+      console.error(`Failed to save setting ${key}:`, err);
+      setError(
+        `Failed to update "${key}". ${err instanceof Error ? err.message : "Unknown error"}`,
+      );
     }
   };
 
   const handleDelete = async (key: string) => {
     try {
       await deleteSetting(key);
-      setSettings((prev) => prev.filter((s) => s.key !== key));
+      await loadSettings();
       setConfirmDelete(null);
       setSuccess(`Setting "${key}" deleted.`);
       setTimeout(() => setSuccess(""), 3000);
-    } catch {
+    } catch (err) {
+      console.error(`Failed to delete setting ${key}:`, err);
       setError(`Failed to delete "${key}".`);
     }
   };

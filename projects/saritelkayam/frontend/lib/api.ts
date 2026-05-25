@@ -227,10 +227,9 @@ export async function getPosts(): Promise<Post[]> {
 
 /** Get a single post by ID — for admin editing */
 export async function getPost(id: string): Promise<Post> {
-  const posts = await getPosts();
-  const post = posts.find((p) => p.id === id);
-  if (!post) throw new Error("Post not found");
-  return post;
+  const res = await fetch(`/api/admin/blog/posts/${id}`);
+  if (!res.ok) throw new Error("Post not found");
+  return res.json();
 }
 
 /** Create a new blog post */

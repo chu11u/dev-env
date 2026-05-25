@@ -1,6 +1,13 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import {
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+  Component,
+  type ReactNode,
+} from "react";
 import dynamic from "next/dynamic";
 import { Textarea } from "@/components/ui/Textarea";
 
@@ -8,8 +15,41 @@ import { Textarea } from "@/components/ui/Textarea";
 // eslint-disable-next-line
 import "react-quill/dist/quill.snow.css";
 
+// Error boundary to catch ReactQuill crashes (React 19 compat issues)
+class EditorErrorBoundary extends Component<
+  { children: ReactNode; onFallback: () => void },
+  { hasError: boolean }
+> {
+  constructor(props: { children: ReactNode; onFallback: () => void }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch() {
+    this.props.onFallback();
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return null; // Parent will switch to markdown mode
+    }
+    return this.props.children;
+  }
+}
+
 // Dynamically import react-quill to avoid SSR issues (uses document)
-const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
+const ReactQuill = dynamic(() => import("react-quill"), {
+  ssr: false,
+  loading: () => (
+    <div className="rounded-xl border border-cream-300 bg-cream-50 px-4 py-8 text-center font-body text-sm text-charcoal-400">
+      Loading editor...
+    </div>
+  ),
+});
 
 // ─── Toolbar Configuration ──────────────────────────────────
 
@@ -98,7 +138,9 @@ export function WysiwygEditor({
 
   // Initialize converters on mount
   useEffect(() => {
-    ensureConverters().then(() => setConvertersReady(true));
+    ensureConverters()
+      .then(() => setConvertersReady(true))
+      .catch(() => setConvertersReady(true)); // Fall through to markdown mode on error
   }, []);
 
   // Sync markdown → HTML when value changes externally
@@ -154,6 +196,14 @@ export function WysiwygEditor({
     setMode("advanced");
   }, [htmlContent, onChange, convertersReady]);
 
+  // When the error boundary catches a crash, switch to markdown mode
+  const handleEditorFallback = useCallback(() => {
+    console.error(
+      "WysiwygEditor: ReactQuill crashed, falling back to markdown mode",
+    );
+    setMode("advanced");
+  }, []);
+
   const modules = { toolbar: TOOLBAR_OPTIONS };
 
   return (
@@ -191,20 +241,24 @@ export function WysiwygEditor({
       </div>
 
       {/* Editor */}
-      {mode === "visual" && convertersReady ? (
-        <div className="quill-editor-wrapper rounded-xl border border-cream-300 bg-white overflow-hidden">
-          <ReactQuill
-            value={htmlContent}
-            onChange={handleHtmlChange}
-            modules={modules}
-            theme="snow"
-            placeholder="Write your post content here..."
-          />
-        </div>
-      ) : mode === "visual" && !convertersReady ? (
-        <div className="rounded-xl border border-cream-300 bg-cream-50 px-4 py-8 text-center font-body text-sm text-charcoal-400">
-          Loading editor...
-        </div>
+      {mode === "visual" ? (
+        <EditorErrorBoundary onFallback={handleEditorFallback}>
+          {convertersReady ? (
+            <div className="quill-editor-wrapper rounded-xl border border-cream-300 bg-white overflow-hidden">
+              <ReactQuill
+                value={htmlContent}
+                onChange={handleHtmlChange}
+                modules={modules}
+                theme="snow"
+                placeholder="Write your post content here..."
+              />
+            </div>
+          ) : (
+            <div className="rounded-xl border border-cream-300 bg-cream-50 px-4 py-8 text-center font-body text-sm text-charcoal-400">
+              Loading editor...
+            </div>
+          )}
+        </EditorErrorBoundary>
       ) : (
         <Textarea
           label=""
