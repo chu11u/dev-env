@@ -1,6 +1,55 @@
 # Sarit Elkayam - Agent Work Journal
 # Auto-maintained by Journal agent. Read this on crash recovery.
-# Last updated: 2026-05-23
+# Last updated: 2026-05-25
+
+## Phase 8F: WYSIWYG Editor for Blog Admin — Complete (2026-05-25)
+### Dependencies:
+- Added `react-quill` (rich text editor), `marked` (markdown→HTML), `turndown` (HTML→markdown)
+- Added `@types/turndown` (dev)
+- `react-quill` requires `--legacy-peer-deps` due to React 18 peer dep with React 19 project
+
+### Component:
+- `frontend/components/admin/WysiwygEditor.tsx` — new WYSIWYG editor with Visual/Markdown toggle
+  - Dynamically imports react-quill to avoid SSR issues
+  - Bidirectional markdown↔HTML conversion via lazy-loaded marked/turndown
+  - Toolbar: headings (1-3), bold, italic, underline, strike, ordered/unordered lists, links, images, blockquote, code-block, color, background, clean
+  - Uses `Textarea` component (from `@/components/ui/Textarea`) for Markdown mode
+  - Warm Luxury styling matching existing design system
+
+### Pages updated:
+- `frontend/app/admin/blog/new/page.tsx` — replaced plain `<Textarea>` with `<WysiwygEditor>`
+- `frontend/app/admin/blog/[id]/page.tsx` — replaced plain `<Textarea>` with `<WysiwygEditor>`
+
+### Styling:
+- `frontend/styles/globals.css` — added `.quill-editor-wrapper` styles matching Warm Luxury palette
+  - Toolbar: cream background, blush borders
+  - Editor: charcoal text, frank-ruhl-libre headings, rose-gold links
+  - Blockquote: rose-gold left border, burgundy italic text
+  - Image: rounded, max-width 100%
+
+### Docker:
+- `frontend/Dockerfile` — switched from `npm ci` to `npm install --legacy-peer-deps` (react-quill React 19 compat)
+- Removed `package-lock.json*` from COPY (no lockfile to copy)
+
+### Deploy:
+- Committed `ef17d53` (code), `291e1a0` (dockerfix), `0b4b6b4` (remove @types/react-quill)
+- Built and deployed to server ✅ — all routes returning 200
+
+### Architecture:
+- WysiwygEditor converts markdown→HTML for the Quill editor on mount
+- On user edit in Visual mode: HTML→markdown via turndown, stored as markdown string (matches existing CMS backend)
+- Advanced mode toggle lets users edit raw markdown directly
+- Conversion libraries lazy-loaded to avoid blocking initial render
+- All changes kept in `frontend/` — no backend changes needed
+
+### Files modified (5):
+1. `frontend/components/admin/WysiwygEditor.tsx` — new, ~220 lines
+2. `frontend/app/admin/blog/new/page.tsx` — WysiwygEditor import
+3. `frontend/app/admin/blog/[id]/page.tsx` — WysiwygEditor import
+4. `frontend/styles/globals.css` — quill editor styling
+5. `frontend/package.json` — react-quill, marked, turndown deps
+
+### Net new code: ~220 lines. No regressions.
 
 ## Infrastructure Agent
 - **Status**: complete

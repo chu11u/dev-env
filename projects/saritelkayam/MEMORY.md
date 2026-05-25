@@ -292,7 +292,7 @@ docker compose build && docker compose up -d
 | Admin auth + API routing fixes | ✅ Complete | 8C |
 | Frontend integration (API → components) | ✅ Complete | 8D |
 | Image upload (drag-and-drop) | ✅ Complete | 8E |
-| WYSIWYG editor | ❌ Not built | 8F |
+| WYSIWYG editor (react-quill) | ✅ Complete | 8F |
 | Booking integration | ⏸️ On hold | — |
 | Payment integration | ⏸️ On hold | — |
 
@@ -310,13 +310,17 @@ docker compose build && docker compose up -d
 - Services admin forms could use image upload integration
 - Settings editor could benefit from image uploads (logo, favicon)
 
-### Important fix just deployed:
+### Important fixes deployed:
 - `next.config.js` now rewrites `/uploads/*` → backend (was missing)
 - Without this, uploaded images wouldn't load via Cloudflare domain
+- `frontend/Dockerfile` uses `npm install --legacy-peer-deps` (react-quill React 19 compat)
 
 ### Git history (newest first):
 | Commit | Description |
 |--------|-------------|
+| `0b4b6b4` | Remove non-existent @types/react-quill |
+| `291e1a0` | Fix Dockerfile for react-quill peer dep |
+| `ef17d53` | Phase 8F - WYSIWYG editor for blog admin |
 | `bdd417b` | Update MEMORY.md + add /uploads rewrite + journal |
 | `6e050ba` | Update journal for Phase 8E deployment |
 | `5717d20` | Update backend package-lock.json with multer deps |
