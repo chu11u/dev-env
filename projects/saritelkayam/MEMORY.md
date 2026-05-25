@@ -1,6 +1,6 @@
 # Sarit Elkayam - Cosmetician Website
 # Project Memory Dump
-# Updated: May 23, 2026
+# Updated: May 25, 2026
 # Use this to continue the project in a new conversation
 
 ## HOW TO ACTIVATE AN AGENT
@@ -63,14 +63,16 @@
 ### Backend API
 - Express.js + TypeScript
 - Prisma ORM with PostgreSQL
-- Routes: blog, auth, testimonials, products, services, settings
+- Routes: blog, auth, testimonials, products, services, settings, upload
 - Auth: Simple password check (no JWT — `admin123` in docker-compose)
+- Image upload via multer (images stored in `/app/uploads`, served at `/uploads/`)
 
 ### API Routing (Critical!)
 ```
 Browser → Next.js frontend (port 3006)
-   /api/* → Next.js rewrite → backend:3001 (Docker service name)
-   /* → Next.js pages (static/dynamic)
+    /api/* → Next.js rewrite → backend:3001 (Docker service name)
+    /uploads/* → Next.js rewrite → backend:3001 (static file serving)
+    /* → Next.js pages (static/dynamic)
 ```
 - All API calls use **relative paths** (`/api/...`) — proxied by Next.js rewrites
 - `next.config.js` rewrites use `BACKEND_HOST` + `BACKEND_PORT` env vars
@@ -78,11 +80,32 @@ Browser → Next.js frontend (port 3006)
 - `frontend/Dockerfile` has build-time env vars: `BACKEND_HOST=backend`, `BACKEND_PORT=3001`
 - No `API_URL` constant in code — all calls use relative paths
 
+### Public API Integration (Phase 8D)
+All public-facing components now fetch from backend API instead of hardcoded data:
+- `TestimonialsSection.tsx` → `/api/testimonials/featured`
+- `testimonials/page.tsx` → `/api/testimonials`
+- `ProductsPreview.tsx` → `/api/products/featured`
+- `shop/page.tsx` → `/api/products` (with dynamic category filter)
+- `ServicesPreview.tsx` → `/api/services` (first 3)
+- `services/page.tsx` → `/api/services` (grouped by category)
+- Shared helpers in `lib/api.ts`: `adaptTestimonial()`, `adaptProduct()`, `adaptService()`
+- Category translation: `getCategoryLabel()`, `getServiceCategoryLabel()`, `getServiceCategoryIcon()`
+- Components use `useState` + `useEffect` with fallback data shown immediately
+- Silent error handling — falls back to hardcoded data if API fails
+
+### Image Upload (Phase 8E)
+- **Backend**: `backend/routes/upload.ts` with multer (POST/DELETE `/api/upload/image`)
+- **Frontend**: `ImageUpload` component — drag-and-drop with live preview, progress, error handling
+- **Storage**: `/app/uploads` directory, persisted via Docker volume
+- **Serving**: Express static middleware at `/uploads/`
+- **Integrated in**: Blog (featured image), Products (product image), Testimonials (avatar)
+- Images stored as `/uploads/{timestamp}-{random}.{ext}` (5MB limit, image only)
+
 ### CMS
 - Admin panel at `/admin` (password-protected via simple password check)
-- **Blog**: Full CRUD with draft/publish, markdown export pipeline
-- **Testimonials**: Full CRUD with bilingual forms, featured toggle, star rating
-- **Products**: Full CRUD with category filter, featured toggle, image preview
+- **Blog**: Full CRUD with draft/publish, markdown export pipeline, featured image upload
+- **Testimonials**: Full CRUD with bilingual forms, featured toggle, star rating, avatar upload
+- **Products**: Full CRUD with category filter, featured toggle, image upload
 - **Services**: Full CRUD with features array, category dropdown
 - **Settings**: Inline editing by category (general, contact, social, hours)
 - Database: PostgreSQL with Prisma models (Post, Author, Testimonial, Product, Service, SiteSetting)
@@ -91,14 +114,14 @@ Browser → Next.js frontend (port 3006)
 ### Admin Architecture
 ```
 app/admin/
-  layout.tsx   → Thin server layout with dynamic="force-dynamic"
-  auth.tsx     → AuthProvider + useAuth() hook, relative API URLs
-  page.tsx     → Wraps content with AuthProvider, handles login/dashboard
-  blog/        → Blog CRUD (uses auth, no extra wrapper needed)
+  layout.tsx    → Thin server layout with dynamic="force-dynamic"
+  auth.tsx      → AuthProvider + useAuth() hook, relative API URLs
+  page.tsx      → Wraps content with AuthProvider, handles login/dashboard
+  blog/         → Blog CRUD (uses auth, no extra wrapper needed)
   testimonials/ → Testimonials CRUD
-  products/    → Products CRUD
-  services/    → Services CRUD
-  settings/    → Settings editor
+  products/     → Products CRUD
+  services/     → Services CRUD
+  settings/     → Settings editor
 ```
 - `AdminLayout` is a **server component** — just passes `dynamic = "force-dynamic"`
 - Each admin page is a **"use client"** component
@@ -115,53 +138,56 @@ app/admin/
 
 ```
 saritelkayam/
-├── docker-compose.yml                # 3 services: frontend, backend, postgres
+├── docker-compose.yml                 # 3 services: frontend, backend, postgres
 ├── frontend/
-│     ├── Dockerfile                  # Multi-stage: node builder → node runtime
-│     ├── app/
-│     │     ├── layout.tsx            # Root layout with LocaleProvider
-│     │     ├── page.tsx              # Home: Hero→Services→Products→Testimonials→Blog→CTA
-│     │     ├── services/page.tsx     # Full service catalog
-│     │     ├── testimonials/page.tsx # Full testimonial page
-│     │     ├── shop/page.tsx         # Product catalog
-│     │     ├── blog/                 # Blog listing + post viewer
-│     │     ├── contact/page.tsx      # Contact form + studio info
-│     │     ├── book/page.tsx         # Booking placeholder
-│     │     ├── admin/                # Admin panel (password-protected)
-│     │     │     ├── layout.tsx      # Thin server layout, dynamic="force-dynamic"
-│     │     │     ├── auth.tsx        # AuthProvider + useAuth() hook
-│     │     │     ├── page.tsx        # Wraps with AuthProvider, login/dashboard
-│     │     │     ├── blog/           # Blog CRUD
-│     │     │     ├── testimonials/   # Testimonials CRUD
-│     │     │     ├── products/       # Products CRUD
-│     │     │     ├── services/       # Services CRUD
-│     │     │     └── settings/       # Settings editor
-│     │     └── NotFoundContent.tsx   # 404 page
-│     ├── components/
-│     │     ├── layout/               # Header, Footer, Section, LocaleProvider
-│     │     ├── sections/             # Hero, ServicesPreview, ProductsPreview, Testimonials, BlogPreview, CTA
-│     │     ├── common/               # FadeInSection, StaggeredList, ImagePlaceholder, SectionDivider
-│     │     ├── ui/                   # Button, Card, Badge, Input, Textarea
-│     │     └── admin/                # AdminSidebar (responsive navigation)
-│     ├── lib/
-│     │     ├── i18n.tsx              # Bilingual dictionaries + useTranslation() hook
-│     │     ├── api.ts                # API client (blog CRUD, relative URLs)
-│     │     ├── admin-api.ts          # Admin API client (relative URLs)
-│     │     └── blog.ts              # Markdown blog post parser
-│     ├── next.config.js              # Rewrites: /api/* → backend
-│     ├── public/assets/              # Generated images
-│     └── public/content/posts/       # Markdown blog posts (3 seed posts)
+│      ├── Dockerfile                   # Multi-stage: node builder → node runtime
+│      ├── app/
+│      │      ├── layout.tsx             # Root layout with LocaleProvider
+│      │      ├── page.tsx               # Home: Hero→Services→Products→Testimonials→Blog→CTA
+│      │      ├── services/page.tsx      # Full service catalog (fetches from API)
+│      │      ├── testimonials/page.tsx # Full testimonial page (fetches from API)
+│      │      ├── shop/page.tsx          # Product catalog (fetches from API)
+│      │      ├── blog/                  # Blog listing + post viewer
+│      │      ├── contact/page.tsx       # Contact form + studio info
+│      │      ├── book/page.tsx          # Booking placeholder
+│      │      ├── admin/                 # Admin panel (password-protected)
+│      │      │      ├── layout.tsx       # Thin server layout, dynamic="force-dynamic"
+│      │      │      ├── auth.tsx         # AuthProvider + useAuth() hook
+│      │      │      ├── page.tsx         # Wraps with AuthProvider, login/dashboard
+│      │      │      ├── blog/            # Blog CRUD (with image upload)
+│      │      │      ├── testimonials/    # Testimonials CRUD (with avatar upload)
+│      │      │      ├── products/        # Products CRUD (with image upload)
+│      │      │      ├── services/        # Services CRUD
+│      │      │      └── settings/        # Settings editor
+│      │      └── NotFoundContent.tsx    # 404 page
+│      ├── components/
+│      │      ├── layout/                # Header, Footer, Section, LocaleProvider
+│      │      ├── sections/              # Hero, ServicesPreview, ProductsPreview, Testimonials, BlogPreview, CTA
+│      │      │      ├── ServicesPreview.tsx    # Fetches from /api/services
+│      │      │      ├── ProductsPreview.tsx    # Fetches from /api/products/featured
+│      │      │      ├── TestimonialsSection.tsx # Fetches from /api/testimonials/featured
+│      │      ├── common/                # FadeInSection, StaggeredList, ImagePlaceholder, SectionDivider
+│      │      ├── ui/                    # Button, Card, Badge, Input, Textarea
+│      │      └── admin/                 # AdminSidebar, ImageUpload (drag-and-drop)
+│      ├── lib/
+│      │      ├── i18n.tsx               # Bilingual dictionaries + useTranslation() hook
+│      │      ├── api.ts                 # Public API client + types + adapt helpers + category maps
+│      │      ├── admin-api.ts           # Admin API client (relative URLs)
+│      │      └── blog.ts               # Markdown blog post parser
+│      ├── next.config.js               # Rewrites: /api/* → backend, /uploads/* → backend
+│      ├── public/assets/               # Generated images
+│      └── public/content/posts/        # Markdown blog posts (3 seed posts)
 ├── backend/
-│     ├── Dockerfile                  # node:20-slim
-│     ├── server.ts                   # Express app (6 route modules)
-│     ├── seed.ts                     # Seed script
-│     ├── lib/db.ts                   # Prisma client singleton
-│     ├── routes/                     # blog, auth, testimonials, products, services, settings
-│     └── prisma/
-│         ├── schema.prisma           # 6 models
-│         └── migrations/             # Initial + CMS tables
+│      ├── Dockerfile                   # node:20-slim
+│      ├── server.ts                    # Express app (7 route modules + static uploads)
+│      ├── seed.ts                      # Seed script
+│      ├── lib/db.ts                    # Prisma client singleton
+│      ├── routes/                      # blog, auth, testimonials, products, services, settings, upload
+│      └── prisma/
+│          ├── schema.prisma            # 6 models
+│          └── migrations/              # Initial + CMS tables
 └── .journal/
-      └── status.md                   # Agent work journal
+       └── status.md                    # Agent work journal
 ```
 
 ## DEPLOYMENT
@@ -182,9 +208,9 @@ saritelkayam/
 
 ### Containers
 ```
-saritelkayam-frontend   Up   port 3006       (Next.js 15)
+saritelkayam-frontend   Up   port 3006        (Next.js 15)
 saritelkayam-backend    Up   port 30061 (Express + Prisma)
-saritelkayam-postgres   Up   port 5432       (PostgreSQL 16)
+saritelkayam-postgres   Up   port 5432        (PostgreSQL 16)
 ```
 
 ### Rebuild Workflow
@@ -193,7 +219,7 @@ saritelkayam-postgres   Up   port 5432       (PostgreSQL 16)
 ```bash
 cd /Users/elnaor/Environments/Zed/dev-env
 git add -A && git commit -m "saritelkayam: [what changed]" && git push origin main
-ssh -i ~/.ssh/dev-env-server naor@192.168.131.134 "cd /home/elkayam/dev-env && git pull origin main && cd projects/saritelkayam && docker compose build frontend && docker compose up -d frontend"
+ssh -i ~/.ssh/dev-env-server naor@192.168.131.134 "cd /home/elkayam/dev-env && git pull origin main && cd projects/saritelkayam && docker compose build && docker compose up -d"
 ```
 
 **Frontend-only deploy (fast, SCP):**
@@ -222,6 +248,8 @@ docker compose build && docker compose up -d
 - API calls use relative paths — proxied by Next.js rewrites
 - `NEXT_PUBLIC_*` env vars are **client-only** — server rewrites need regular env vars
 - Build-time env vars: pass via Dockerfile `ARG` + `ENV`
+- Image uploads persist via Docker volume: `../../project-data/saritelkayam/uploads:/app/uploads`
+- Backend uses `npm ci` — lockfile must match package.json (use `npm install` to regenerate if deps change)
 
 ### Cloudflare Routing
 - Cloudflare points **directly to port 3006** (Next.js frontend), NOT to nginx:80
@@ -262,27 +290,26 @@ docker compose build && docker compose up -d
 | CMS Backend (4 new models + routes) | ✅ Complete | 8A |
 | CMS Admin UI (full CRUD for all types) | ✅ Complete | 8B |
 | Admin auth + API routing fixes | ✅ Complete | 8C |
-| Frontend integration (API → components) | ❌ Not built | 8D |
-| Image upload (drag-and-drop) | ❌ Not built | 8E |
+| Frontend integration (API → components) | ✅ Complete | 8D |
+| Image upload (drag-and-drop) | ✅ Complete | 8E |
 | WYSIWYG editor | ❌ Not built | 8F |
 | Booking integration | ⏸️ On hold | — |
 | Payment integration | ⏸️ On hold | — |
 
-## What's Next (Priority Order)
+## What's Next
 
-### P0: Phase 8D — Frontend Integration
-Replace hardcoded data in public-facing components with API calls:
-- `TestimonialsSection.tsx` → fetch from `/api/testimonials`
-- `testimonials/page.tsx` → fetch from `/api/testimonials`
-- `shop/page.tsx` → fetch from `/api/products`
-- `ProductsPreview.tsx` → fetch from `/api/products/featured`
-- `services/page.tsx` → fetch from `/api/services`
-- `ServicesPreview.tsx` → fetch from `/api/services`
+### P0: Phase 8F — WYSIWYG Editor for Blog Content
+- Replace the plain textarea with a rich text editor in admin blog forms
+- Recommended: `react-quill` (lightweight, supports markdown export, ~100KB bundle)
+- Update `admin/blog/new/page.tsx` and `admin/blog/[id]/page.tsx`
+- The markdown export pipeline already exists in `lib/blog.ts`
+- Keep the markdown textarea as a fallback/advanced mode
 
-### P1: Phase 8E — Image Upload
-- Backend endpoint for image upload
-- Frontend drag-and-drop component
-- Update admin forms to support file uploads
+### P1: Remaining Admin Issues (if any)
+- Check if any admin pages have bugs or missing functionality
+- Services admin forms could use image upload integration
+- Settings editor could benefit from image uploads (logo, favicon)
 
-### P2: Phase 8F — WYSIWYG Editor
-- Replace textarea with rich text editor for blog content
+### Future Phases (on hold)
+- Booking integration (Calendly, Acuity Scheduling, or custom)
+- Payment integration (Stripe, PayPal)
