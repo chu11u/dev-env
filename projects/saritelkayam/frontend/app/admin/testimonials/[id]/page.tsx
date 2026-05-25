@@ -1,14 +1,15 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import { getTestimonials, updateTestimonial } from '@/lib/admin-api';
-import type { Testimonial } from '@/lib/admin-api';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Textarea } from '@/components/ui/Textarea';
-import { useTranslation } from '@/lib/i18n';
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { getTestimonials, updateTestimonial } from "@/lib/admin-api";
+import type { Testimonial } from "@/lib/admin-api";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Textarea } from "@/components/ui/Textarea";
+import { useTranslation } from "@/lib/i18n";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 
 export default function EditTestimonialPage() {
   const router = useRouter();
@@ -17,27 +18,27 @@ export default function EditTestimonialPage() {
   const { t } = useTranslation();
 
   const [testimonial, setTestimonial] = useState<Testimonial | null>(null);
-  const [nameEn, setNameEn] = useState('');
-  const [nameHe, setNameHe] = useState('');
-  const [textEn, setTextEn] = useState('');
-  const [textHe, setTextHe] = useState('');
-  const [serviceEn, setServiceEn] = useState('');
-  const [serviceHe, setServiceHe] = useState('');
+  const [nameEn, setNameEn] = useState("");
+  const [nameHe, setNameHe] = useState("");
+  const [textEn, setTextEn] = useState("");
+  const [textHe, setTextHe] = useState("");
+  const [serviceEn, setServiceEn] = useState("");
+  const [serviceHe, setServiceHe] = useState("");
   const [rating, setRating] = useState(5);
-  const [avatar, setAvatar] = useState('');
+  const [avatar, setAvatar] = useState("");
   const [featured, setFeatured] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   useEffect(() => {
     const loadTestimonial = async () => {
       try {
         const all = await getTestimonials();
-        const found = all.find(t => t.id === testimonialId);
+        const found = all.find((t) => t.id === testimonialId);
         if (!found) {
-          setError('Testimonial not found.');
+          setError("Testimonial not found.");
           setIsLoading(false);
           return;
         }
@@ -49,11 +50,11 @@ export default function EditTestimonialPage() {
         setServiceEn(found.serviceEn);
         setServiceHe(found.serviceHe);
         setRating(found.rating);
-        setAvatar(found.avatar || '');
+        setAvatar(found.avatar || "");
         setFeatured(found.featured);
         setIsLoading(false);
       } catch {
-        setError('Failed to load testimonial.');
+        setError("Failed to load testimonial.");
         setIsLoading(false);
       }
     };
@@ -62,10 +63,10 @@ export default function EditTestimonialPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     if (!nameHe || !textHe || !serviceHe) {
-      setError('Please fill in all required Hebrew fields.');
+      setError("Please fill in all required Hebrew fields.");
       return;
     }
 
@@ -82,10 +83,10 @@ export default function EditTestimonialPage() {
         avatar: avatar || undefined,
         featured,
       });
-      setSuccess('Testimonial updated successfully!');
-      setTimeout(() => router.push('/admin/testimonials'), 1000);
+      setSuccess("Testimonial updated successfully!");
+      setTimeout(() => router.push("/admin/testimonials"), 1000);
     } catch {
-      setError('Failed to update testimonial. Please try again.');
+      setError("Failed to update testimonial. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -200,7 +201,7 @@ export default function EditTestimonialPage() {
                   key={star}
                   type="button"
                   onClick={() => setRating(star)}
-                  className={`text-3xl transition-colors ${star <= rating ? 'text-gold-500' : 'text-charcoal-200'}`}
+                  className={`text-3xl transition-colors ${star <= rating ? "text-gold-500" : "text-charcoal-200"}`}
                 >
                   ★
                 </button>
@@ -208,22 +209,12 @@ export default function EditTestimonialPage() {
             </div>
           </div>
 
-          {/* Avatar URL */}
-          <Input
-            label="Avatar URL (optional)"
-            name="avatar"
-            type="url"
-            placeholder="https://example.com/avatar.jpg"
+          {/* Avatar */}
+          <ImageUpload
+            label="Avatar Image (optional)"
             value={avatar}
-            onChange={(e) => setAvatar(e.target.value)}
+            onChange={(url) => setAvatar(url)}
           />
-
-          {avatar && (
-            <div className="flex items-center gap-3">
-              <img src={avatar} alt="Avatar preview" className="w-12 h-12 rounded-full object-cover border-2 border-cream-200" />
-              <span className="font-body text-sm text-charcoal-500">Avatar preview</span>
-            </div>
-          )}
 
           {/* Featured checkbox */}
           <div className="flex items-center gap-3 pt-4 border-t border-cream-200">
@@ -243,24 +234,39 @@ export default function EditTestimonialPage() {
 
           {/* Preview */}
           <div className="pt-4 border-t border-cream-200">
-            <h3 className="font-heading text-sm font-semibold text-charcoal-600 mb-3">Preview</h3>
+            <h3 className="font-heading text-sm font-semibold text-charcoal-600 mb-3">
+              Preview
+            </h3>
             <Card className="p-6 bg-cream-50">
               <div className="flex items-center gap-3 mb-4">
                 {avatar ? (
-                  <img src={avatar} alt="" className="w-10 h-10 rounded-full object-cover" />
+                  <img
+                    src={avatar}
+                    alt=""
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
                 ) : (
                   <div className="w-10 h-10 bg-rose-100 rounded-full flex items-center justify-center">
-                    <span className="text-rose-600 font-bold">{nameHe?.charAt(0) || '?'}</span>
+                    <span className="text-rose-600 font-bold">
+                      {nameHe?.charAt(0) || "?"}
+                    </span>
                   </div>
                 )}
                 <div>
-                  <p className="font-body font-medium text-charcoal-800">{nameHe || 'Client Name'}</p>
-                  <p className="font-body text-xs text-charcoal-400">{serviceHe || 'Service'}</p>
+                  <p className="font-body font-medium text-charcoal-800">
+                    {nameHe || "Client Name"}
+                  </p>
+                  <p className="font-body text-xs text-charcoal-400">
+                    {serviceHe || "Service"}
+                  </p>
                 </div>
               </div>
-              <p className="font-body text-charcoal-600 italic">"{textHe || 'Testimonial text...'}"</p>
+              <p className="font-body text-charcoal-600 italic">
+                "{textHe || "Testimonial text..."}"
+              </p>
               <div className="mt-3 text-gold-500 text-sm">
-                {'★'.repeat(rating)}{'☆'.repeat(5 - rating)}
+                {"★".repeat(rating)}
+                {"☆".repeat(5 - rating)}
               </div>
             </Card>
           </div>
@@ -268,12 +274,12 @@ export default function EditTestimonialPage() {
           {/* Actions */}
           <div className="flex gap-3 pt-4 border-t border-cream-200">
             <Button type="submit" variant="primary" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : t.adminSave}
+              {isSubmitting ? "Saving..." : t.adminSave}
             </Button>
             <Button
               type="button"
               variant="outline"
-              onClick={() => router.push('/admin/testimonials')}
+              onClick={() => router.push("/admin/testimonials")}
             >
               {t.adminCancel}
             </Button>

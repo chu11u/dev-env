@@ -1,15 +1,16 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import { getProducts, updateProduct } from '@/lib/admin-api';
-import type { Product } from '@/lib/admin-api';
-import { PRODUCT_CATEGORIES } from '@/lib/admin-api';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Textarea } from '@/components/ui/Textarea';
-import { useTranslation } from '@/lib/i18n';
+import { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { getProducts, updateProduct } from "@/lib/admin-api";
+import type { Product } from "@/lib/admin-api";
+import { PRODUCT_CATEGORIES } from "@/lib/admin-api";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Textarea } from "@/components/ui/Textarea";
+import { useTranslation } from "@/lib/i18n";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 
 export default function EditProductPage() {
   const router = useRouter();
@@ -18,29 +19,29 @@ export default function EditProductPage() {
   const { t } = useTranslation();
 
   const [product, setProduct] = useState<Product | null>(null);
-  const [nameEn, setNameEn] = useState('');
-  const [nameHe, setNameHe] = useState('');
-  const [category, setCategory] = useState('');
-  const [descriptionEn, setDescriptionEn] = useState('');
-  const [descriptionHe, setDescriptionHe] = useState('');
-  const [price, setPrice] = useState('');
-  const [size, setSize] = useState('');
-  const [image, setImage] = useState('');
-  const [badge, setBadge] = useState('');
+  const [nameEn, setNameEn] = useState("");
+  const [nameHe, setNameHe] = useState("");
+  const [category, setCategory] = useState("");
+  const [descriptionEn, setDescriptionEn] = useState("");
+  const [descriptionHe, setDescriptionHe] = useState("");
+  const [price, setPrice] = useState("");
+  const [size, setSize] = useState("");
+  const [image, setImage] = useState("");
+  const [badge, setBadge] = useState("");
   const [rating, setRating] = useState(5);
   const [featured, setFeatured] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   useEffect(() => {
     const loadProduct = async () => {
       try {
         const all = await getProducts();
-        const found = all.find(p => p.id === productId);
+        const found = all.find((p) => p.id === productId);
         if (!found) {
-          setError('Product not found.');
+          setError("Product not found.");
           setIsLoading(false);
           return;
         }
@@ -52,13 +53,13 @@ export default function EditProductPage() {
         setDescriptionHe(found.descriptionHe);
         setPrice(found.price);
         setSize(found.size);
-        setImage(found.image || '');
-        setBadge(found.badge || '');
+        setImage(found.image || "");
+        setBadge(found.badge || "");
         setRating(found.rating);
         setFeatured(found.featured);
         setIsLoading(false);
       } catch {
-        setError('Failed to load product.');
+        setError("Failed to load product.");
         setIsLoading(false);
       }
     };
@@ -67,10 +68,10 @@ export default function EditProductPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     if (!nameHe || !descriptionHe || !price) {
-      setError('Please fill in all required Hebrew fields.');
+      setError("Please fill in all required Hebrew fields.");
       return;
     }
 
@@ -83,16 +84,16 @@ export default function EditProductPage() {
         descriptionEn: descriptionEn || descriptionHe,
         descriptionHe,
         price,
-        size: size || '',
+        size: size || "",
         image: image || undefined,
         badge: badge || undefined,
         rating,
         featured,
       });
-      setSuccess('Product updated successfully!');
-      setTimeout(() => router.push('/admin/products'), 1000);
+      setSuccess("Product updated successfully!");
+      setTimeout(() => router.push("/admin/products"), 1000);
     } catch {
-      setError('Failed to update product. Please try again.');
+      setError("Failed to update product. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -118,9 +119,7 @@ export default function EditProductPage() {
         <h1 className="font-heading text-3xl font-bold text-charcoal-800 mb-2">
           {t.productEditTitle}
         </h1>
-        <p className="font-body text-charcoal-500">
-          Update product details.
-        </p>
+        <p className="font-body text-charcoal-500">Update product details.</p>
       </div>
 
       <form onSubmit={handleSubmit}>
@@ -169,7 +168,9 @@ export default function EditProductPage() {
               required
             >
               {PRODUCT_CATEGORIES.map((cat) => (
-                <option key={cat} value={cat}>{cat}</option>
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
               ))}
             </select>
           </div>
@@ -214,22 +215,12 @@ export default function EditProductPage() {
             />
           </div>
 
-          {/* Image URL */}
-          <Input
-            label="Image URL"
-            name="image"
-            type="url"
-            placeholder="https://example.com/product.jpg"
+          {/* Product Image */}
+          <ImageUpload
+            label="Product Image"
             value={image}
-            onChange={(e) => setImage(e.target.value)}
+            onChange={(url) => setImage(url)}
           />
-
-          {image && (
-            <div className="flex items-center gap-3">
-              <img src={image} alt="Product preview" className="w-20 h-20 rounded-xl object-cover border-2 border-cream-200" />
-              <span className="font-body text-sm text-charcoal-500">Image preview</span>
-            </div>
-          )}
 
           {/* Badge */}
           <div>
@@ -260,7 +251,7 @@ export default function EditProductPage() {
                   key={star}
                   type="button"
                   onClick={() => setRating(star)}
-                  className={`text-3xl transition-colors ${star <= rating ? 'text-gold-500' : 'text-charcoal-200'}`}
+                  className={`text-3xl transition-colors ${star <= rating ? "text-gold-500" : "text-charcoal-200"}`}
                 >
                   ★
                 </button>
@@ -287,12 +278,12 @@ export default function EditProductPage() {
           {/* Actions */}
           <div className="flex gap-3 pt-4 border-t border-cream-200">
             <Button type="submit" variant="primary" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : t.adminSave}
+              {isSubmitting ? "Saving..." : t.adminSave}
             </Button>
             <Button
               type="button"
               variant="outline"
-              onClick={() => router.push('/admin/products')}
+              onClick={() => router.push("/admin/products")}
             >
               {t.adminCancel}
             </Button>

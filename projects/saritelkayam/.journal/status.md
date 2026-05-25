@@ -70,8 +70,10 @@ Replaced all hardcoded data in public-facing components with API calls:
 
 ### Deploy:
 - Committed: `2cfa61a` (7 files, +466/-669 lines)
+- Fix commit: `ad421a3` (add explicit `Promise<ApiX[]>` return types to fetch functions)
 - Pushed to GitHub ✅
-- **Server deploy pending** — needs `git pull` + `docker compose build frontend && docker compose up -d frontend`
+- **Deployed to server ✅** — `docker compose up -d --force-recreate frontend`
+- Verified: all public pages 200, all API endpoints return real DB data
 
 ---
 
@@ -262,16 +264,18 @@ Cloudflare: /api/* → backend:3001 (via Next.js rewrite, same as Docker)
 - ✅ Bilingual HE/EN throughout
 - ✅ All public components now fetch from API (Phase 8D)
 
-### Phase 8D is done — pending server deploy.
+### Phase 8D is deployed ✅ — all public components fetch from API.
 
 ### What's next:
-- **Deploy Phase 8D to server** (when you're back on the network)
 - **Phase 8E**: Image upload in admin (drag-and-drop)
 - **Phase 8F**: WYSIWYG editor for blog content
 
 ### Git commits (newest first):
 | Commit | Description | Files |
 |--------|-------------|-------|
+| `ad421a3` | Fix TypeScript types for public API fetch functions | 1 |
+| `12ac5b0` | Update journal for Phase 8D completion | 1 |
+| `2cfa61a` | Phase 8D - Replace hardcoded data with API calls in all public components | 7 |
 | `93446fa` | Fix API rewrites - pass build-time env vars | 2 |
 | `11fdad6` | Fix API rewrites - use server-side env vars | 2 |
 | `ecfef5a` | Use relative API URLs + Next.js rewrites | 3 |

@@ -14,6 +14,7 @@ COPY prisma/ ./prisma/
 RUN npx prisma generate
 
 COPY . .
+RUN mkdir -p /app/uploads
 RUN npm run build
 
 EXPOSE 3001

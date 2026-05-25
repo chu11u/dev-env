@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
+import { ImageUpload } from "@/components/admin/ImageUpload";
 
 interface PostData {
   id: string;
@@ -155,12 +156,10 @@ export default function EditPostPage() {
           />
 
           {/* Featured Image */}
-          <Input
-            label="Featured Image URL"
-            name="featuredImage"
-            placeholder="/assets/blog/your-image.jpg"
+          <ImageUpload
+            label="Featured Image"
             value={featuredImage}
-            onChange={(e) => setFeaturedImage(e.target.value)}
+            onChange={(url) => setFeaturedImage(url)}
           />
 
           {/* Author */}

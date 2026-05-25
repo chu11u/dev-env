@@ -27,6 +27,8 @@ services:
       - DATABASE_URL=postgresql://saritelkayam:saritelkayam_password@postgres:5432/saritelkayam
       - NODE_ENV=production
       - ADMIN_PASSWORD=admin123
+    volumes:
+      - ../../project-data/saritelkayam/uploads:/app/uploads
 
   postgres:
     image: postgres:16-alpine
