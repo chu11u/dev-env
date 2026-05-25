@@ -89,21 +89,22 @@ model Product {
 // ─── Services ──────────────────────────────────────────────
 
 model Service {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   category      String
   titleEn       String
   titleHe       String
-  descriptionEn String   @db.Text
-  descriptionHe String   @db.Text
+  descriptionEn String    @db.Text
+  descriptionHe String    @db.Text
   duration      String
   price         String
+  image         String?
   featuresEn    String[]
   featuresHe    String[]
-  sortOrder     Int      @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  sortOrder     Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  @@index([category])
+   @@index([category])
 }
 
 // ─── Site Settings ─────────────────────────────────────────

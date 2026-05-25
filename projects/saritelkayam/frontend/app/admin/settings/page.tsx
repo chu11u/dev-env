@@ -7,7 +7,11 @@ import { SETTING_CATEGORIES } from '@/lib/admin-api';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { ImageUpload } from '@/components/admin/ImageUpload';
 import { useTranslation } from '@/lib/i18n';
+
+// Settings that should use image upload instead of text input
+const IMAGE_SETTINGS = new Set(['logo', 'favicon', 'logoUrl', 'faviconUrl']);
 
 interface EditableSetting extends Setting {
    isEditing: boolean;
@@ -207,29 +211,40 @@ export default function SettingsPage() {
                      </div>
 
                      {setting.isEditing ? (
-                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                         <Input
-                          label="Value (English)"
-                          name={`valueEn-${setting.key}`}
-                          value={setting.valueEn}
-                          onChange={(e) => {
-                            setSettings(prev =>
-                              prev.map(s => s.key === setting.key ? { ...s, valueEn: e.target.value } : s)
-                               );
-                           }}
+                       IMAGE_SETTINGS.has(setting.key) ? (
+                         <ImageUpload
+                           label={setting.key}
+                           value={setting.valueEn}
+                           onChange={(url) => {
+                             setSettings(prev =>
+                               prev.map(s => s.key === setting.key ? { ...s, valueEn: url, valueHe: url } : s)
+                                 );
+                             }}
                          />
-                         <Input
-                          label="ערך (עברית)"
-                          name={`valueHe-${setting.key}`}
-                          value={setting.valueHe}
-                          onChange={(e) => {
-                            setSettings(prev =>
-                              prev.map(s => s.key === setting.key ? { ...s, valueHe: e.target.value } : s)
-                               );
-                           }}
-                         />
-                       </div>
-                     ) : (
+                       ) : (
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           <Input
+                           label="Value (English)"
+                           name={`valueEn-${setting.key}`}
+                           value={setting.valueEn}
+                           onChange={(e) => {
+                             setSettings(prev =>
+                               prev.map(s => s.key === setting.key ? { ...s, valueEn: e.target.value } : s)
+                                 );
+                             }}
+                           />
+                           <Input
+                           label="ערך (עברית)"
+                           name={`valueHe-${setting.key}`}
+                           value={setting.valueHe}
+                           onChange={(e) => {
+                             setSettings(prev =>
+                               prev.map(s => s.key === setting.key ? { ...s, valueHe: e.target.value } : s)
+                                 );
+                             }}
+                           />
+                         </div>
+                       ) : (
                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                          <div>
                            <p className="font-body text-xs text-charcoal-400 mb-1">English</p>

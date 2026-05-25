@@ -78,6 +78,7 @@ export interface Service {
   descriptionHe: string;
   duration: string;
   price: string;
+  image: string | null;
   featuresEn: string[];
   featuresHe: string[];
   sortOrder: number;
@@ -93,6 +94,7 @@ export interface CreateServiceData {
   descriptionHe: string;
   duration: string;
   price: string;
+  image?: string;
   featuresEn?: string[];
   featuresHe?: string[];
   sortOrder?: number;

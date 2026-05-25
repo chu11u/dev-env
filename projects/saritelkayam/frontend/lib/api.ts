@@ -95,6 +95,7 @@ export interface ApiService {
   descriptionHe: string;
   duration: string;
   price: string;
+  image: string | null;
   featuresEn: string[];
   featuresHe: string[];
   sortOrder: number;
@@ -141,6 +142,7 @@ export function adaptService(s: ApiService, locale: string) {
     description: locale === "he" ? s.descriptionHe : s.descriptionEn,
     duration: s.duration,
     price: s.price,
+    image: s.image,
     features: locale === "he" ? s.featuresHe : s.featuresEn,
   };
 }
