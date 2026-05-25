@@ -310,6 +310,29 @@ docker compose build && docker compose up -d
 - Services admin forms could use image upload integration
 - Settings editor could benefit from image uploads (logo, favicon)
 
+### Important fix just deployed:
+- `next.config.js` now rewrites `/uploads/*` → backend (was missing)
+- Without this, uploaded images wouldn't load via Cloudflare domain
+
+### Git history (newest first):
+| Commit | Description |
+|--------|-------------|
+| `bdd417b` | Update MEMORY.md + add /uploads rewrite + journal |
+| `6e050ba` | Update journal for Phase 8E deployment |
+| `5717d20` | Update backend package-lock.json with multer deps |
+| `c2f4a5f` | Phase 8E - Image upload (drag-and-drop) in admin panel |
+| `ad421a3` | Fix TypeScript types for public API fetch functions |
+| `12ac5b0` | Update journal for Phase 8D completion |
+| `2cfa61a` | Phase 8D - Replace hardcoded data with API calls |
+
+### Deploy workflow:
+1. `cd /Users/elnaor/Environments/Zed/dev-env && git add -A && git commit -m "saritelkayam: [what]" && git push origin main`
+2. SSH: `cd /home/elkayam/dev-env && git fetch origin && git reset --hard origin/main && cd projects/saritelkayam && docker compose build && docker compose up -d`
+3. Frontend-only: `docker compose build frontend && docker compose up -d frontend`
+
+### Note about server git:
+- Server has divergent git state — use `git fetch origin && git reset --hard origin/main` instead of `git pull`
+
 ### Future Phases (on hold)
 - Booking integration (Calendly, Acuity Scheduling, or custom)
 - Payment integration (Stripe, PayPal)
