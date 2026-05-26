@@ -5,13 +5,13 @@ import Image from "next/image";
 import { useTranslation } from "@/lib/i18n";
 
 /**
- * Displays the site logo. Falls back to text if no logo image is available.
+ * Displays the site logo. Falls back to text if the image is missing.
  *
- * Drop files at:
- *   public/assets/logo/logo.svg         — light variant (for light backgrounds)
- *   public/assets/logo/logo-dark.svg   — dark variant (for dark backgrounds)
+ * Logo files:
+ *   public/assets/logo/logo.png          — default (light bg)
+ *   public/assets/logo/logo-dark.png    — dark variant (dark bg)
  *
- * If the image fails to load, shows `t.siteNameFull` as styled text instead.
+ * Both default to `logo.png` if the dark variant is missing.
  */
 export function Logo({
   className = "",
@@ -23,10 +23,9 @@ export function Logo({
   const { t } = useTranslation();
   const [imgError, setImgError] = useState(false);
 
-  const src = dark ? "/assets/logo/logo-dark.svg" : "/assets/logo/logo.svg";
+  const src = dark ? "/assets/logo/logo-dark.png" : "/assets/logo/logo.png";
 
   if (imgError) {
-    // Fallback to styled text
     return (
       <a
         href="/"
