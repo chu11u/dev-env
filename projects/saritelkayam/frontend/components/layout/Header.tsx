@@ -12,6 +12,7 @@ type NavLabelKey = keyof Pick<
   | "navTestimonials"
   | "navBlog"
   | "navShop"
+  | "navBook"
   | "navContact"
 >;
 
@@ -21,6 +22,7 @@ const navLinks = [
   { labelKey: "navTestimonials" as NavLabelKey, href: "/testimonials" },
   { labelKey: "navBlog" as NavLabelKey, href: "/blog" },
   { labelKey: "navShop" as NavLabelKey, href: "/shop" },
+  { labelKey: "navBook" as NavLabelKey, href: "/book" },
   { labelKey: "navContact" as NavLabelKey, href: "/contact" },
 ];
 

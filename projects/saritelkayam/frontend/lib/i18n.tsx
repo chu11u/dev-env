@@ -141,18 +141,14 @@ const he = {
   productsViewAll: "צפי בכל המוצרים",
 
   // ── Book
+  bookBadge: "תיאום מקוון",
   bookTitle: "תאמי תור",
-  bookSubtitle: "מערכת התיאום המקוון שלנו",
-  bookSubtitleDetail:
-    "מערכת התיאום המקוון שלנו בפיתוח. בינתיים, ניתן לפנות אלינו ישירות לתיאום טיפול",
-  bookStep1Title: "בחרי טיפול",
-  bookStep1Desc: "גלי בטיפולים ובחרי את הטיפול המתאים לך",
-  bookStep2Title: "בחרי שעה",
-  bookStep2Desc: "בחרי תאריך ושעה שנוחים לך",
-  bookStep3Title: "הכול מוכן",
-  bookStep3Desc: "קבלי אימייל אישור עם כל הפרטים",
-  bookContactBook: "צרי קשר לתיאום",
-  bookBrowseServices: "גלי בטיפולים",
+  bookSubtitle: "תאמי תור מקוון לטיפול אצל שרית אלקיים — מהר, פשוט, ונוח",
+  bookLoading: "טוען מערכת התיאום...",
+  bookErrorTitle: "לא ניתן לטעון את מערכת התיאום",
+  bookErrorMsg:
+    "המערכת לא נטענה תוך זמן סביר. לחצי כאן כדי לפתוח את מערכת התיאום בחלון חדש",
+  bookOpenExternal: "פתח מערכת תיאום בחלון חדש",
 
   // ── Blog
   blogTitle: "טיפים וחדשים",
@@ -341,18 +337,15 @@ const en = {
   productsViewAll: "View All Products",
 
   // ── Book
+  bookBadge: "Online Booking",
   bookTitle: "Book Your Appointment",
-  bookSubtitle: "Booking System Coming Soon",
-  bookSubtitleDetail:
-    "Our online booking system is under development. In the meantime, you can reach out directly to schedule your treatment.",
-  bookStep1Title: "Choose Your Service",
-  bookStep1Desc: "Browse our services and pick the treatment right for you.",
-  bookStep2Title: "Select a Time",
-  bookStep2Desc: "Pick a date and time that works for your schedule.",
-  bookStep3Title: "You're All Set",
-  bookStep3Desc: "Receive a confirmation email with all the details.",
-  bookContactBook: "Contact to Book",
-  bookBrowseServices: "Browse Services",
+  bookSubtitle:
+    "Book an online appointment with Sarit Elkayam — fast, simple, and convenient",
+  bookLoading: "Loading booking system...",
+  bookErrorTitle: "Unable to load the booking system",
+  bookErrorMsg:
+    "The booking system didn't load in time. Click below to open it in a new window.",
+  bookOpenExternal: "Open booking in a new window",
 
   // ── Blog
   blogTitle: "Beauty Tips & Insights",
