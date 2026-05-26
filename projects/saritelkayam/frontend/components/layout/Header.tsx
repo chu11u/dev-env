@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { useTranslation, type Translations } from "@/lib/i18n";
+import { Logo } from "@/components/layout/Logo";
 
 type NavLabelKey = keyof Pick<
   Translations,
@@ -43,15 +44,7 @@ export function Header() {
       >
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <a
-            href="/"
-            className="font-heading text-xl font-semibold text-charcoal-800 hover:text-rose-400 transition-colors"
-            aria-label={
-              isRtl ? "שרית אלקיים - דף הבית" : "Sarit Elkayam - Home"
-            }
-          >
-            {t.siteNameFull}
-          </a>
+          <Logo className="hover:opacity-80 transition-opacity" />
 
           {/* Desktop nav + lang toggle */}
           <ul className="hidden md:flex items-center gap-8" role="menubar">

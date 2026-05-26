@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Instagram, Facebook, Mail } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { getPublicSettings } from "@/lib/admin-api";
+import { Logo } from "@/components/layout/Logo";
 
 export function Footer() {
   const { t, locale } = useTranslation();
@@ -50,9 +51,7 @@ export function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex flex-col items-center gap-6">
           {/* Brand */}
-          <h3 className="font-heading text-2xl font-semibold text-cream-100">
-            {t.siteNameFull}
-          </h3>
+          <Logo className="justify-start" dark />
 
           <p className="text-sm text-cream-200 text-center max-w-md">
             {t.tagline}
