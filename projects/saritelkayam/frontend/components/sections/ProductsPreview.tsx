@@ -10,10 +10,13 @@ import { Badge } from "@/components/ui/Badge";
 import { Star } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { fetchProducts, adaptProduct } from "@/lib/api";
+import { getPublicSettings, shouldShowPrice } from "@/lib/admin-api";
+import type { Setting } from "@/lib/admin-api";
 
 interface ProductItem {
   id: string;
   name: string;
+  category: string;
   description: string;
   price: string;
   image: string;
@@ -24,6 +27,7 @@ const fallbackProducts: ProductItem[] = [
   {
     id: "1",
     name: "Gentle Gel Cleanser",
+    category: "Cleansers",
     description:
       "A pH-balanced gel cleanser that removes impurities without stripping the skin's natural moisture barrier.",
     price: "₪38",
@@ -33,6 +37,7 @@ const fallbackProducts: ProductItem[] = [
   {
     id: "2",
     name: "Vitamin C Brightening Serum",
+    category: "Serums",
     description:
       "A potent 15% Vitamin C serum that brightens, evens skin tone, and boosts collagen production.",
     price: "₪65",
@@ -42,6 +47,7 @@ const fallbackProducts: ProductItem[] = [
   {
     id: "3",
     name: "Mineral Sunscreen SPF 50",
+    category: "Sun Protection",
     description:
       "A lightweight, non-comedogenic mineral sunscreen with SPF 50. Invisible on all skin tones.",
     price: "₪42",
@@ -62,6 +68,15 @@ const cardVariants = {
 export function ProductsPreview() {
   const { t, locale } = useTranslation();
   const [products, setProducts] = useState<ProductItem[]>(fallbackProducts);
+  const [settings, setSettings] = useState<Setting[]>([]);
+
+  useEffect(() => {
+    getPublicSettings()
+      .then(setSettings)
+      .catch(() => {
+        /* use defaults */
+      });
+  }, []);
 
   useEffect(() => {
     fetchProducts(true)
@@ -121,9 +136,11 @@ export function ProductsPreview() {
                 </p>
 
                 <div className="flex items-center justify-between pt-4 border-t border-cream-200">
-                  <span className="font-heading text-xl font-bold text-rose-400">
-                    {product.price}
-                  </span>
+                  {shouldShowPrice(settings, product.category) && (
+                    <span className="font-heading text-xl font-bold text-rose-400">
+                      {product.price}
+                    </span>
+                  )}
                   <div className="flex gap-0.5">
                     {[...Array(5)].map((_, i) => (
                       <Star

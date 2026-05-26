@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/Badge";
 import { Clock, Star } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
 import { fetchServices, adaptService } from "@/lib/api";
+import { getPublicSettings, shouldShowPrice } from "@/lib/admin-api";
+import type { Setting } from "@/lib/admin-api";
 
 interface ServiceItem {
   id: string;
@@ -17,6 +19,7 @@ interface ServiceItem {
   description: string;
   duration: string;
   price: string;
+  category: string;
   badge: string;
   image: string;
 }
@@ -30,6 +33,7 @@ const fallbackServicesEn: ServiceItem[] = [
       "A luxurious deep-cleansing facial tailored to your skin type, featuring gentle exfoliation, custom mask, and hydrating serum application.",
     duration: "60 min",
     price: "₪120",
+    category: "Facials",
     badge: "Most Popular",
     image: "/assets/services/facial-treatment.png",
   },
@@ -40,6 +44,7 @@ const fallbackServicesEn: ServiceItem[] = [
       "Comprehensive skin assessment using advanced technology to identify your unique needs and create a personalized treatment plan.",
     duration: "45 min",
     price: "₪80",
+    category: "Skin Analysis",
     badge: "Essential",
     image: "/assets/services/skin-analysis.png",
   },
@@ -50,6 +55,7 @@ const fallbackServicesEn: ServiceItem[] = [
       "Flawless, long-lasting makeup artistry for your special day. Includes trial session and day-of application.",
     duration: "90 min",
     price: "₪250",
+    category: "Makeup",
     badge: "Premium",
     image: "/assets/services/makeup.png",
   },
@@ -63,6 +69,7 @@ const fallbackServicesHe: ServiceItem[] = [
       "פילינג מפנק ומעמיק המותאם לסוג העור שלך, הכולל קילוף עדין, מסכה מותאמת אישית והזרמת סרום מלחלח.",
     duration: "60 דק'",
     price: "₪120",
+    category: "Facials",
     badge: "הכי נמכר",
     image: "/assets/services/facial-treatment.png",
   },
@@ -73,6 +80,7 @@ const fallbackServicesHe: ServiceItem[] = [
       "הערכת עור מקיפה באמצעות טכנולוגיה מתקדמת לזיהוי הצרכים הייחודיים שלך ויצירת תוכנית טיפול מותאמת אישית.",
     duration: "45 דק'",
     price: "₪80",
+    category: "Skin Analysis",
     badge: "חיוני",
     image: "/assets/services/skin-analysis.png",
   },
@@ -83,6 +91,7 @@ const fallbackServicesHe: ServiceItem[] = [
       "איפור מושלם ועמיד ליום המיוחד שלך. כולל מפגש הכנה ויישום ביום החתונה.",
     duration: "90 דק'",
     price: "₪250",
+    category: "Makeup",
     badge: "פרימיום",
     image: "/assets/services/makeup.png",
   },
@@ -113,6 +122,15 @@ export function ServicesPreview() {
   const [services, setServices] = useState<ServiceItem[]>(
     locale === "he" ? fallbackServicesHe : fallbackServicesEn,
   );
+  const [settings, setSettings] = useState<Setting[]>([]);
+
+  useEffect(() => {
+    getPublicSettings()
+      .then(setSettings)
+      .catch(() => {
+        /* use defaults */
+      });
+  }, []);
 
   useEffect(() => {
     fetchServices()
@@ -121,6 +139,7 @@ export function ServicesPreview() {
         // Take first 3 services from API as "featured"
         const adapted = data.slice(0, 3).map((api, i) => ({
           ...adaptService(api, locale),
+          category: api.category,
           badge: badges[i] || "",
           image:
             defaultServiceImages[i] || "/assets/services/facial-treatment.png",
@@ -166,10 +185,12 @@ export function ServicesPreview() {
                     <span className="flex items-center gap-1">
                       <Clock size={12} /> {service.duration}
                     </span>
-                    <span className="flex items-center gap-1">
-                      <Star size={12} className="text-gold-500" />{" "}
-                      {service.price}
-                    </span>
+                    {shouldShowPrice(settings, service.category) && (
+                      <span className="flex items-center gap-1">
+                        <Star size={12} className="text-gold-500" />{" "}
+                        {service.price}
+                      </span>
+                    )}
                   </div>
                 </div>
 

@@ -16,6 +16,8 @@ import {
   getServiceCategoryLabel,
   getServiceCategoryIcon,
 } from "@/lib/api";
+import { getPublicSettings, shouldShowPrice } from "@/lib/admin-api";
+import type { Setting } from "@/lib/admin-api";
 
 interface Service {
   id: string;
@@ -28,6 +30,7 @@ interface Service {
 
 interface ServiceCategory {
   name: string;
+  rawName: string;
   icon: string;
   services: Service[];
 }
@@ -35,6 +38,7 @@ interface ServiceCategory {
 const fallbackCategories: ServiceCategory[] = [
   {
     name: "Facials",
+    rawName: "Facials",
     icon: "💆‍♀️",
     services: [
       {
@@ -55,6 +59,7 @@ const fallbackCategories: ServiceCategory[] = [
   },
   {
     name: "Skin Analysis",
+    rawName: "Skin Analysis",
     icon: "🔬",
     services: [
       {
@@ -69,6 +74,7 @@ const fallbackCategories: ServiceCategory[] = [
   },
   {
     name: "Body Treatments",
+    rawName: "Body Treatments",
     icon: "✨",
     services: [
       {
@@ -83,6 +89,7 @@ const fallbackCategories: ServiceCategory[] = [
   },
   {
     name: "Makeup",
+    rawName: "Makeup",
     icon: "💄",
     services: [
       {
@@ -97,7 +104,15 @@ const fallbackCategories: ServiceCategory[] = [
   },
 ];
 
-function ServiceCard({ service, t }: { service: Service; t: any }) {
+function ServiceCard({
+  service,
+  t,
+  showPrice,
+}: {
+  service: Service;
+  t: any;
+  showPrice: boolean;
+}) {
   const { isRtl } = t;
   return (
     <div className="h-full hover:-translate-y-1 transition-transform duration-200 ease-[0.4,0,0.2,1]">
@@ -110,9 +125,11 @@ function ServiceCard({ service, t }: { service: Service; t: any }) {
             <span className="flex items-center gap-1">
               <Clock size={14} /> {service.duration}
             </span>
-            <span className="flex items-center gap-1 font-medium text-rose-400">
-              {service.price}
-            </span>
+            {showPrice && (
+              <span className="flex items-center gap-1 font-medium text-rose-400">
+                {service.price}
+              </span>
+            )}
           </div>
         </div>
 
@@ -156,6 +173,15 @@ export default function ServicesPage() {
   const { t, locale } = useTranslation();
   const [categories, setCategories] =
     useState<ServiceCategory[]>(fallbackCategories);
+  const [settings, setSettings] = useState<Setting[]>([]);
+
+  useEffect(() => {
+    getPublicSettings()
+      .then(setSettings)
+      .catch(() => {
+        /* use defaults */
+      });
+  }, []);
 
   useEffect(() => {
     fetchServices()
@@ -172,6 +198,7 @@ export default function ServicesPage() {
         const result: ServiceCategory[] = Object.entries(grouped).map(
           ([rawName, services]) => ({
             name: getServiceCategoryLabel(rawName, locale),
+            rawName,
             icon: getServiceCategoryIcon(rawName),
             services,
           }),
@@ -213,7 +240,12 @@ export default function ServicesPage() {
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {category.services.map((service) => (
-                <ServiceCard key={service.id} service={service} t={t} />
+                <ServiceCard
+                  key={service.id}
+                  service={service}
+                  t={t}
+                  showPrice={shouldShowPrice(settings, category.rawName)}
+                />
               ))}
             </div>
           </Section>

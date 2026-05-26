@@ -16,6 +16,8 @@ import {
   getCategoryLabel,
   PRODUCT_CATEGORY_LABELS,
 } from "@/lib/api";
+import { getPublicSettings, shouldShowPrice } from "@/lib/admin-api";
+import type { Setting } from "@/lib/admin-api";
 
 interface Product {
   id: string;
@@ -84,7 +86,15 @@ function StarRating({ count }: { count: number }) {
   );
 }
 
-function ProductCard({ product, t }: { product: Product; t: any }) {
+function ProductCard({
+  product,
+  t,
+  showPrice,
+}: {
+  product: Product;
+  t: any;
+  showPrice: boolean;
+}) {
   const displayCategory = getCategoryLabel(product.category, t.locale || "en");
 
   return (
@@ -127,9 +137,11 @@ function ProductCard({ product, t }: { product: Product; t: any }) {
         </p>
 
         <div className="flex items-center justify-between mt-4 pt-4 border-t border-cream-200">
-          <span className="font-heading text-xl font-bold text-rose-400">
-            {product.price}
-          </span>
+          {showPrice && (
+            <span className="font-heading text-xl font-bold text-rose-400">
+              {product.price}
+            </span>
+          )}
           <StarRating count={product.rating} />
         </div>
 
@@ -153,6 +165,15 @@ export default function ShopPage() {
   const { t, locale } = useTranslation();
   const [products, setProducts] = useState<Product[]>(fallbackProducts);
   const [activeCategory, setActiveCategory] = useState<string>("all");
+  const [settings, setSettings] = useState<Setting[]>([]);
+
+  useEffect(() => {
+    getPublicSettings()
+      .then(setSettings)
+      .catch(() => {
+        /* use defaults */
+      });
+  }, []);
 
   useEffect(() => {
     fetchProducts(false)
@@ -245,7 +266,12 @@ export default function ShopPage() {
         <Section bg="cream">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} t={t} />
+              <ProductCard
+                key={product.id}
+                product={product}
+                t={t}
+                showPrice={shouldShowPrice(settings, product.category)}
+              />
             ))}
           </div>
         </Section>

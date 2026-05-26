@@ -309,7 +309,13 @@ export const SERVICE_CATEGORIES = [
   "Makeup",
 ];
 
-export const SETTING_CATEGORIES = ["General", "Contact", "Social", "Hours"];
+export const SETTING_CATEGORIES = [
+  "General",
+  "Contact",
+  "Social",
+  "Hours",
+  "Display",
+];
 
 /** Match category names case-insensitively (seed uses lowercase, frontend uses Title Case) */
 export function matchSettingCategory(
@@ -317,4 +323,32 @@ export function matchSettingCategory(
   categoryName: string,
 ): boolean {
   return settingCategory.toLowerCase() === categoryName.toLowerCase();
+}
+
+/** All categories that have a price visibility toggle */
+export const PRICE_TOGGLE_CATEGORIES = [
+  { key: "pricesFacials", label: "Facials" },
+  { key: "pricesSkinAnalysis", label: "Skin Analysis" },
+  { key: "pricesBodyTreatments", label: "Body Treatments" },
+  { key: "pricesMakeup", label: "Makeup" },
+  { key: "pricesCleansers", label: "Cleansers" },
+  { key: "pricesSerums", label: "Serums" },
+  { key: "pricesMoisturizers", label: "Moisturizers" },
+  { key: "pricesSunProtection", label: "Sun Protection" },
+];
+
+/** Check if prices should be shown for a given category */
+export function shouldShowPrice(
+  settings: Setting[],
+  category: string,
+): boolean {
+  const toggleKey = `prices${category}`;
+  const setting = settings.find((s) => s.key === toggleKey);
+  if (!setting) return true; // Default: show prices
+  return setting.valueEn === "true";
+}
+
+/** Map a service/product category to its price toggle key */
+export function getCategoryPriceKey(category: string): string {
+  return `prices${category}`;
 }

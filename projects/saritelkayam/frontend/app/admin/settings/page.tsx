@@ -5,7 +5,9 @@ import {
   getSettings,
   updateSetting,
   deleteSetting,
+  createSetting,
   matchSettingCategory,
+  PRICE_TOGGLE_CATEGORIES,
 } from "@/lib/admin-api";
 import type { Setting } from "@/lib/admin-api";
 import { SETTING_CATEGORIES } from "@/lib/admin-api";
@@ -14,6 +16,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { useTranslation } from "@/lib/i18n";
+import { Eye, EyeOff, Settings2 } from "lucide-react";
 
 // Settings that should use image upload instead of text input
 const IMAGE_SETTINGS = new Set(["logo", "favicon", "logoUrl", "faviconUrl"]);
@@ -51,7 +54,34 @@ export default function SettingsPage() {
     loadSettings();
   }, []);
 
-  const groupedSettings = SETTING_CATEGORIES.map((category) => ({
+  // Auto-seed price visibility toggles on mount
+  useEffect(() => {
+    if (settings.length === 0) return; // Still loading
+
+    const existingKeys = new Set(settings.map((s) => s.key));
+    const missing = PRICE_TOGGLE_CATEGORIES.filter(
+      (t) => !existingKeys.has(t.key),
+    );
+
+    if (missing.length === 0) return;
+
+    Promise.all(
+      missing.map((t) =>
+        createSetting({
+          key: t.key,
+          valueEn: "true",
+          valueHe: "true",
+          category: "Display",
+        }).catch(() => {
+          /* key might already exist from another tab */
+        }),
+      ),
+    ).then(() => loadSettings());
+  }, [settings.length]);
+
+  const groupedSettings = SETTING_CATEGORIES.filter(
+    (cat) => cat !== "Display",
+  ).map((category) => ({
     category,
     settings: settings.filter((s) =>
       matchSettingCategory(s.category, category),
@@ -122,6 +152,50 @@ export default function SettingsPage() {
     } catch (err) {
       console.error(`Failed to delete setting ${key}:`, err);
       setError(`Failed to delete "${key}".`);
+    }
+  };
+
+  const togglePriceVisibility = async (toggle: {
+    key: string;
+    label: string;
+  }) => {
+    const setting = settings.find((s) => s.key === toggle.key);
+    const newVal = setting?.valueEn === "true" ? "false" : "true";
+
+    setSettings((prev) =>
+      prev.map((s) =>
+        s.key === toggle.key ? { ...s, valueEn: newVal, valueHe: newVal } : s,
+      ),
+    );
+
+    try {
+      const updateData = {
+        key: toggle.key,
+        valueEn: newVal,
+        valueHe: newVal,
+      };
+      const existing = settings.find((s) => s.key === toggle.key);
+      if (existing) {
+        await updateSetting(toggle.key, updateData);
+      } else {
+        await createSetting(updateData);
+      }
+      setSuccess(`"${toggle.label}" visibility updated.`);
+      setTimeout(() => setSuccess(""), 3000);
+    } catch {
+      // Revert on failure
+      setSettings((prev) =>
+        prev.map((s) =>
+          s.key === toggle.key
+            ? {
+                ...s,
+                valueEn: setting?.valueEn || "true",
+                valueHe: setting?.valueHe || "true",
+              }
+            : s,
+        ),
+      );
+      setError(`Failed to update "${toggle.label}".`);
     }
   };
 
@@ -315,6 +389,68 @@ export default function SettingsPage() {
             )}
           </div>
         ))}
+      </div>
+
+      {/* Price visibility toggles — Display category */}
+      <div>
+        <div className="flex items-center gap-3 mb-4">
+          <Settings2 size={20} className="text-charcoal-800" />
+          <h2 className="font-heading text-xl font-semibold text-charcoal-800">
+            Display Settings
+          </h2>
+        </div>
+        <p className="font-body text-sm text-charcoal-500 mb-4">
+          Control which categories show prices on the public website.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {PRICE_TOGGLE_CATEGORIES.map((toggle) => {
+            const setting = settings.find((s) => s.key === toggle.key);
+            const isEnabled = setting?.valueEn === "true";
+
+            return (
+              <Card
+                key={toggle.key}
+                className="p-4 cursor-pointer hover:border-rose-300 transition-colors"
+                onClick={() => togglePriceVisibility(toggle)}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                        isEnabled ? "bg-rose-100" : "bg-charcoal-100"
+                      }`}
+                    >
+                      {isEnabled ? (
+                        <Eye size={18} className="text-rose-400" />
+                      ) : (
+                        <EyeOff size={18} className="text-charcoal-400" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-body text-sm font-medium text-charcoal-800">
+                        {toggle.label}
+                      </p>
+                      <p className="font-body text-xs text-charcoal-400">
+                        {isEnabled ? "Prices visible" : "Prices hidden"}
+                      </p>
+                    </div>
+                  </div>
+                  <div
+                    className={`w-10 h-6 rounded-full transition-colors flex items-center ${
+                      isEnabled ? "bg-rose-400" : "bg-charcoal-200"
+                    }`}
+                  >
+                    <div
+                      className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${
+                        isEnabled ? "translate-x-5" : "translate-x-1"
+                      }`}
+                    />
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
