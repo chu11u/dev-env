@@ -1,45 +1,70 @@
 # Sarit Elkayam - Agent Work Journal
 # Auto-maintained by Agent. Read this on crash recovery.
-# Last updated: 2026-05-26
+# Last updated: 2026-05-27
 
-## Phase 8J: Fix Contact Page Address Showing Hardcoded Text (2026-05-26)
+## Phase 8K: Embed EasyBizy Scheduler + Logo + Price Toggles (2026-05-26/27)
 
-### Issue:
-- Contact page shows "תל אביב" instead of "רח' טופז 4, באר יעקב" from DB
-- The fix (commit 88da2dd) wired the page to `getPublicSettings()` but it still showed hardcoded text
+### Work done in this session:
 
-### Root cause:
-- **Docker image cache issue** — the frontend container was running a stale image
-- The source code on the server was correct (commit 88da2dd with `getPublicSettings` integration)
-- But the Docker image was built from cached layers that didn't include the updated contact page
-- Previous `docker compose build` reused cached builder layers despite `COPY . .` step
-- Even after `docker image rm`, the build cache kept the old `.next` output
+**1. Fix contact page address — Docker cache issue (Phase 8J)**
+- Root cause: stale Docker image despite correct source code
+- Fixed: `docker compose build --no-cache` after pruning 30GB build cache
+- Deployed via Tailscale SSH (not `~/.ssh/dev-env-server` which times out from remote)
 
-### Debug steps taken:
-1. Verified server has latest code — ✅ `git log` shows commit 88da2dd
-2. Checked backend API — ✅ `/api/settings` returns correct address data
-3. Checked Next.js rewrite config — ✅ `routes-manifest.json` has `backend:3001` (correct internal Docker hostname)
-4. Tested `localhost:30061` from frontend container — ❌ ECONNREFUSED (wrong port)
-5. Tested `saritelkayam-backend:3001` — ✅ works (Docker internal networking)
-6. Tested `localhost:3000/api/settings` through rewrite — ✅ works
-7. Checked built JS chunks — ❌ OLD image missing `getPublicSettings` entirely
-8. Found running image `443d60b` differs from tagged `49f7994` — stale container
-9. Pruned 30GB of build cache, removed ALL frontend images
-10. Clean rebuild with `--no-cache` — took ~7 minutes (full npm install + next build)
-11. Verified new chunk `page-c2394bb0da4ae438.js` contains `(0,g.l3)()` call (minified `getPublicSettings`)
-12. Deployed with `docker compose up -d --force-recreate frontend`
-13. End-to-end test: `curl /api/settings` returns `רח' טופז 4, באר יעקב` ✅
+**2. Embed EasyBizy scheduler in /book page**
+- Replaced placeholder with iframe: `https://schedule.easybizy.net/saritelkayam/welcome`
+- Loading spinner (10s timeout) + fallback link if iframe fails
+- Updated translations: removed "coming soon", added bookBadge, bookLoading, bookErrorTitle, bookErrorMsg, bookOpenExternal
+
+**3. Logo in header + footer**
+- Created `components/layout/Logo.tsx` — renders logo image with graceful text fallback
+- Supports `dark` prop for dark backgrounds (footer uses `dark`)
+- Logo file: `public/assets/logo/logo.png`
+- Updated Header.tsx and Footer.tsx to use `<Logo />` component
+- Added `navBook` to header navigation links
+
+**4. Per-category price visibility toggles**
+- Admin → Settings: new "Display Settings" section with toggle cards
+- 8 toggles: Facials, Skin Analysis, Body Treatments, Makeup, Cleansers, Serums, Moisturizers, Sun Protection
+- Default: all prices visible (`valueEn="true"`)
+- Auto-seeds missing toggles on first admin visit
+- Affects: services page, services preview (home), products preview (home), shop page
 
 ### Files modified:
 | File | Change |
 |------|--------|
-| None | No code change needed — was Docker build cache issue |
+| `frontend/app/book/page.tsx` | EasyBizy iframe with loading/fallback |
+| `frontend/lib/i18n.tsx` | Updated book translations |
+| `frontend/components/layout/Header.tsx` | `<Logo />` component, added `navBook` link |
+| `frontend/components/layout/Footer.tsx` | `<Logo dark />` component |
+| `frontend/components/layout/Logo.tsx` (new) | Logo image + text fallback |
+| `frontend/lib/admin-api.ts` | `PRICE_TOGGLE_CATEGORIES`, `shouldShowPrice()`, `getCategoryPriceKey()`, "Display" category |
+| `frontend/app/admin/settings/page.tsx` | Toggle UI + auto-seed, filter Display from raw settings |
+| `frontend/app/services/page.tsx` | Conditional price per category |
+| `frontend/components/sections/ServicesPreview.tsx` | Conditional price per category |
+| `frontend/components/sections/ProductsPreview.tsx` | Conditional price per category |
+| `frontend/app/shop/page.tsx` | Conditional price per category |
 
-### Deploy:
-- Rebuilt frontend image with `docker compose build --no-cache frontend` (clean build after cache prune)
-- Restarted with `docker compose up -d --force-recreate frontend`
-- All containers healthy: frontend ✅, backend ✅, postgres ✅
-- User needs to hard refresh (Cmd+Shift+R) to clear browser cache of old JS chunks
+### Deployed commits:
+- `54889c1` — price visibility toggles + logo + scheduler (final)
+
+### How to deploy (from remote, via Tailscale):
+```bash
+cd /Users/elnaor/Environments/Zed/HomeLab
+./scripts/ssh.sh games "sudo -u naor bash -c 'cd /home/elkayam/dev-env && git fetch origin && git reset --hard origin/main && cd projects/saritelkayam && docker image rm -f saritelkayam-frontend:latest 2>/dev/null; docker compose up -d --force-recreate --build frontend'"
+```
+- SSH via `~/.ssh/dev-env-server` times out when NOT on local network
+- Use `./scripts/ssh.sh games` which auto-detects Tailscale and routes through jump host
+- `--build` forces rebuild even if `--no-cache` layer caching still hits
+- Build takes ~6-8 minutes (Next.js full build)
+
+### Current site status:
+- All routes 200: `/`, `/services`, `/shop`, `/book`, `/contact`, `/testimonials`, `/blog`
+- EasyBizy scheduler embedded in `/book`
+- Logo showing in header + footer
+- Price toggles available in admin `/admin/settings`
+- Contact page shows dynamic address from DB
+- Footer shows dynamic email/social from DB
 
 ---
 
