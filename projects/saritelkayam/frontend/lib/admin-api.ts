@@ -342,7 +342,7 @@ export function shouldShowPrice(
   settings: Setting[],
   category: string,
 ): boolean {
-  const toggleKey = `prices${category}`;
+  const toggleKey = `prices${category.replace(/\s+/g, "")}`;
   const setting = settings.find((s) => s.key === toggleKey);
   if (!setting) return true; // Default: show prices
   return setting.valueEn === "true";
@@ -350,5 +350,5 @@ export function shouldShowPrice(
 
 /** Map a service/product category to its price toggle key */
 export function getCategoryPriceKey(category: string): string {
-  return `prices${category}`;
+  return `prices${category.replace(/\s+/g, "")}`;
 }
