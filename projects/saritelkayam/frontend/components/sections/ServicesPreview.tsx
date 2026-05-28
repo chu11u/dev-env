@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
+
 import { Card } from "@/components/ui/Card";
 import { Section } from "@/components/layout/Section";
 import { Button } from "@/components/ui/Button";
@@ -108,15 +108,6 @@ const defaultServiceImages = [
 const defaultBadgesEn = ["Most Popular", "Essential", "Premium"];
 const defaultBadgesHe = ["הכי נמכר", "חיוני", "פרימיום"];
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 24 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.3, ease: "easeOut" },
-  },
-};
-
 export function ServicesPreview() {
   const { t, locale } = useTranslation();
   const [services, setServices] = useState<ServiceItem[]>(
@@ -153,21 +144,9 @@ export function ServicesPreview() {
 
   return (
     <Section title={t.servicesTitle} subtitle={t.servicesSubtitle} bg="white">
-      <motion.div
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-        variants={{
-          hidden: { opacity: 0 },
-          visible: {
-            opacity: 1,
-            transition: { staggerChildren: 0.12, delayChildren: 0.1 },
-          },
-        }}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-100px" }}
-      >
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {services.map((service) => (
-          <motion.div key={service.id} variants={cardVariants}>
+          <div key={service.id}>
             <Card className="overflow-hidden flex flex-col h-full hover:-translate-y-1 transition-transform duration-200 ease-[0.4,0,0.2,1]">
               <div className="relative h-48">
                 <Image
@@ -207,9 +186,9 @@ export function ServicesPreview() {
                 </Button>
               </div>
             </Card>
-          </motion.div>
+          </div>
         ))}
-      </motion.div>
+      </div>
 
       <div className="text-center mt-10">
         <Button variant="secondary" size="md" href="/services">

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
+
 import { Card } from "@/components/ui/Card";
 import { Section } from "@/components/layout/Section";
 import { Button } from "@/components/ui/Button";
@@ -56,15 +56,6 @@ const fallbackProducts: ProductItem[] = [
   },
 ];
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 24 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.3, ease: "easeOut" },
-  },
-};
-
 export function ProductsPreview() {
   const { t, locale } = useTranslation();
   const [products, setProducts] = useState<ProductItem[]>(fallbackProducts);
@@ -95,21 +86,9 @@ export function ProductsPreview() {
 
   return (
     <Section title={t.productsTitle} subtitle={t.productsSubtitle} bg="cream">
-      <motion.div
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-        variants={{
-          hidden: { opacity: 0 },
-          visible: {
-            opacity: 1,
-            transition: { staggerChildren: 0.12, delayChildren: 0.1 },
-          },
-        }}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-100px" }}
-      >
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {products.map((product) => (
-          <motion.div key={product.id} variants={cardVariants}>
+          <div key={product.id}>
             <Card className="overflow-hidden flex flex-col h-full hover:-translate-y-1 transition-transform duration-200 ease-[0.4,0,0.2,1]">
               {/* Image */}
               <div className="relative h-48 bg-cream-100">
@@ -153,9 +132,9 @@ export function ProductsPreview() {
                 </div>
               </div>
             </Card>
-          </motion.div>
+          </div>
         ))}
-      </motion.div>
+      </div>
 
       <div className="text-center mt-10">
         <Button variant="secondary" size="md" href="/shop">
