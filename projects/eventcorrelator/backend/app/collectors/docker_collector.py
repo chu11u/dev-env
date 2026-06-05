@@ -1,7 +1,9 @@
 """Docker container event collector."""
+import os
 import sys
 import subprocess
 import json
+import docker
 from datetime import datetime, timezone
 from app.collectors.base import BaseCollector
 from app.models import Event
@@ -19,21 +21,41 @@ class DockerCollector(BaseCollector):
         return "Docker"
 
     def _get_container_status(self, host_info: dict) -> list[dict]:
-        """Get container status from a host via SSH."""
+        """Get container status from a host via SSH or local Docker socket."""
         name = host_info["name"]
+        local_host = os.environ.get("DOCKER_LOCAL_HOST", "")
+
+        # Use local Docker socket if this is the local host
+        if name == local_host:
+            try:
+                client = docker.from_env()
+                containers = client.containers.list(all=True)
+                results = []
+                for c in containers:
+                    info = c.attrs
+                    results.append({
+                        "Names": c.name,
+                        "Name": c.name,
+                        "Image": c.image.tags[0] if c.image.tags else info["Config"]["Image"],
+                        "Status": c.status,
+                        "State": c.status,
+                    })
+                return results
+            except Exception as e:
+                print(f"Local Docker error on {name}: {e}", file=sys.stderr)
+                return []
+
+        # Fall back to SSH for remote hosts
         host = host_info["host"]
         results = []
 
         try:
-            # Use hermess SSH capability - we'll run docker ps via SSH
-            # Since we're in a container, we can't use the project's ssh.sh directly.
-            # Instead, we'll try direct SSH with the key
             cmd = [
                 "ssh", "-o", "StrictHostKeyChecking=no",
                 "-o", "ConnectTimeout=5",
                 "-i", "/app/keys/jarvis_homelab",
                 f"jarvis@{host}",
-                "docker ps --format '{{json .}}'"
+                "docker ps --all --format '{{json .}}'"
             ]
             result = subprocess.run(
                 cmd, capture_output=True, text=True, timeout=10
@@ -47,8 +69,6 @@ class DockerCollector(BaseCollector):
                         except json.JSONDecodeError:
                             pass
             else:
-                # If SSH fails, try via the jump host pattern
-                # For now, just log the error
                 print(f"Docker SSH error on {name}: {result.stderr.strip()}", file=sys.stderr)
         except Exception as e:
             print(f"Docker collection error on {name}: {e}", file=sys.stderr)

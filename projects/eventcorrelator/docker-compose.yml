@@ -14,5 +14,7 @@ services:
       - EMBED_API_URL=http://192.168.131.50:8001
       - FRIGATE_URL=http://192.168.131.132:5000
       - HA_URL=http://192.168.131.10:8123
+      - DOCKER_LOCAL_HOST=games
     volumes:
       - ~/.ssh/jarvis_homelab:/app/keys/jarvis_homelab:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
