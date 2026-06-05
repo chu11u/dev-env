@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  backend:
+    build: ./backend
+    container_name: eventcorrelator
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3005:8000"
+    environment:
+      - HA_TOKEN=${HA_TOKEN:-}
+      - QDRANT_HOST=192.168.131.50
+      - QDRANT_PORT=6333
+      - EMBED_API_URL=http://192.168.131.50:8001
+      - FRIGATE_URL=http://192.168.131.132:5000
+      - HA_URL=http://192.168.131.10:8123
+    volumes:
+      - ~/.ssh/jarvis_homelab:/app/keys/jarvis_homelab:ro

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Correlator — HomeLab</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <h1 class="logo">⬡ Event Correlator</h1>
+                <span class="version">v1.0</span>
+            </div>
+            <div class="header-right">
+                <span class="status-badge" id="statusBadge">
+                    <span class="dot dot-green"></span>
+                    Connected
+                </span>
+                <button class="btn btn-sm" id="refreshBtn" onclick="loadDashboard()">⟳ Refresh</button>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="nav">
+            <button class="nav-btn active" data-view="dashboard" onclick="switchView('dashboard')">
+                📊 Dashboard
+            </button>
+            <button class="nav-btn" data-view="timeline" onclick="switchView('timeline')">
+                ⏱ Timeline
+            </button>
+            <button class="nav-btn" data-view="search" onclick="switchView('search')">
+                🔍 Search
+            </button>
+            <button class="nav-btn" data-view="sources" onclick="switchView('sources')">
+                📡 Sources
+            </button>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main">
+            <!-- Dashboard View -->
+            <section id="view-dashboard" class="view active">
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card"><div class="stat-value" id="statTotal">—</div><div class="stat-label">Total Events</div></div>
+                    <div class="stat-card"><div class="stat-value" id="statFrigate">—</div><div class="stat-label">Frigate</div></div>
+                    <div class="stat-card"><div class="stat-value" id="statHA">—</div><div class="stat-label">Home Assistant</div></div>
+                    <div class="stat-card"><div class="stat-value" id="statDocker">—</div><div class="stat-label">Docker</div></div>
+                    <div class="stat-card"><div class="stat-value" id="statSystem">—</div><div class="stat-label">System</div></div>
+                    <div class="stat-card"><div class="stat-value" id="statInfo">—</div><div class="stat-label">Info</div></div>
+                    <div class="stat-card"><div class="stat-value" id="statWarning">—</div><div class="stat-label">Warnings</div></div>
+                    <div class="stat-card"><div class="stat-value" id="statError">—</div><div class="stat-label">Errors</div></div>
+                </div>
+
+                <div class="section-header">
+                    <h2>Recent Events</h2>
+                    <span class="count-badge" id="recentCount">0</span>
+                </div>
+                <div class="event-list" id="recentEvents"></div>
+            </section>
+
+            <!-- Timeline View -->
+            <section id="view-timeline" class="view">
+                <div class="toolbar">
+                    <div class="filter-group">
+                        <label>Source</label>
+                        <select id="tlSource" onchange="loadTimeline()">
+                            <option value="">All Sources</option>
+                            <option value="frigate">Frigate</option>
+                            <option value="ha">Home Assistant</option>
+                            <option value="docker">Docker</option>
+                            <option value="system">System</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Severity</label>
+                        <select id="tlSeverity" onchange="loadTimeline()">
+                            <option value="">All Severities</option>
+                            <option value="info">Info</option>
+                            <option value="warning">Warning</option>
+                            <option value="error">Error</option>
+                            <option value="critical">Critical</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Limit</label>
+                        <select id="tlLimit" onchange="loadTimeline()">
+                            <option value="25">25</option>
+                            <option value="50" selected>50</option>
+                            <option value="100">100</option>
+                            <option value="200">200</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="event-list" id="timelineEvents"></div>
+                <div class="load-more" id="loadMoreBtn">
+                    <button class="btn" onclick="loadMore()">Load More</button>
+                </div>
+            </section>
+
+            <!-- Search View -->
+            <section id="view-search" class="view">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search events semantically..." 
+                           onkeydown="if(event.key==='Enter') doSearch()">
+                    <button class="btn btn-primary" onclick="doSearch()">Search</button>
+                </div>
+                <div class="search-filters">
+                    <select id="searchSource">
+                        <option value="">All Sources</option>
+                        <option value="frigate">Frigate</option>
+                        <option value="ha">Home Assistant</option>
+                        <option value="docker">Docker</option>
+                        <option value="system">System</option>
+                    </select>
+                    <select id="searchSeverity">
+                        <option value="">All Severities</option>
+                        <option value="info">Info</option>
+                        <option value="warning">Warning</option>
+                        <option value="error">Error</option>
+                        <option value="critical">Critical</option>
+                    </select>
+                </div>
+                <div class="search-results" id="searchResults"></div>
+                <div class="search-hint" id="searchHint">Try searching for things like "person at entrance", "disk errors", "container restarts", or "motion detected"</div>
+            </section>
+
+            <!-- Sources View -->
+            <section id="view-sources" class="view">
+                <div class="sources-grid" id="sourcesGrid"></div>
+                <div class="collect-actions">
+                    <button class="btn btn-primary" onclick="triggerCollect()">🔄 Collect Now</button>
+                    <span class="collect-status" id="collectStatus"></span>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
