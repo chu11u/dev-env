@@ -48,7 +48,7 @@ class FrigateCollector(BaseCollector):
             data = resp.json()
 
             for item in data:
-                start_time = item.get("start_time", 0)
+                start_time = item.get("start_time", 0) or 0
                 if start_time <= self._last_event_time:
                     continue
 
