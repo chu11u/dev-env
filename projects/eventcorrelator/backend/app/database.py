@@ -1,4 +1,5 @@
 """Qdrant database operations for Event Correlator."""
+import traceback
 import sys
 from datetime import datetime, timezone
 from typing import Optional
@@ -113,6 +114,7 @@ async def store_events_batch(events: list[Event]) -> int:
         return len(events)
     except Exception as e:
         print(f"Error storing batch: {e}", file=sys.stderr)
+        traceback.print_exc(file=sys.stderr)
         return 0
 
 
@@ -206,7 +208,6 @@ def get_events(
         results = client.scroll(
             collection_name=QDRANT_COLLECTION,
             limit=limit,
-            offset=offset,
             with_payload=True,
             with_vectors=False,
             scroll_filter=query_filter,
