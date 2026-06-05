@@ -49,11 +49,14 @@ async def lifespan(app: FastAPI):
     print("Event Correlator starting up...", file=sys.stderr)
     print(f"Qdrant: {os.environ.get('QDRANT_HOST', '192.168.131.50')}:6333", file=sys.stderr)
     print(f"Embed API: {os.environ.get('EMBED_API_URL', 'http://192.168.131.50:8001')}", file=sys.stderr)
-    # Run initial collection
-    try:
-        await collect_all()
-    except Exception as e:
-        print(f"Initial collection error: {e}", file=sys.stderr)
+    # Run initial collection in background
+    import asyncio
+    async def _initial_collect():
+        try:
+            await collect_all()
+        except Exception as e:
+            print(f"Initial collection error: {e}", file=sys.stderr)
+    asyncio.create_task(_initial_collect())
     yield
     print("Event Correlator shutting down...", file=sys.stderr)
 

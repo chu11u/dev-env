@@ -23,6 +23,7 @@ class Event(BaseModel):
         return {
             "id": self.id,
             "timestamp": self.timestamp.isoformat(),
+            "timestamp_unix": self.timestamp.timestamp(),
             "source": self.source,
             "source_name": self.source_name,
             "event_type": self.event_type,

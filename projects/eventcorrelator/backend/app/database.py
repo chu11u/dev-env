@@ -46,25 +46,35 @@ def _ensure_collection(client: QdrantClient):
         # Create payload indexes for filtering
         client.create_payload_index(
             collection_name=QDRANT_COLLECTION,
-            field_name="timestamp",
-            field_schema=qmodels.PayloadSchemaType.KEYWORD,
+            field_name="timestamp_unix",
+            field_schema=qmodels.PayloadSchemaType.FLOAT,
         )
         client.create_payload_index(
             collection_name=QDRANT_COLLECTION,
             field_name="source",
-            field_schema=qmodels.PayloadSchemaType.KEYWORD,
+            field_schema=qmodels.PayloadSchemaType.FLOAT,
         )
         client.create_payload_index(
             collection_name=QDRANT_COLLECTION,
             field_name="severity",
-            field_schema=qmodels.PayloadSchemaType.KEYWORD,
+            field_schema=qmodels.PayloadSchemaType.FLOAT,
         )
         client.create_payload_index(
             collection_name=QDRANT_COLLECTION,
             field_name="event_type",
-            field_schema=qmodels.PayloadSchemaType.KEYWORD,
+            field_schema=qmodels.PayloadSchemaType.FLOAT,
         )
         print(f"Collection '{QDRANT_COLLECTION}' ready", file=sys.stderr)
+
+    # Also ensure timestamp_unix index exists on existing collections
+    try:
+        client.create_payload_index(
+            collection_name=QDRANT_COLLECTION,
+            field_name="timestamp_unix",
+            field_schema=qmodels.PayloadSchemaType.FLOAT,
+        )
+    except Exception:
+        pass  # Index may already exist
 
 
 async def embed_texts(texts: list[str]) -> list[list[float]]:
@@ -250,7 +260,7 @@ def get_events(
             with_payload=True,
             with_vectors=False,
             scroll_filter=query_filter,
-            order_by={"key": "timestamp", "direction": qmodels.Direction.DESC},
+            order_by={"key": "timestamp_unix", "direction": qmodels.Direction.DESC},
         )
         return [Event.from_qdrant(r) for r in results[0]]
     except Exception as e:
@@ -333,7 +343,7 @@ async def cleanup_old_events():
                             key="source", match=qmodels.MatchValue(value=source)
                         )]
                     ),
-                    order_by={"key": "timestamp", "direction": qmodels.Direction.ASC},
+                    order_by={"key": "timestamp_unix", "direction": qmodels.Direction.ASC},
                 )
                 ids_to_delete = [r.id for r in results[0]]
                 if ids_to_delete:
