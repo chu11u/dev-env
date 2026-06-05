@@ -26,7 +26,7 @@ class HACollector(BaseCollector):
     def source_name(self) -> str:
         return "Home Assistant"
 
-    def _get_logbook(self, hours: float = 2.0) -> list[dict]:
+    def _get_logbook(self, hours: float = 0.25) -> list[dict]:
         """Get recent logbook entries."""
         try:
             if self._last_collect:

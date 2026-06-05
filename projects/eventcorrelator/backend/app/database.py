@@ -94,8 +94,47 @@ async def store_event(event: Event) -> bool:
 
 
 async def store_events_batch(events: list[Event]) -> int:
-    """Store multiple events at once."""
+    """Store multiple events at once, with batched embedding."""
     if not events:
+        return 0
+
+    try:
+        client = get_client()
+        all_points = []
+        batch_size = 32
+
+        for i in range(0, len(events), batch_size):
+            batch = events[i:i + batch_size]
+            texts = [e.text_for_embedding() for e in batch]
+            try:
+                vecs = await embed_texts(texts)
+                points = [
+                    qmodels.PointStruct(
+                        id=abs(hash(e.id)) % (2**63),
+                        vector=vecs[j],
+                        payload=e.to_qdrant_payload(),
+                    )
+                    for j, e in enumerate(batch)
+                ]
+                all_points.extend(points)
+                print(f"  Embedded batch {i//batch_size + 1}/{(len(events)-1)//batch_size + 1}: {len(batch)} events", file=sys.stderr)
+            except Exception as e:
+                print(f"  Batch {i//batch_size + 1} failed: {e}", file=sys.stderr)
+                continue
+
+        if all_points:
+            # Upsert in larger batches to avoid payload limits
+            upsert_batch_size = 256
+            for i in range(0, len(all_points), upsert_batch_size):
+                client.upsert(
+                    collection_name=QDRANT_COLLECTION,
+                    points=all_points[i:i + upsert_batch_size],
+                )
+        return len(all_points)
+    except Exception as e:
+        print(f"Error storing batch: {e}", file=sys.stderr)
+        import traceback
+        traceback.print_exc(file=sys.stderr)
         return 0
 
     try:
