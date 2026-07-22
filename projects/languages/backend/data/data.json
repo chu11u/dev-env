@@ -1,0 +1,12 @@
+{
+  "conversations": [],
+  "words": [],
+  "progress": [],
+  "currentLanguage": "he",
+  "languageSettings": {
+    "hebrew": { "name": "עברית", "active": true },
+    "english": { "name": "English", "active": false },
+    "spanish": { "name": "Español", "active": false },
+    "french": { "name": "Français", "active": false }
+  }
+}
