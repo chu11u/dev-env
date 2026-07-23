@@ -89,19 +89,19 @@ function Header() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          conversationSettings: { 
-            model, 
-            useOpenRouter, 
-            openRouterModel 
+          conversationSettings: {
+            model,
+            useOpenRouter,
+            openRouterModel
           }
         })
       })
       setConversationConfig(prev => ({
         ...prev,
-        conversationSettings: { 
-          model, 
-          useOpenRouter, 
-          openRouterModel 
+        conversationSettings: {
+          model,
+          useOpenRouter,
+          openRouterModel
         }
       }))
     } catch (error) {
@@ -328,7 +328,7 @@ function Conversation() {
       const data = await response.json()
       setResponse(data.response)
       setModelStatus(data.fallback === 'openrouter' ? '🔄 Switched to OpenRouter' : data.fallback === 'openai' ? '🌐 OpenAI Used' : '✅ Local Model')
-      
+
       setTimeout(() => {
         setCurrentConversation(prev => ({
           ...prev,
@@ -371,7 +371,7 @@ function Conversation() {
               <span className="message-content">{msg.content}</span>
               <span className="timestamp">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
             </div>
-          )}
+          ))}
           {isThinking && (
             <div className="message assistant loading">
               <span className="message-content">🤔 Thinking... ✨</span>
@@ -392,7 +392,7 @@ function Conversation() {
         </div>
 
         <form className="input-area" onSubmit={handleSubmit}>
-          <button 
+          <button
             type="button"
             className={`mic-btn ${isRecording ? 'recording' : ''}`}
             onClick={() => setIsRecording(!isRecording)}
