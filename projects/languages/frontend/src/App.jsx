@@ -27,11 +27,19 @@ function Header() {
     spanish: { name: 'Español', active: false, emoji: '🇪🇸' },
     french: { name: 'Français', active: false, emoji: '🇫🇷' }
   })
-  const [currentLanguage, setCurrentLanguage] = useState('he')
+  const [conversationConfig, setConversationConfig] = useState({
+    currentLanguage: 'he',
+    conversationSettings: {
+      model: 'hybrid',
+      useOpenAI: false
+    }
+  })
+  const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
   useEffect(() => {
     fetchLanguageSettings()
+    fetchConversationConfig()
   }, [])
 
   const fetchLanguageSettings = async () => {
@@ -46,21 +54,51 @@ function Header() {
     }
   }
 
+  const fetchConversationConfig = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:30071/api/conversation-config')
+      if (response.ok) {
+        const data = await response.json()
+        setConversationConfig(data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch conversation config:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleLanguageChange = async (lang) => {
     try {
-      const response = await fetch('http://127.0.0.1:30071/api/current-language', {
+      await fetch('http://127.0.0.1:30071/api/current-language', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ language: lang })
       })
-      if (response.ok) {
-        setCurrentLanguage(lang)
-        navigate('/')
-      }
+      setConversationConfig(prev => ({ ...prev, currentLanguage: lang }))
+      navigate('/')
     } catch (error) {
       console.error('Failed to change language:', error)
     }
   }
+
+  const handleModelChange = async (model, useOpenAI) => {
+    try {
+      await fetch('http://127.0.0.1:30071/api/conversation-config', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ conversationSettings: { model, useOpenAI } })
+      })
+      setConversationConfig(prev => ({
+        ...prev,
+        conversationSettings: { model, useOpenAI }
+      }))
+    } catch (error) {
+      console.error('Failed to update model:', error)
+    }
+  }
+
+  if (loading) return <div className="container">Loading...</div>
 
   return (
     <header className="header">
@@ -78,7 +116,7 @@ function Header() {
           {Object.entries(languageSettings).map(([key, lang]) => (
             <button
               key={key}
-              className={`lang-btn ${key === currentLanguage && lang.active ? 'active' : ''}`}
+              className={`lang-btn ${key === conversationConfig.currentLanguage && lang.active ? 'active' : ''}`}
               onClick={() => lang.active && handleLanguageChange(key)}
               disabled={!lang.active}
             >
@@ -87,6 +125,51 @@ function Header() {
           ))}
         </div>
       </div>
+
+      {/* Model Selector */}
+      {conversationConfig.conversationSettings && (
+        <div className="model-selector">
+          <span className="model-label">🤖 AI Model: </span>
+          <div className="model-options">
+            <label className={`model-option ${conversationConfig.conversationSettings.model === 'local' ? 'selected' : ''}`}>
+              <input
+                type="radio"
+                name="model"
+                value="local"
+                checked={conversationConfig.conversationSettings.model === 'local'}
+                onChange={() => handleModelChange('local', false)}
+              />
+              <span className="radio-indicator"></span>
+              <span className="model-name">🏠 Local (Fast)</span>
+              <span className="model-status">⚡ Fast</span>
+            </label>
+            <label className={`model-option ${conversationConfig.conversationSettings.model === 'openai' ? 'selected' : ''}`}>
+              <input
+                type="radio"
+                name="model"
+                value="openai"
+                checked={conversationConfig.conversationSettings.model === 'openai'}
+                onChange={() => handleModelChange('openai', true)}
+              />
+              <span className="radio-indicator"></span>
+              <span className="model-name">🌐 OpenAI (Power)</span>
+              <span className="model-status">✨ Better Quality</span>
+            </label>
+            <label className={`model-option ${conversationConfig.conversationSettings.model === 'hybrid' ? 'selected' : ''}`}>
+              <input
+                type="radio"
+                name="model"
+                value="hybrid"
+                checked={conversationConfig.conversationSettings.model === 'hybrid'}
+                onChange={() => handleModelChange('hybrid', false)}
+              />
+              <span className="radio-indicator"></span>
+              <span className="model-name">⚡⚡ Hybrid (Auto)</span>
+              <span className="model-status">🎯 Best of Both</span>
+            </label>
+          </div>
+        </div>
+      )}
     </header>
   )
 }
@@ -161,7 +244,10 @@ function Conversation() {
   const [input, setInput] = useState('')
   const [isRecording, setIsRecording] = useState(false)
   const [isThinking, setIsThinking] = useState(false)
+  const [response, setResponse] = useState('')
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [modelStatus, setModelStatus] = useState('')
 
   useEffect(() => {
     fetchConversations()
@@ -197,24 +283,47 @@ function Conversation() {
     }))
     setInput('')
     setIsThinking(true)
+    setError('')
+    setResponse('')
 
-    // Simulated AI response
-    setTimeout(() => {
-      const aiMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: currentConversation.language === 'he' 
-          ? 'תודה! נמשיך בעוד משפט נחמד! ✨' 
-          : 'Thanks! Let me say another fun sentence! ✨',
-        timestamp: new Date().toISOString()
+    try {
+      const response = await fetch('http://127.0.0.1:30071/api/generate-response', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: input,
+          conversationId: currentConversation.id,
+          language: currentConversation.language || 'he'
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to generate response')
       }
 
-      setCurrentConversation(prev => ({
-        ...prev,
-        messages: [...prev.messages, aiMessage]
-      }))
+      const data = await response.json()
+      setResponse(data.response)
+      setModelStatus(data.fallback ? '🔄 Fallback to OpenAI' : '✅ Local model')
+      
+      setTimeout(() => {
+        setCurrentConversation(prev => ({
+          ...prev,
+          messages: [...prev.messages, {
+            id: Date.now().toString(),
+            role: 'assistant',
+            content: data.response,
+            timestamp: new Date().toISOString()
+          }]
+        }))
+        setIsThinking(false)
+        setResponse('')
+      }, 1000)
+
+    } catch (err) {
+      setError(err.message)
       setIsThinking(false)
-    }, 1000)
+    }
   }
 
   const handleSubmit = (e) => {
@@ -224,7 +333,7 @@ function Conversation() {
 
   return (
     <div className="container conversation">
-      <h2>💬 Have Fun Conversations!</h2>
+      <h2>💬 Have Fun Conversations! 🌟</h2>
       <div className="conversation-container card">
         <div className="messages">
           {currentConversation.messages.length === 0 && (
@@ -243,6 +352,18 @@ function Conversation() {
           {isThinking && (
             <div className="message assistant loading">
               <span className="message-content">🤔 Thinking... ✨</span>
+            </div>
+          )}
+          {response && !isThinking && (
+            <div className="message assistant">
+              <span className="role-label">AI Friend</span>
+              <span className="message-content">{response}</span>
+              <span className="model-status">{modelStatus}</span>
+            </div>
+          )}
+          {error && (
+            <div className="message assistant error">
+              <span className="message-content">❌ {error}</span>
             </div>
           )}
         </div>
@@ -356,7 +477,7 @@ function Vocabulary() {
           />
           <input
             type="text"
-            placeholder="💡 Examples (comma separated, e.g., I see a boy, He is playing)"
+            placeholder="💡 Examples (comma separated)"
             value={newWord.examples}
             onChange={(e) => setNewWord({ ...newWord, examples: e.target.value })}
           />

@@ -3,6 +3,7 @@ import cors from 'cors';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { spawn } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,6 +13,8 @@ app.use(cors());
 app.use(express.json());
 
 const DATA_FILE = '/app/data/data.json';
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
+
 const DEFAULT_DATA = {
   conversations: [],
   words: [],
@@ -22,32 +25,25 @@ const DEFAULT_DATA = {
     english: { name: 'English', active: false },
     spanish: { name: 'Español', active: false },
     french: { name: 'Français', active: false }
+  },
+  conversationSettings: {
+    model: 'hybrid', // 'local', 'openai', 'hybrid'
+    useOpenAI: false,
+    conversationHistory: []
   }
 };
 
-function loadData() {
-  try {
-    if (fs.existsSync(DATA_FILE)) {
-      return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-    }
-  } catch (e) {
-    console.error('Error reading data:', e);
-  }
-  return { ...DEFAULT_DATA };
-}
-
-function saveData(data) {
-  const dir = path.dirname(DATA_FILE);
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
-}
-
 // ===== Health =====
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', project: 'languages', uptime: process.uptime() });
+  res.json({ 
+    status: 'ok', 
+    project: 'languages', 
+    uptime: process.uptime(),
+    openaiConfigured: !!OPENAI_API_KEY 
+  });
 });
 
-// ===== Language Settings =====
+// ===== Configuration =====
 app.get('/api/settings', (req, res) => {
   res.json(loadData().languageSettings);
 });
@@ -57,6 +53,25 @@ app.put('/api/settings', (req, res) => {
   data.languageSettings = req.body.languageSettings;
   saveData(data);
   res.json({ success: true, languageSettings: data.languageSettings });
+});
+
+app.get('/api/conversation-config', (req, res) => {
+  const data = loadData();
+  res.json({
+    currentLanguage: data.currentLanguage,
+    conversationSettings: data.conversationSettings,
+    languageSettings: data.languageSettings
+  });
+});
+
+app.put('/api/conversation-config', (req, res) => {
+  const data = loadData();
+  data.conversationSettings = {
+    ...data.conversationSettings,
+    ...req.body
+  };
+  saveData(data);
+  res.json({ success: true, conversationSettings: data.conversationSettings });
 });
 
 // ===== Current Language =====
@@ -89,6 +104,7 @@ app.post('/api/conversations', (req, res) => {
     id: Date.now().toString(),
     createdAt: new Date().toISOString(),
     messages: [],
+    language: data.currentLanguage,
     ...req.body
   };
   (data.conversations || (data.conversations = [])).push(conversation);
@@ -111,6 +127,69 @@ app.delete('/api/conversations/:id', (req, res) => {
   data.conversations = (data.conversations || []).filter(c => c.id !== req.params.id);
   saveData(data);
   res.json({ success: true });
+});
+
+// ===== Generate AI Response =====
+app.post('/api/generate-response', async (req, res) => {
+  const { message, conversationId, language } = req.body;
+  
+  if (!message || !conversationId) {
+    return res.status(400).json({ error: 'Missing message or conversationId' });
+  }
+
+  const data = loadData();
+  const conversationSettings = data.conversationSettings;
+  const convos = data.conversations || [];
+  const conversation = convos.find(c => c.id === conversationId);
+
+  // Build context from conversation history
+  const context = conversation?.messages || [];
+  const systemPrompt = buildSystemPrompt(language);
+
+  try {
+    let response;
+    
+    // Try local model first
+    if (conversationSettings.model === 'hybrid' || conversationSettings.model === 'local') {
+      response = await generateLocalResponse(message, context, systemPrompt);
+    } else {
+      response = await generateOpenAIResponse(message, context, systemPrompt);
+    }
+
+    // Add user and AI messages to conversation
+    if (conversation) {
+      conversation.messages.push(
+        { id: Date.now().toString() + '-u', role: 'user', content: message, timestamp: new Date().toISOString() },
+        { id: Date.now().toString() + '-a', role: 'assistant', content: response, timestamp: new Date().toISOString() }
+      );
+      saveData(data);
+    }
+
+    res.json({ response });
+  } catch (error) {
+    // Fallback to OpenAI if local fails
+    if (conversationSettings.model === 'hybrid' || conversationSettings.model === 'local') {
+      console.log('Local model failed, falling back to OpenAI:', error.message);
+      try {
+        const response = await generateOpenAIResponse(message, context, systemPrompt);
+        
+        if (conversation) {
+          conversation.messages.push(
+            { id: Date.now().toString() + '-u', role: 'user', content: message, timestamp: new Date().toISOString() },
+            { id: Date.now().toString() + '-a', role: 'assistant', content: response, timestamp: new Date().toISOString() }
+          );
+          saveData(data);
+        }
+
+        res.json({ response, fallback: true });
+      } catch (openaiError) {
+        console.error('OpenAI also failed:', openaiError);
+        res.status(500).json({ error: 'Failed to generate response', fallback: true });
+      }
+    } else {
+      res.status(500).json({ error: 'Failed to generate response' });
+    }
+  }
 });
 
 // ===== Words =====
@@ -174,6 +253,188 @@ app.post('/api/progress', (req, res) => {
   saveData(data);
   res.status(201).json(entry);
 });
+
+// ===== Helper Functions =====
+function loadData() {
+  try {
+    if (fs.existsSync(DATA_FILE)) {
+      return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    }
+  } catch (e) {
+    console.error('Error reading data:', e);
+  }
+  return { ...DEFAULT_DATA };
+}
+
+function saveData(data) {
+  const dir = path.dirname(DATA_FILE);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
+}
+
+function buildSystemPrompt(language) {
+  const prompts = {
+    hebrew: `You are a friendly Hebrew conversation partner helping a child learn Hebrew.
+    Rules:
+    - Write ONLY in Hebrew (no English, no mixing)
+    - Keep responses simple and encouraging
+    - Use common words and phrases
+    - Be friendly and patient
+    - If child makes a mistake, gently correct without discouraging
+    - Use context from previous messages
+    - Keep responses short (1-2 sentences)
+
+    Examples:
+    User: מי הוא אבא שלך?
+    AI: זה כיף! מי הוא אבא שלך, בבקשה?
+    User: הוא שלי
+    AI: יפה מאוד! איך הוא קוראים לך?`,
+
+    english: `You are a friendly English conversation partner helping a child learn English.
+    Rules:
+    - Write ONLY in English (no Hebrew, no mixing)
+    - Keep responses simple and encouraging
+    - Use common words and basic grammar
+    - Be friendly and patient
+    - If child makes a mistake, gently correct without discouraging
+    - Use context from previous messages
+    - Keep responses short (1-2 sentences)
+
+    Examples:
+    User: What is your favorite color?
+    AI: That's great! What is your favorite color, please?
+    User: Blue
+    AI: Blue is beautiful! What is your name?`,
+
+    spanish: `You are a friendly Spanish conversation partner helping a child learn Spanish.
+    Rules:
+    - Write ONLY in Spanish (no English, no mixing)
+    - Keep responses simple and encouraging
+    - Use common words and basic grammar
+    - Be friendly and patient
+    - If child makes a mistake, gently correct without discouraging
+    - Use context from previous messages
+    - Keep responses short (1-2 sentences)
+
+    Examples:
+    User: ¿Cuál es tu color favorito?
+    AI: ¡Qué bien! ¿Cuál es tu color favorito, por favor?
+    User: Azul
+    AI: ¡El azul es hermoso! ¿Cómo te llamas?`,
+
+    french: `You are a friendly French conversation partner helping a child learn French.
+    Rules:
+    - Write ONLY in French (no English, no mixing)
+    - Keep responses simple and encouraging
+    - Use common words and basic grammar
+    - Be friendly and patient
+    - If child makes a mistake, gently correct without discouraging
+    - Use context from previous messages
+    - Keep responses short (1-2 sentences)
+
+    Examples:
+    User: Quel est ton couleur préférée?
+    AI: C'est génial! Quelle est votre couleur préférée, s'il vous plaît?
+    User: Bleu
+    AI: Le bleu est magnifique! Comment tu t'appelles?`
+  };
+
+  return prompts[language] || prompts.english;
+}
+
+async function generateLocalResponse(message, context, systemPrompt) {
+  try {
+    // Check if Ollama is running
+    const checkProcess = spawn('which', ['ollama']);
+    checkProcess.on('close', (code) => {
+      if (code !== 0) throw new Error('Ollama not installed');
+    });
+
+    // Build messages for Llama 3
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      ...context.slice(-10).map(m => ({
+        role: m.role === 'user' ? 'user' : 'assistant',
+        content: m.content
+      })),
+      { role: 'user', content: message }
+    ];
+
+    const ollamaProcess = spawn('ollama', ['run', 'llama3', '--format', 'json']);
+
+    return new Promise((resolve, reject) => {
+      let output = '';
+      let error = '';
+
+      ollamaProcess.stdout.on('data', (data) => {
+        output += data.toString();
+      });
+
+      ollamaProcess.stderr.on('data', (data) => {
+        error += data.toString();
+      });
+
+      ollamaProcess.on('close', (code) => {
+        if (code !== 0) {
+          reject(new Error(`Ollama error: ${error}`));
+          return;
+        }
+
+        try {
+          const response = JSON.parse(output);
+          const text = response.response || output;
+          resolve(text);
+        } catch (e) {
+          // Try to extract text if JSON parsing fails
+          const text = output.trim().replace(/```json?\n?/g, '').replace(/```/g, '').trim();
+          resolve(text || output);
+        }
+      });
+
+      ollamaProcess.stdin.write(JSON.stringify(messages));
+      ollamaProcess.stdin.end();
+    });
+  } catch (error) {
+    throw new Error(`Local generation failed: ${error.message}`);
+  }
+}
+
+async function generateOpenAIResponse(message, context, systemPrompt) {
+  if (!OPENAI_API_KEY) {
+    throw new Error('OpenAI API key not configured');
+  }
+
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    ...context.slice(-10).map(m => ({
+      role: m.role === 'user' ? 'user' : 'assistant',
+      content: m.content
+    })),
+    { role: 'user', content: message }
+  ];
+
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${OPENAI_API_KEY}`
+    },
+    body: JSON.stringify({
+      model: 'gpt-3.5-turbo',
+      messages: messages,
+      max_tokens: 150,
+      temperature: 0.7
+    })
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || 'OpenAI API error');
+  }
+
+  const data = await response.json();
+  return data.choices[0].message.content;
+}
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, '0.0.0.0', () => {
