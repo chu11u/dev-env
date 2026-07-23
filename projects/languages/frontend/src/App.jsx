@@ -31,7 +31,8 @@ function Header() {
     currentLanguage: 'he',
     conversationSettings: {
       model: 'hybrid',
-      useOpenAI: false
+      useOpenRouter: false,
+      openRouterModel: 'deepseek/deepseek-v3'
     }
   })
   const [loading, setLoading] = useState(true)
@@ -82,16 +83,26 @@ function Header() {
     }
   }
 
-  const handleModelChange = async (model, useOpenAI) => {
+  const handleModelChange = async (model, useOpenRouter, openRouterModel) => {
     try {
       await fetch('http://127.0.0.1:30071/api/conversation-config', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ conversationSettings: { model, useOpenAI } })
+        body: JSON.stringify({
+          conversationSettings: { 
+            model, 
+            useOpenRouter, 
+            openRouterModel 
+          }
+        })
       })
       setConversationConfig(prev => ({
         ...prev,
-        conversationSettings: { model, useOpenAI }
+        conversationSettings: { 
+          model, 
+          useOpenRouter, 
+          openRouterModel 
+        }
       }))
     } catch (error) {
       console.error('Failed to update model:', error)
@@ -137,11 +148,11 @@ function Header() {
                 name="model"
                 value="local"
                 checked={conversationConfig.conversationSettings.model === 'local'}
-                onChange={() => handleModelChange('local', false)}
+                onChange={() => handleModelChange('local', false, conversationConfig.conversationSettings.openRouterModel)}
               />
               <span className="radio-indicator"></span>
               <span className="model-name">🏠 Local (Fast)</span>
-              <span className="model-status">⚡ Fast</span>
+              <span className="model-status">⚡ Free</span>
             </label>
             <label className={`model-option ${conversationConfig.conversationSettings.model === 'openai' ? 'selected' : ''}`}>
               <input
@@ -149,11 +160,23 @@ function Header() {
                 name="model"
                 value="openai"
                 checked={conversationConfig.conversationSettings.model === 'openai'}
-                onChange={() => handleModelChange('openai', true)}
+                onChange={() => handleModelChange('openai', false, conversationConfig.conversationSettings.openRouterModel)}
               />
               <span className="radio-indicator"></span>
               <span className="model-name">🌐 OpenAI (Power)</span>
-              <span className="model-status">✨ Better Quality</span>
+              <span className="model-status">✨ Best Quality</span>
+            </label>
+            <label className={`model-option ${conversationConfig.conversationSettings.model === 'openrouter' ? 'selected' : ''}`}>
+              <input
+                type="radio"
+                name="model"
+                value="openrouter"
+                checked={conversationConfig.conversationSettings.model === 'openrouter'}
+                onChange={() => handleModelChange('openrouter', true, conversationConfig.conversationSettings.openRouterModel)}
+              />
+              <span className="radio-indicator"></span>
+              <span className="model-name">🚀 OpenRouter (Free)</span>
+              <span className="model-status">🎯 DeepSeek Free</span>
             </label>
             <label className={`model-option ${conversationConfig.conversationSettings.model === 'hybrid' ? 'selected' : ''}`}>
               <input
@@ -161,7 +184,7 @@ function Header() {
                 name="model"
                 value="hybrid"
                 checked={conversationConfig.conversationSettings.model === 'hybrid'}
-                onChange={() => handleModelChange('hybrid', false)}
+                onChange={() => handleModelChange('hybrid', false, conversationConfig.conversationSettings.openRouterModel)}
               />
               <span className="radio-indicator"></span>
               <span className="model-name">⚡⚡ Hybrid (Auto)</span>
@@ -304,7 +327,7 @@ function Conversation() {
 
       const data = await response.json()
       setResponse(data.response)
-      setModelStatus(data.fallback ? '🔄 Fallback to OpenAI' : '✅ Local model')
+      setModelStatus(data.fallback === 'openrouter' ? '🔄 Switched to OpenRouter' : data.fallback === 'openai' ? '🌐 OpenAI Used' : '✅ Local Model')
       
       setTimeout(() => {
         setCurrentConversation(prev => ({
@@ -348,7 +371,7 @@ function Conversation() {
               <span className="message-content">{msg.content}</span>
               <span className="timestamp">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
             </div>
-          ))}
+          )}
           {isThinking && (
             <div className="message assistant loading">
               <span className="message-content">🤔 Thinking... ✨</span>

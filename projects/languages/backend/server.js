@@ -13,7 +13,8 @@ app.use(cors());
 app.use(express.json());
 
 const DATA_FILE = '/app/data/data.json';
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
+const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
 
 const DEFAULT_DATA = {
   conversations: [],
@@ -27,8 +28,9 @@ const DEFAULT_DATA = {
     french: { name: 'Français', active: false }
   },
   conversationSettings: {
-    model: 'hybrid', // 'local', 'openai', 'hybrid'
-    useOpenAI: false,
+    model: 'hybrid', // 'local', 'openai', 'openrouter', 'hybrid'
+    useOpenRouter: false,
+    openRouterModel: 'deepseek/deepseek-v3', // Free model
     conversationHistory: []
   }
 };
@@ -39,7 +41,7 @@ app.get('/api/health', (req, res) => {
     status: 'ok', 
     project: 'languages', 
     uptime: process.uptime(),
-    openaiConfigured: !!OPENAI_API_KEY 
+    openaiConfigured: !!OPENAI_API_KEY
   });
 });
 
@@ -152,8 +154,10 @@ app.post('/api/generate-response', async (req, res) => {
     // Try local model first
     if (conversationSettings.model === 'hybrid' || conversationSettings.model === 'local') {
       response = await generateLocalResponse(message, context, systemPrompt);
-    } else {
+    } else if (conversationSettings.model === 'openai') {
       response = await generateOpenAIResponse(message, context, systemPrompt);
+    } else if (conversationSettings.model === 'openrouter') {
+      response = await generateOpenRouterResponse(message, context, systemPrompt, conversationSettings.openRouterModel);
     }
 
     // Add user and AI messages to conversation
@@ -167,11 +171,11 @@ app.post('/api/generate-response', async (req, res) => {
 
     res.json({ response });
   } catch (error) {
-    // Fallback to OpenAI if local fails
+    // Fallback logic
     if (conversationSettings.model === 'hybrid' || conversationSettings.model === 'local') {
-      console.log('Local model failed, falling back to OpenAI:', error.message);
+      console.log('Local model failed, trying OpenRouter:', error.message);
       try {
-        const response = await generateOpenAIResponse(message, context, systemPrompt);
+        const response = await generateOpenRouterResponse(message, context, systemPrompt, conversationSettings.openRouterModel || 'deepseek/deepseek-v3');
         
         if (conversation) {
           conversation.messages.push(
@@ -181,10 +185,10 @@ app.post('/api/generate-response', async (req, res) => {
           saveData(data);
         }
 
-        res.json({ response, fallback: true });
-      } catch (openaiError) {
-        console.error('OpenAI also failed:', openaiError);
-        res.status(500).json({ error: 'Failed to generate response', fallback: true });
+        res.json({ response, fallback: 'openrouter' });
+      } catch (openrouterError) {
+        console.error('OpenRouter also failed:', openrouterError);
+        res.status(500).json({ error: 'Failed to generate response', fallback: 'openrouter' });
       }
     } else {
       res.status(500).json({ error: 'Failed to generate response' });
@@ -430,6 +434,39 @@ async function generateOpenAIResponse(message, context, systemPrompt) {
   if (!response.ok) {
     const error = await response.json();
     throw new Error(error.error?.message || 'OpenAI API error');
+  }
+
+  const data = await response.json();
+  return data.choices[0].message.content;
+}
+
+async function generateOpenRouterResponse(message, context, systemPrompt, model = 'deepseek/deepseek-v3') {
+  const messages = [
+    { role: 'system', content: systemPrompt },
+    ...context.slice(-10).map(m => ({
+      role: m.role === 'user' ? 'user' : 'assistant',
+      content: m.content
+    })),
+    { role: 'user', content: message }
+  ];
+
+  const response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${OPENROUTER_API_KEY}`
+    },
+    body: JSON.stringify({
+      model: model,
+      messages: messages,
+      max_tokens: 150,
+      temperature: 0.7
+    })
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || 'OpenRouter API error');
   }
 
   const data = await response.json();
