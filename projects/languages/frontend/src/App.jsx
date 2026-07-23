@@ -22,10 +22,10 @@ function App() {
 
 function Header() {
   const [languageSettings, setLanguageSettings] = useState({
-    hebrew: { name: 'עברית', active: true },
-    english: { name: 'English', active: false },
-    spanish: { name: 'Español', active: false },
-    french: { name: 'Français', active: false }
+    hebrew: { name: 'עברית', active: true, emoji: '🇮🇱' },
+    english: { name: 'English', active: false, emoji: '🇺🇸' },
+    spanish: { name: 'Español', active: false, emoji: '🇪🇸' },
+    french: { name: 'Français', active: false, emoji: '🇫🇷' }
   })
   const [currentLanguage, setCurrentLanguage] = useState('he')
   const navigate = useNavigate()
@@ -66,13 +66,13 @@ function Header() {
     <header className="header">
       <div className="container header-content">
         <h1 className="logo">
-          <Link to="/">LanguageTalk</Link>
+          <Link to="/">🌟 LingoTalk 🌟</Link>
         </h1>
         <nav className="nav">
-          <Link to="/" className="nav-link">Home</Link>
-          <Link to="/conversation" className="nav-link">Conversation</Link>
-          <Link to="/vocabulary" className="nav-link">Vocabulary</Link>
-          <Link to="/progress" className="nav-link">Progress</Link>
+          <Link to="/" className="nav-link">🏠 Home</Link>
+          <Link to="/conversation" className="nav-link">💬 Chat</Link>
+          <Link to="/vocabulary" className="nav-link">📚 Words</Link>
+          <Link to="/progress" className="nav-link">📊 Progress</Link>
         </nav>
         <div className="language-selector">
           {Object.entries(languageSettings).map(([key, lang]) => (
@@ -82,7 +82,7 @@ function Header() {
               onClick={() => lang.active && handleLanguageChange(key)}
               disabled={!lang.active}
             >
-              {lang.name}
+              {lang.emoji} {lang.name}
             </button>
           ))}
         </div>
@@ -126,28 +126,28 @@ function Home() {
   return (
     <div className="container home">
       <div className="hero">
-        <h2>Welcome to LanguageTalk</h2>
-        <p className="subtitle">Learn languages through conversation, practice vocabulary, and track your progress</p>
+        <h2>🎉 Welcome to LingoTalk! 🎉</h2>
+        <p className="subtitle">Learn languages through fun conversations and exciting challenges!</p>
       </div>
 
       <div className="stats-grid">
         <div className="stat-card card">
-          <h3>Conversations</h3>
+          <h3>💬 Conversations</h3>
           {loading ? <div className="loading"><span></span><span></span><span></span></div> : <p className="stat-number">{stats.conversations}</p>}
         </div>
         <div className="stat-card card">
-          <h3>Words Learned</h3>
+          <h3>📚 Words Learned</h3>
           {loading ? <div className="loading"><span></span><span></span><span></span></div> : <p className="stat-number">{stats.words}</p>}
         </div>
         <div className="stat-card card">
-          <h3>Progress Sessions</h3>
+          <h3>📊 Sessions</h3>
           {loading ? <div className="loading"><span></span><span></span><span></span></div> : <p className="stat-number">{stats.progress}</p>}
         </div>
       </div>
 
       <div className="actions">
-        <Link to="/conversation" className="btn btn-primary btn-large">Start Conversation</Link>
-        <Link to="/vocabulary" className="btn btn-secondary btn-large">Learn Vocabulary</Link>
+        <Link to="/conversation" className="btn btn-primary btn-large">🚀 Start Chatting</Link>
+        <Link to="/vocabulary" className="btn btn-secondary btn-large">📖 Learn New Words</Link>
       </div>
     </div>
   )
@@ -198,14 +198,14 @@ function Conversation() {
     setInput('')
     setIsThinking(true)
 
-    // Simulate AI response (would be replaced with real AI API)
+    // Simulated AI response
     setTimeout(() => {
       const aiMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: currentConversation.language === 'he' 
-          ? 'תודה על השיחה! נמשיך בעוד משפט בעברית...' 
-          : 'Thanks for the conversation! Let me continue with an English sentence...',
+          ? 'תודה! נמשיך בעוד משפט נחמד! ✨' 
+          : 'Thanks! Let me say another fun sentence! ✨',
         timestamp: new Date().toISOString()
       }
 
@@ -224,22 +224,25 @@ function Conversation() {
 
   return (
     <div className="container conversation">
-      <h2>Conversation Mode</h2>
+      <h2>💬 Have Fun Conversations!</h2>
       <div className="conversation-container card">
         <div className="messages">
           {currentConversation.messages.length === 0 && (
-            <div className="no-messages">Start a conversation!</div>
+            <div className="no-messages">
+              <p>💬 Start talking and have fun!</p>
+              <p style={{ marginTop: '1rem', opacity: 0.7 }}>Type your message and start chatting!</p>
+            </div>
           )}
           {currentConversation.messages.map((msg) => (
             <div key={msg.id} className={`message ${msg.role}`}>
-              <span className="role-label">{msg.role}</span>
+              <span className="role-label">{msg.role === 'user' ? 'You' : 'AI Friend'}</span>
               <span className="message-content">{msg.content}</span>
-              <span className="timestamp">{new Date(msg.timestamp).toLocaleTimeString()}</span>
+              <span className="timestamp">{new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
             </div>
           ))}
           {isThinking && (
             <div className="message assistant loading">
-              <span>AI is thinking...</span>
+              <span className="message-content">🤔 Thinking... ✨</span>
             </div>
           )}
         </div>
@@ -249,18 +252,19 @@ function Conversation() {
             type="button"
             className={`mic-btn ${isRecording ? 'recording' : ''}`}
             onClick={() => setIsRecording(!isRecording)}
+            title={isRecording ? 'Stop recording' : 'Start recording'}
           >
-            {isRecording ? '🔴' : '🎤'}
+            {isRecording ? '⏹️' : '🎤'}
           </button>
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your message..."
+            placeholder="✍️ Type your message here..."
             disabled={isRecording || isThinking}
           />
           <button type="submit" className="send-btn" disabled={!input.trim() || isRecording || isThinking}>
-            Send
+            Send 💬
           </button>
         </form>
       </div>
@@ -327,39 +331,39 @@ function Vocabulary() {
 
   return (
     <div className="container vocabulary">
-      <h2>Vocabulary</h2>
+      <h2>📚 Learn New Words! 🌈</h2>
 
       {showForm && (
         <form className="add-word-form card" onSubmit={handleAddWord}>
-          <h3>Add New Word</h3>
+          <h3>➕ Add a New Word</h3>
           <input
             type="text"
-            placeholder="Word"
+            placeholder="🔤 Word (e.g., ילד)"
             value={newWord.word}
             onChange={(e) => setNewWord({ ...newWord, word: e.target.value })}
           />
           <input
             type="text"
-            placeholder="Translation"
+            placeholder="🌐 Translation (e.g., child)"
             value={newWord.translation}
             onChange={(e) => setNewWord({ ...newWord, translation: e.target.value })}
           />
           <input
             type="text"
-            placeholder="Pronunciation (optional)"
+            placeholder="🔊 Pronunciation (optional)"
             value={newWord.pronunciation}
             onChange={(e) => setNewWord({ ...newWord, pronunciation: e.target.value })}
           />
           <input
             type="text"
-            placeholder="Examples (comma separated)"
+            placeholder="💡 Examples (comma separated, e.g., I see a boy, He is playing)"
             value={newWord.examples}
             onChange={(e) => setNewWord({ ...newWord, examples: e.target.value })}
           />
           <div className="form-actions">
-            <button type="submit" className="btn btn-primary">Add Word</button>
+            <button type="submit" className="btn btn-primary">✅ Add Word</button>
             <button type="button" className="btn btn-secondary" onClick={() => setShowForm(false)}>
-              Cancel
+              ❌ Cancel
             </button>
           </div>
         </form>
@@ -367,12 +371,12 @@ function Vocabulary() {
 
       {!showForm && (
         <button className="btn btn-primary" onClick={() => setShowForm(true)}>
-          + Add Word
+          🌟 + Add New Word
         </button>
       )}
 
       {loading ? (
-        <div className="loading">Loading words...</div>
+        <div className="loading">📚 Loading words...</div>
       ) : (
         <div className="words-grid">
           {words.map((word) => (
@@ -381,12 +385,12 @@ function Vocabulary() {
                 <h3 className="word-word">{word.word}</h3>
                 <p className="word-translation">{word.translation}</p>
                 {word.pronunciation && (
-                  <p className="word-pronunciation">{word.pronunciation}</p>
+                  <p className="word-pronunciation">🔊 {word.pronunciation}</p>
                 )}
               </div>
               {word.examples.length > 0 && (
                 <div className="word-examples">
-                  <span className="examples-label">Examples:</span>
+                  <span className="examples-label">💡 Examples:</span>
                   <ul>
                     {word.examples.map((example, idx) => (
                       <li key={idx}>{example}</li>
@@ -395,7 +399,7 @@ function Vocabulary() {
                 </div>
               )}
               <span className={`learned-badge ${word.learned ? 'success' : ''}`}>
-                {word.learned ? '✓ Learned' : 'New'}
+                {word.learned ? '✅ Learned' : '🌟 New'}
               </span>
             </div>
           ))}
@@ -421,7 +425,6 @@ function Progress() {
         const data = await response.json()
         setProgress(data)
         
-        // Calculate today's progress
         const today = new Date().toISOString().split('T')[0]
         const todayEntry = data.find(p => p.date.startsWith(today))
         setTodayProgress(todayEntry?.minutesSpent || 0)
@@ -452,42 +455,43 @@ function Progress() {
 
   return (
     <div className="container progress">
-      <h2>Learning Progress</h2>
+      <h2>📊 Your Learning Journey! 🎯</h2>
 
-      <div className="progress-summary">
-        <div className="progress-card card">
-          <h3>Today's Progress</h3>
-          <p className="progress-value">{todayProgress} min</p>
-        </div>
+      <div className="progress-summary card">
+        <h3>Today's Learning</h3>
+        <p className="progress-value">{todayProgress} min</p>
+        <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>
+          🌟 Keep up the great work!
+        </p>
       </div>
 
       <button className="btn btn-primary" onClick={startSession}>
-        + Start Learning Session
+        🚀 Start Learning Session
       </button>
 
       <div className="progress-history">
-        <h3>Session History</h3>
+        <h3>📜 Session History</h3>
         {loading ? (
-          <div className="loading">Loading history...</div>
+          <div className="loading">📚 Loading history...</div>
         ) : (
           <div className="history-list">
             {progress.slice().reverse().map((entry) => (
               <div key={entry.id} className="history-item card">
                 <div className="history-info">
-                  <span className="history-date">{new Date(entry.date).toLocaleDateString()}</span>
-                  <span className="history-time">{new Date(entry.date).toLocaleTimeString()}</span>
+                  <span className="history-date">📅 {new Date(entry.date).toLocaleDateString()}</span>
+                  <span className="history-time">⏰ {new Date(entry.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
                 <div className="history-stats">
                   <div className="history-stat">
-                    <span>Conversations:</span>
+                    <span>💬 Conversations</span>
                     <span>{entry.conversationsCompleted}</span>
                   </div>
                   <div className="history-stat">
-                    <span>Words Learned:</span>
+                    <span>📚 Words</span>
                     <span>{entry.wordsLearned}</span>
                   </div>
                   <div className="history-stat">
-                    <span>Time:</span>
+                    <span>⏱️ Time</span>
                     <span>{entry.minutesSpent} min</span>
                   </div>
                 </div>
