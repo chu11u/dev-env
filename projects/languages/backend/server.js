@@ -30,8 +30,7 @@ const DEFAULT_DATA = {
   conversationSettings: {
     model: 'hybrid', // 'local', 'openai', 'openrouter', 'hybrid'
     useOpenRouter: false,
-    openRouterModel: 'deepseek/deepseek-v3', // Free model
-    conversationHistory: []
+    openRouterModel: 'deepseek/deepseek-v3'
   }
 };
 
@@ -144,23 +143,19 @@ app.post('/api/generate-response', async (req, res) => {
   const convos = data.conversations || [];
   const conversation = convos.find(c => c.id === conversationId);
 
-  // Build context from conversation history
-  const context = conversation?.messages || [];
   const systemPrompt = buildSystemPrompt(language);
 
   try {
     let response;
     
-    // Try local model first
     if (conversationSettings.model === 'hybrid' || conversationSettings.model === 'local') {
-      response = await generateLocalResponse(message, context, systemPrompt);
+      response = await generateLocalResponse(message, conversation?.messages || [], systemPrompt);
     } else if (conversationSettings.model === 'openai') {
-      response = await generateOpenAIResponse(message, context, systemPrompt);
+      response = await generateOpenAIResponse(message, conversation?.messages || [], systemPrompt);
     } else if (conversationSettings.model === 'openrouter') {
-      response = await generateOpenRouterResponse(message, context, systemPrompt, conversationSettings.openRouterModel);
+      response = await generateOpenRouterResponse(message, conversation?.messages || [], systemPrompt, conversationSettings.openRouterModel);
     }
 
-    // Add user and AI messages to conversation
     if (conversation) {
       conversation.messages.push(
         { id: Date.now().toString() + '-u', role: 'user', content: message, timestamp: new Date().toISOString() },
@@ -171,11 +166,10 @@ app.post('/api/generate-response', async (req, res) => {
 
     res.json({ response });
   } catch (error) {
-    // Fallback logic
     if (conversationSettings.model === 'hybrid' || conversationSettings.model === 'local') {
       console.log('Local model failed, trying OpenRouter:', error.message);
       try {
-        const response = await generateOpenRouterResponse(message, context, systemPrompt, conversationSettings.openRouterModel || 'deepseek/deepseek-v3');
+        const response = await generateOpenRouterResponse(message, conversation?.messages || [], systemPrompt, conversationSettings.openRouterModel || 'deepseek/deepseek-v3');
         
         if (conversation) {
           conversation.messages.push(
@@ -348,13 +342,11 @@ function buildSystemPrompt(language) {
 
 async function generateLocalResponse(message, context, systemPrompt) {
   try {
-    // Check if Ollama is running
     const checkProcess = spawn('which', ['ollama']);
     checkProcess.on('close', (code) => {
       if (code !== 0) throw new Error('Ollama not installed');
     });
 
-    // Build messages for Llama 3
     const messages = [
       { role: 'system', content: systemPrompt },
       ...context.slice(-10).map(m => ({
@@ -389,7 +381,6 @@ async function generateLocalResponse(message, context, systemPrompt) {
           const text = response.response || output;
           resolve(text);
         } catch (e) {
-          // Try to extract text if JSON parsing fails
           const text = output.trim().replace(/```json?\n?/g, '').replace(/```/g, '').trim();
           resolve(text || output);
         }
