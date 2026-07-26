@@ -31,7 +31,7 @@ const DEFAULT_DATA = {
   conversationSettings: {
     model: 'hybrid', // 'local', 'openai', 'openrouter', 'hybrid'
     useOpenRouter: false,
-    openRouterModel: 'deepseek/deepseek-v3'
+    openRouterModel: 'deepseek/deepseek-chat'
   }
 };
 
@@ -70,8 +70,11 @@ app.put('/api/conversation-config', (req, res) => {
   const data = loadData();
   // Accept both {conversationSettings: {...}} and flat {model: ...} payloads
   const incoming = req.body.conversationSettings || req.body;
+  const base = { ...(data.conversationSettings || {}) };
+  // Strip any nested conversationSettings key from previous bugs
+  delete base.conversationSettings;
   data.conversationSettings = {
-    ...(data.conversationSettings || {}),
+    ...base,
     ...incoming
   };
   saveData(data);
