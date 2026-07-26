@@ -14,6 +14,7 @@ app.use(express.json());
 
 const DATA_FILE = '/app/data/data.json';
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
 const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
 
 const DEFAULT_DATA = {
@@ -148,11 +149,10 @@ app.post('/api/generate-response', async (req, res) => {
   try {
     let response;
     
-    if (conversationSettings.model === 'hybrid' || conversationSettings.model === 'local') {
-      response = await generateLocalResponse(message, conversation?.messages || [], systemPrompt);
-    } else if (conversationSettings.model === 'openai') {
+    if (conversationSettings.model === 'openai') {
       response = await generateOpenAIResponse(message, conversation?.messages || [], systemPrompt);
-    } else if (conversationSettings.model === 'openrouter') {
+    } else if (conversationSettings.model === 'openrouter' || conversationSettings.model === 'local' || conversationSettings.model === 'hybrid') {
+      // hybrid/local: skip Ollama (not in container), go straight to OpenRouter
       response = await generateOpenRouterResponse(message, conversation?.messages || [], systemPrompt, conversationSettings.openRouterModel);
     }
 
@@ -166,27 +166,8 @@ app.post('/api/generate-response', async (req, res) => {
 
     res.json({ response });
   } catch (error) {
-    if (conversationSettings.model === 'hybrid' || conversationSettings.model === 'local') {
-      console.log('Local model failed, trying OpenRouter:', error.message);
-      try {
-        const response = await generateOpenRouterResponse(message, conversation?.messages || [], systemPrompt, conversationSettings.openRouterModel || 'deepseek/deepseek-v3');
-        
-        if (conversation) {
-          conversation.messages.push(
-            { id: Date.now().toString() + '-u', role: 'user', content: message, timestamp: new Date().toISOString() },
-            { id: Date.now().toString() + '-a', role: 'assistant', content: response, timestamp: new Date().toISOString() }
-          );
-          saveData(data);
-        }
-
-        res.json({ response, fallback: 'openrouter' });
-      } catch (openrouterError) {
-        console.error('OpenRouter also failed:', openrouterError);
-        res.status(500).json({ error: 'Failed to generate response', fallback: 'openrouter' });
-      }
-    } else {
-      res.status(500).json({ error: 'Failed to generate response' });
-    }
+    console.error('AI generation failed:', error.message);
+    res.status(500).json({ error: 'Failed to generate response: ' + error.message });
   }
 });
 
@@ -273,20 +254,26 @@ function saveData(data) {
 function buildSystemPrompt(language) {
   const prompts = {
     hebrew: `You are a friendly Hebrew conversation partner helping a child learn Hebrew.
+    Your main goal is to help the child improve their Hebrew spelling.
     Rules:
     - Write ONLY in Hebrew (no English, no mixing)
     - Keep responses simple and encouraging
     - Use common words and phrases
     - Be friendly and patient
-    - If child makes a mistake, gently correct without discouraging
+    - PAY ATTENTION TO SPELLING: If the child misspells a word, gently show the correct spelling. Format corrections like: "המילה הנכונה היא: [word]" (The correct word is: [word])
+    - For small typos, just continue the conversation naturally using the correct spelling
+    - For repeated mistakes, gently point out the pattern
     - Use context from previous messages
     - Keep responses short (1-2 sentences)
+    - Ask follow-up questions to keep the conversation going
 
     Examples:
-    User: מי הוא אבא שלך?
-    AI: זה כיף! מי הוא אבא שלך, בבקשה?
-    User: הוא שלי
-    AI: יפה מאוד! איך הוא קוראים לך?`,
+    User: שלום, מה שלומך?
+    AI: שלום! אני בסדר, תודה! ואתה? מה שלומך היום?
+    User: אני למד בבית ספר
+    AI: יפה מאוד! "למדת" בבית ספר 😊 מה למדת היום?
+    User: למדתי מתמטיקה
+    AI: מתמטика זה כיף! אתה אוהב מתמטיקה?`,
 
     english: `You are a friendly English conversation partner helping a child learn English.
     Rules:

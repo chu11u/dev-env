@@ -45,7 +45,7 @@ function Header() {
 
   const fetchLanguageSettings = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:30071/api/settings')
+      const response = await fetch('/api/settings')
       if (response.ok) {
         const data = await response.json()
         setLanguageSettings(data.languageSettings)
@@ -57,7 +57,7 @@ function Header() {
 
   const fetchConversationConfig = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:30071/api/conversation-config')
+      const response = await fetch('/api/conversation-config')
       if (response.ok) {
         const data = await response.json()
         setConversationConfig(data)
@@ -71,7 +71,7 @@ function Header() {
 
   const handleLanguageChange = async (lang) => {
     try {
-      await fetch('http://127.0.0.1:30071/api/current-language', {
+      await fetch('/api/current-language', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ language: lang })
@@ -85,7 +85,7 @@ function Header() {
 
   const handleModelChange = async (model, useOpenRouter, openRouterModel) => {
     try {
-      await fetch('http://127.0.0.1:30071/api/conversation-config', {
+      await fetch('/api/conversation-config', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -208,9 +208,9 @@ function Home() {
   const fetchStats = async () => {
     try {
       const [convsResponse, wordsResponse, progressResponse] = await Promise.all([
-        fetch('http://127.0.0.1:30071/api/conversations'),
-        fetch('http://127.0.0.1:30071/api/words?language=he'),
-        fetch('http://127.0.0.1:30071/api/progress')
+        fetch('/api/conversations'),
+        fetch('/api/words?language=he'),
+        fetch('/api/progress')
       ])
 
       const convs = await convsResponse.json()
@@ -278,7 +278,7 @@ function Conversation() {
 
   const fetchConversations = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:30071/api/conversations')
+      const response = await fetch('/api/conversations')
       if (response.ok) {
         const convos = await response.json()
         if (convos.length > 0) {
@@ -310,7 +310,7 @@ function Conversation() {
     setResponse('')
 
     try {
-      const response = await fetch('http://127.0.0.1:30071/api/generate-response', {
+      const response = await fetch('/api/generate-response', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -428,7 +428,7 @@ function Vocabulary() {
 
   const fetchWords = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:30071/api/words?language=he')
+      const response = await fetch('/api/words?language=he')
       if (response.ok) {
         setWords(await response.json())
       }
@@ -444,7 +444,7 @@ function Vocabulary() {
     const exampleArray = newWord.examples.split(',').map(s => s.trim()).filter(Boolean)
 
     try {
-      await fetch('http://127.0.0.1:30071/api/words', {
+      await fetch('/api/words', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -564,7 +564,7 @@ function Progress() {
 
   const fetchProgress = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:30071/api/progress')
+      const response = await fetch('/api/progress')
       if (response.ok) {
         const data = await response.json()
         setProgress(data)
@@ -582,7 +582,7 @@ function Progress() {
 
   const startSession = async () => {
     try {
-      await fetch('http://127.0.0.1:30071/api/progress', {
+      await fetch('/api/progress', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

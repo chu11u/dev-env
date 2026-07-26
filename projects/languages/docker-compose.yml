@@ -16,3 +16,5 @@ services:
       - "192.168.131.134:30071:3001"
     volumes:
       - ../../project-data/languages/data:/app/data
+    env_file:
+      - .env
