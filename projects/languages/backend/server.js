@@ -140,8 +140,8 @@ app.delete('/api/conversations/:id', (req, res) => {
 app.post('/api/generate-response', async (req, res) => {
   const { message, conversationId, language } = req.body;
   
-  if (!message || !conversationId) {
-    return res.status(400).json({ error: 'Missing message or conversationId' });
+  if (!message) {
+    return res.status(400).json({ error: 'Missing message' });
   }
 
   const data = loadData();
