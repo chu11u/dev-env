@@ -305,6 +305,25 @@ function Conversation() {
   const sendMessage = async () => {
     if (!input.trim() || isRecording || isThinking) return
 
+    // Create conversation if none exists yet
+    let convId = currentConversation.id
+    if (!convId) {
+      try {
+        const createRes = await fetch('/api/conversations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ language: currentConversation.language || 'he' })
+        })
+        if (createRes.ok) {
+          const newConv = await createRes.json()
+          setCurrentConversation(newConv)
+          convId = newConv.id
+        }
+      } catch (e) {
+        console.error('Failed to create conversation:', e)
+      }
+    }
+
     const message = {
       id: Date.now().toString(),
       role: 'user',
@@ -327,7 +346,7 @@ function Conversation() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: input,
-          conversationId: currentConversation.id,
+          conversationId: convId,
           language: currentConversation.language || 'he'
         })
       })

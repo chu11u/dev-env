@@ -68,9 +68,11 @@ app.get('/api/conversation-config', (req, res) => {
 
 app.put('/api/conversation-config', (req, res) => {
   const data = loadData();
+  // Accept both {conversationSettings: {...}} and flat {model: ...} payloads
+  const incoming = req.body.conversationSettings || req.body;
   data.conversationSettings = {
-    ...data.conversationSettings,
-    ...req.body
+    ...(data.conversationSettings || {}),
+    ...incoming
   };
   saveData(data);
   res.json({ success: true, conversationSettings: data.conversationSettings });
