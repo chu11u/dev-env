@@ -36,6 +36,7 @@ function Header() {
     }
   })
   const [loading, setLoading] = useState(true)
+  const [showModelOptions, setShowModelOptions] = useState(false)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -137,60 +138,71 @@ function Header() {
         </div>
       </div>
 
-      {/* Model Selector */}
+      {/* Model Selector - Collapsible */}
       {conversationConfig.conversationSettings && (
         <div className="model-selector">
-          <span className="model-label">🤖 AI Model: </span>
-          <div className="model-options">
-            <label className={`model-option ${conversationConfig.conversationSettings.model === 'local' ? 'selected' : ''}`}>
-              <input
-                type="radio"
-                name="model"
-                value="local"
-                checked={conversationConfig.conversationSettings.model === 'local'}
-                onChange={() => handleModelChange('local', false, conversationConfig.conversationSettings.openRouterModel)}
-              />
-              <span className="radio-indicator"></span>
-              <span className="model-name">🏠 Local (Fast)</span>
-              <span className="model-status">⚡ Free</span>
-            </label>
-            <label className={`model-option ${conversationConfig.conversationSettings.model === 'openai' ? 'selected' : ''}`}>
-              <input
-                type="radio"
-                name="model"
-                value="openai"
-                checked={conversationConfig.conversationSettings.model === 'openai'}
-                onChange={() => handleModelChange('openai', false, conversationConfig.conversationSettings.openRouterModel)}
-              />
-              <span className="radio-indicator"></span>
-              <span className="model-name">🌐 OpenAI (Power)</span>
-              <span className="model-status">✨ Best Quality</span>
-            </label>
-            <label className={`model-option ${conversationConfig.conversationSettings.model === 'openrouter' ? 'selected' : ''}`}>
-              <input
-                type="radio"
-                name="model"
-                value="openrouter"
-                checked={conversationConfig.conversationSettings.model === 'openrouter'}
-                onChange={() => handleModelChange('openrouter', true, conversationConfig.conversationSettings.openRouterModel)}
-              />
-              <span className="radio-indicator"></span>
-              <span className="model-name">🚀 OpenRouter (Free)</span>
-              <span className="model-status">🎯 DeepSeek Free</span>
-            </label>
-            <label className={`model-option ${conversationConfig.conversationSettings.model === 'hybrid' ? 'selected' : ''}`}>
-              <input
-                type="radio"
-                name="model"
-                value="hybrid"
-                checked={conversationConfig.conversationSettings.model === 'hybrid'}
-                onChange={() => handleModelChange('hybrid', false, conversationConfig.conversationSettings.openRouterModel)}
-              />
-              <span className="radio-indicator"></span>
-              <span className="model-name">⚡⚡ Hybrid (Auto)</span>
-              <span className="model-status">🎯 Best of Both</span>
-            </label>
-          </div>
+          <button
+            className="model-toggle"
+            onClick={() => setShowModelOptions(!showModelOptions)}
+            type="button"
+          >
+            <span className="model-toggle-label">
+              🤖 AI Model: <span className="model-toggle-current">{conversationConfig.conversationSettings.model === 'local' ? '🏠 Local' : conversationConfig.conversationSettings.model === 'openai' ? '🌐 OpenAI' : conversationConfig.conversationSettings.model === 'openrouter' ? '🚀 OpenRouter' : '⚡ Hybrid'}</span>
+            </span>
+            <span className={`model-toggle-arrow ${showModelOptions ? 'open' : ''}`}>▾</span>
+          </button>
+          {showModelOptions && (
+            <div className="model-options">
+              <label className={`model-option ${conversationConfig.conversationSettings.model === 'local' ? 'selected' : ''}`}>
+                <input
+                  type="radio"
+                  name="model"
+                  value="local"
+                  checked={conversationConfig.conversationSettings.model === 'local'}
+                  onChange={() => handleModelChange('local', false, conversationConfig.conversationSettings.openRouterModel)}
+                />
+                <span className="radio-indicator"></span>
+                <span className="model-name">🏠 Local (Fast)</span>
+                <span className="model-status">⚡ Free</span>
+              </label>
+              <label className={`model-option ${conversationConfig.conversationSettings.model === 'openai' ? 'selected' : ''}`}>
+                <input
+                  type="radio"
+                  name="model"
+                  value="openai"
+                  checked={conversationConfig.conversationSettings.model === 'openai'}
+                  onChange={() => handleModelChange('openai', false, conversationConfig.conversationSettings.openRouterModel)}
+                />
+                <span className="radio-indicator"></span>
+                <span className="model-name">🌐 OpenAI (Power)</span>
+                <span className="model-status">✨ Best Quality</span>
+              </label>
+              <label className={`model-option ${conversationConfig.conversationSettings.model === 'openrouter' ? 'selected' : ''}`}>
+                <input
+                  type="radio"
+                  name="model"
+                  value="openrouter"
+                  checked={conversationConfig.conversationSettings.model === 'openrouter'}
+                  onChange={() => handleModelChange('openrouter', true, conversationConfig.conversationSettings.openRouterModel)}
+                />
+                <span className="radio-indicator"></span>
+                <span className="model-name">🚀 OpenRouter (Free)</span>
+                <span className="model-status">🎯 DeepSeek Free</span>
+              </label>
+              <label className={`model-option ${conversationConfig.conversationSettings.model === 'hybrid' ? 'selected' : ''}`}>
+                <input
+                  type="radio"
+                  name="model"
+                  value="hybrid"
+                  checked={conversationConfig.conversationSettings.model === 'hybrid'}
+                  onChange={() => handleModelChange('hybrid', false, conversationConfig.conversationSettings.openRouterModel)}
+                />
+                <span className="radio-indicator"></span>
+                <span className="model-name">⚡⚡ Hybrid (Auto)</span>
+                <span className="model-status">🎯 Best of Both</span>
+              </label>
+            </div>
+          )}
         </div>
       )}
     </header>
@@ -321,7 +333,8 @@ function Conversation() {
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
+        let errorData = {}
+        try { errorData = await response.json() } catch (e) {}
         throw new Error(errorData.error || 'Failed to generate response')
       }
 

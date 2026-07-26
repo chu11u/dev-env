@@ -780,20 +780,6 @@ body {
   }
 }
 /* Model Selector */
-.model-selector {
-  background: rgba(255, 255, 255, 0.95);
-  border-bottom: 1px solid var(--border);
-  padding: 1rem 2rem;
-}
-
-.model-label {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 1rem;
-  display: block;
-}
-
 .model-options {
   display: flex;
   gap: 2rem;
@@ -920,4 +906,56 @@ body {
     margin-left: auto;
     margin-top: 0.5rem;
   }
+}
+
+/* Collapsible Model Toggle */
+.model-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 1.2rem;
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.2s ease;
+}
+
+.model-toggle:hover {
+  background: rgba(245, 247, 250, 0.95);
+}
+
+.model-toggle-label {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.model-toggle-current {
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.model-toggle-arrow {
+  font-size: 1.2rem;
+  color: var(--text-muted);
+  transition: transform 0.3s ease;
+}
+
+.model-toggle-arrow.open {
+  transform: rotate(180deg);
+}
+
+/* Override model-selector to remove old padding */
+.model-selector {
+  background: rgba(255, 255, 255, 0.95);
+  border-bottom: 1px solid var(--border);
+  padding: 0;
+}
+
+.model-selector .model-options {
+  padding: 1rem 2rem;
+  border-top: 1px solid rgba(0,0,0,0.05);
 }
