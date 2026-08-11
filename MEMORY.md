@@ -19,6 +19,7 @@ External:        Cloudflare DNS (*.elkayam.fun) → cloudflared tunnel → nginx
 - `arcade.apps.elkayam.me` / `arcade.elkayam.fun` → Family Arcade (React + Express, ports 3003/30031)
 - `dinnerplan.apps.elkayam.me` / `dinnerplan.elkayam.fun` → Dinner planner (React + Express, ports 3004/30041)
 - `saritelkayam.apps.elkayam.me` / `saritelkayam.com` → Sarit Elkayam cosmetician website (Next.js 15, ports 3006/30061, Cloudflare direct to port 3006)
+- `erez.apps.elkayam.me` / `erez.elkayam.fun` → Location Log PWA (React 19 + Vite + IndexedDB, port 3008)
 
 **Cloudflare tunnel** (`docker-compose.cloudflare.yml`):
 - Single `cloudflared` container with `network_mode: host`
@@ -211,11 +212,15 @@ ssh -i ~/.ssh/dev-env-server naor@192.168.131.134 "cd /home/elkayam/dev-env && .
 | 30031 | arcade | Backend API |
 | 3004 | dinnerplan | Frontend |
 | 30041 | dinnerplan | Backend API |
+| 3005 | eventcorrelator | Frontend |
 | 3006 | saritelkayam | Frontend |
 | 30061 | saritelkayam | Backend API |
 | 30062 | saritelkayam | PostgreSQL (internal, not exposed) |
+| 3007 | languages | Frontend |
+| 30071 | languages | Backend API |
+| 3008 | erez | Location Log PWA (frontend) |
 
-Next available: 3005, 30051
+Next available: 3009, 30091
 
 ## PERSISTENT DATA
 
