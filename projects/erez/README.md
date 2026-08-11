@@ -59,7 +59,7 @@ cd /Users/elnaor/Environments/Zed/HomeLab
 ```
 
 - `deploy-all.sh` git-pulls on the server, auto-generates the nginx config
-  (`erez.apps.elkayam.me` + `erez.elkayam.fun` → port 3005) and builds the container
+  (`erez.apps.elkayam.me` + `erez.elkayam.fun` → port 3008) and builds the container
   (`container_name: erez`, static files served by nginx with PWA-friendly cache headers).
 - The server's cron also runs `deploy-all.sh` every 5 minutes, so a git push alone
   eventually self-deploys.
