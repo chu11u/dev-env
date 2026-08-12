@@ -1,0 +1,31 @@
+name: Deploy Languages to Games Server
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'projects/languages/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.GAMES_HOST }}
+          username: jarvis
+          key: ${{ secrets.GAMES_SSH_KEY }}
+          script: |
+            cd /home/elkayam/dev-env
+            git pull
+            cd projects/languages
+            # Create .env if it doesn't exist
+            if [ ! -f .env ]; then
+              echo "OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}" > .env
+            fi
+            docker compose down
+            docker compose build --no-cache
+            docker compose up -d
+            echo "Deploy complete!"
+            docker compose logs --tail=5 backend

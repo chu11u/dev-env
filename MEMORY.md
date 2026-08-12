@@ -1,5 +1,5 @@
 # Dev Environment Memory Dump
-# Updated: May 20, 2026
+# Updated: Aug 12, 2026
 # Use this to continue the project in a new conversation
 
 ## ARCHITECTURE
@@ -22,12 +22,17 @@ External:        Cloudflare DNS (*.elkayam.fun) → cloudflared tunnel → nginx
 - `erez.apps.elkayam.me` / `erez.elkayam.fun` → Location Log PWA (React 19 + Vite + IndexedDB, port 3008)
 
 **Cloudflare tunnel** (`docker-compose.cloudflare.yml`):
-- Single `cloudflared` container with `network_mode: host`
-- Routes all `*.elkayam.fun` → nginx port 80
+- Single `cloudflared` container with `network_mode: host` on the Games server
+- Routes all `*.elkayam.fun` → server nginx port 80
 - Token in `.env.cloudflare` (git-ignored, env var `TUNNEL_TOKEN`)
-- Configured via Cloudflare Zero Trust dashboard → Tunnels → ingress rules
-- Each app needs an ingress rule: `appname.elkayam.fun` → `http://localhost:80`
-- Catch-all rule: `*` → `http://nowhere`
+- **Ingress rules managed via API** (verified 2026-08-12 — the zone-scoped token CAN read/write tunnel config):
+  - Zone token: `./hl.sh cred api_tokens.cloudflare.token` (from HomeLab)
+  - Zone ID (`elkayam.fun`): `15da5ff2c486f443c62d849656221a43`
+  - Account ID: `118da7b48771f69cb525e760f7224ce5` (derive: `GET /zones/<zone_id>` → `result.account.id`)
+  - Tunnel ID: `c2c04913-3ba8-4370-bed1-447b84404212`
+  - GET/PUT: `/client/v4/accounts/{aid}/cfd_tunnel/{tunnel_id}/configurations`
+- Each app needs an ingress rule ABOVE the `http_status:404` catch-all: `appname.elkayam.fun` → `http://192.168.131.134:80` (or a direct port for special cases: `www.saritelkayam.com` → `:3006`, `lingo` → `:3007`)
+- Full recipe (DNS CNAME + ingress + policy question): load the `homelab-publish` skill
 
 ## SERVER (LXC Container - Debian 12)
 
@@ -256,10 +261,13 @@ This directory is OUTSIDE the git repo. The deploy script auto-migrates data fro
 
 1. Create project in `projects/<name>/` with `docker-compose.yml` + Dockerfiles
 2. Push to git and run `./deploy-all.sh` (generates dual-domain nginx config automatically)
-3. In **Cloudflare Zero Trust** → Tunnels → your tunnel → Configuration:
-   - Add hostname rule: `appname.elkayam.fun` → `http://localhost:80`
-   - (The tunnel forwards to nginx, which routes to the right container)
-4. That's it — `appname.elkayam.fun` works externally, `appname.apps.elkayam.me` works locally
+3. **Ask which access policy to use** (public vs Cloudflare Access) — see `homelab-publish` skill
+4. Cloudflare DNS: CNAME `app.elkayam.fun` → `<tunnel-id>.cfargotunnel.com`, proxied
+5. Tunnel ingress: PUT `configurations` API with hostname rule `app.elkayam.fun` → `http://192.168.131.134:80` (before the 404 catch-all)
+6. If restricted: configure Cloudflare Access policy (dashboard or account-scoped token — zone token is read-only for Access)
+7. Verify `https://app.elkayam.fun/` → 200 (and manifest/sw for PWAs)
+
+**Full recipe with exact curl commands: load the `homelab-publish` skill.**
 
 ## CRON CONFIG
 
