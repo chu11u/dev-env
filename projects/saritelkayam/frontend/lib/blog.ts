@@ -14,6 +14,98 @@ export interface BlogPost {
   content: string;
 }
 
+interface ApiPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  featuredImage: string | null;
+  status: "DRAFT" | "PUBLISHED";
+  publishedAt: string | null;
+  createdAt: string;
+}
+
+function apiBase(): string {
+  const host = process.env.BACKEND_HOST || "backend";
+  const port = process.env.BACKEND_PORT || "3001";
+  return `http://${host}:${port}`;
+}
+
+function estimateReadTime(content: string): number {
+  return Math.max(
+    1,
+    Math.ceil(
+      content
+        .replace(/#{1,6}\s.+/g, "")
+        .replace(/\s+/g, " ")
+        .trim()
+        .split(/\s+/).length / 200,
+    ),
+  );
+}
+
+function adaptApiPost(post: ApiPost): BlogPost {
+  const dateSource = post.publishedAt || post.createdAt;
+  return {
+    slug: post.slug,
+    title: post.title,
+    excerpt: post.excerpt,
+    date: dateSource.split("T")[0],
+    coverImage: post.featuredImage || undefined,
+    content: post.content,
+    readTime: estimateReadTime(post.content),
+  };
+}
+
+/** Fetch published posts from the CMS API (source of truth at runtime). */
+export async function getAllBlogPosts(): Promise<BlogPost[]> {
+  try {
+    const res = await fetch(`${apiBase()}/api/blog/posts`, {
+      next: { revalidate: 60 },
+    });
+    if (res.ok) {
+      const posts = (await res.json()) as ApiPost[];
+      return posts
+        .filter((p) => p.status === "PUBLISHED")
+        .map(adaptApiPost)
+        .sort(
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+        );
+    }
+  } catch (err) {
+    console.error("getAllBlogPosts API failed, falling back to markdown:", err);
+  }
+  return getAllBlogPostsFromMarkdown();
+}
+
+/** Fetch a single published post by slug from the CMS API. */
+export async function getBlogPostBySlug(
+  slug: string,
+): Promise<BlogPost | null> {
+  try {
+    const res = await fetch(
+      `${apiBase()}/api/blog/posts/${encodeURIComponent(slug)}`,
+      { next: { revalidate: 60 } },
+    );
+    if (res.ok) {
+      const post = (await res.json()) as ApiPost;
+      if (post.status !== "PUBLISHED") return null;
+      return adaptApiPost(post);
+    }
+    if (res.status === 404) {
+      // Fall through to markdown for legacy build-time posts
+    } else {
+      console.error("getBlogPostBySlug API error:", res.status);
+    }
+  } catch (err) {
+    console.error("getBlogPostBySlug API failed, falling back to markdown:", err);
+  }
+  return getBlogPostBySlugFromMarkdown(slug);
+}
+
+// ─── Markdown fallback (seed / offline) ──────────────────
+
 export function getBlogSlugs(): string[] {
   if (!fs.existsSync(CONTENT_DIR)) return [];
 
@@ -23,7 +115,7 @@ export function getBlogSlugs(): string[] {
     .map((file) => file.replace(/\.(md|mdx)$/, ""));
 }
 
-export function getBlogPostBySlug(slug: string): BlogPost | null {
+function getBlogPostBySlugFromMarkdown(slug: string): BlogPost | null {
   const mdPath = path.join(CONTENT_DIR, `${slug}.md`);
   const mdxPath = path.join(CONTENT_DIR, `${slug}.mdx`);
 
@@ -32,7 +124,6 @@ export function getBlogPostBySlug(slug: string): BlogPost | null {
 
   const raw = fs.readFileSync(filePath, "utf-8");
 
-  // Parse frontmatter (simple YAML-like: key: value between --- markers)
   const frontmatterMatch = raw.match(
     /^---\s*\n([\s\S]*?)\n---\s*\n?([\s\S]*)$/,
   );
@@ -71,20 +162,7 @@ export function getBlogPostBySlug(slug: string): BlogPost | null {
         .split("T")[0];
     if (categoryMatch)
       category = categoryMatch[1].trim().replace(/^["']|["']$/g, "");
-    if (coverMatch)
-      coverImage = coverMatch[1].trim().replace(/^["']|["']$/g, "");
   }
-
-  const readTime = Math.max(
-    1,
-    Math.ceil(
-      content
-        .replace(/#{1,6}\s.+/g, "")
-        .replace(/\s+/g, " ")
-        .trim()
-        .split(/\s+/).length / 200,
-    ),
-  );
 
   return {
     slug,
@@ -94,14 +172,14 @@ export function getBlogPostBySlug(slug: string): BlogPost | null {
     category,
     coverImage,
     content,
-    readTime,
+    readTime: estimateReadTime(content),
   };
 }
 
-export function getAllBlogPosts(): BlogPost[] {
+function getAllBlogPostsFromMarkdown(): BlogPost[] {
   const slugs = getBlogSlugs();
   return slugs
-    .map((slug) => getBlogPostBySlug(slug))
+    .map((slug) => getBlogPostBySlugFromMarkdown(slug))
     .filter((post): post is BlogPost => post !== null)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }

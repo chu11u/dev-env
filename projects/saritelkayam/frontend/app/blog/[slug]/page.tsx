@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getBlogPostBySlug } from "@/lib/blog";
+import { getBlogPostBySlug, getBlogSlugs } from "@/lib/blog";
 import BlogPostContent from "./BlogPostContent";
+
+export const revalidate = 60;
+export const dynamicParams = true;
 
 export function generateStaticParams() {
   try {
-    const { getBlogSlugs } = require("@/lib/blog");
     return getBlogSlugs().map((slug: string) => ({ slug }));
   } catch {
     return [];
@@ -16,7 +18,7 @@ export async function generateMetadata(props: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const params = await props.params;
-  const post = getBlogPostBySlug(params.slug);
+  const post = await getBlogPostBySlug(params.slug);
   if (!post) {
     return {
       title: "Blog Post Not Found | Sarit Elkayam",
@@ -39,7 +41,7 @@ export default async function BlogPostPage(props: {
   params: Promise<{ slug: string }>;
 }) {
   const params = await props.params;
-  const post = getBlogPostBySlug(params.slug);
+  const post = await getBlogPostBySlug(params.slug);
 
   if (!post) {
     notFound();

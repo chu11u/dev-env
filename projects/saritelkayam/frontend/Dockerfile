@@ -30,6 +30,12 @@ COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/next.config.js ./next.config.js
 
+# Runtime API host for SSR blog fetches (must match docker-compose service name)
+ARG BACKEND_HOST=backend
+ARG BACKEND_PORT=3001
+ENV BACKEND_HOST=$BACKEND_HOST
+ENV BACKEND_PORT=$BACKEND_PORT
+
 EXPOSE 3000
 
 # Start Next.js in production mode
