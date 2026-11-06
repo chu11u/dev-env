@@ -1,32 +1,12 @@
-"use client";
+import { getFeaturedHomepagePosts } from "@/lib/blog";
+import HomePageClient from "./HomePageClient";
 
-import HeroSection from "@/components/sections/HeroSection";
-import ServicesPreview from "@/components/sections/ServicesPreview";
-import ProductsPreview from "@/components/sections/ProductsPreview";
-import TestimonialsSection from "@/components/sections/TestimonialsSection";
-import BlogPreview from "@/components/sections/BlogPreview";
-import CTASection from "@/components/sections/CTASection";
-import { FadeInSection } from "@/components/common/FadeInSection";
+/** Homepage ISR: blog strip reflects CMS featured posts within ~60s of publish. */
+export const revalidate = 60;
 
-export default function HomePage() {
+export default async function HomePage() {
+  const initialFeaturedPosts = await getFeaturedHomepagePosts();
   return (
-    <>
-      <HeroSection />
-      <FadeInSection delay={0}>
-        <ServicesPreview />
-      </FadeInSection>
-      <FadeInSection delay={0}>
-        <ProductsPreview />
-      </FadeInSection>
-      <FadeInSection delay={0}>
-        <TestimonialsSection />
-      </FadeInSection>
-      <FadeInSection delay={0}>
-        <BlogPreview />
-      </FadeInSection>
-      <FadeInSection delay={0}>
-        <CTASection />
-      </FadeInSection>
-    </>
+    <HomePageClient initialFeaturedPosts={initialFeaturedPosts} />
   );
 }

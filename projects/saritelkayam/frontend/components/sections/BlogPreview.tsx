@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import { motion } from "framer-motion";
 import { Calendar, Clock } from "lucide-react";
 import { Card } from "@/components/ui/Card";
@@ -9,70 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Section } from "@/components/layout/Section";
 import { useTranslation } from "@/lib/i18n";
 import { getHomepagePosts, type Post } from "@/lib/api";
-
-interface PreviewPost {
-  slug: string;
-  title: string;
-  excerpt: string;
-  featuredImage: string;
-  date: string;
-  readTime: number;
-}
-
-const fallbackPostsEn: PreviewPost[] = [
-  {
-    slug: "understanding-skin-types",
-    title: "Understanding Skin Types",
-    excerpt: "Learn to identify your skin type and give it the care it needs",
-    featuredImage: "/assets/blog/featured-skincare.png",
-    date: "2024-06-15",
-    readTime: 5,
-  },
-  {
-    slug: "summer-skincare-essentials",
-    title: "5 Essentials for Glowing Summer Skin",
-    excerpt:
-      "The must-have products and routines for healthy glowing skin all summer",
-    featuredImage: "/assets/blog/featured-seasonal.png",
-    date: "2024-05-20",
-    readTime: 7,
-  },
-  {
-    slug: "natural-makeup-guide",
-    title: "Natural Makeup Guide",
-    excerpt: "Professional tips for a natural look that enhances your beauty",
-    featuredImage: "/assets/blog/featured-beauty-tip.png",
-    date: "2024-04-10",
-    readTime: 6,
-  },
-];
-
-const fallbackPostsHe: PreviewPost[] = [
-  {
-    slug: "understanding-skin-types",
-    title: "הכרת סוגי העור",
-    excerpt: "ללמוד לזהות את סוג העור שלך ולתת לו את הטיפול המתאים",
-    featuredImage: "/assets/blog/featured-skincare.png",
-    date: "2024-06-15",
-    readTime: 5,
-  },
-  {
-    slug: "summer-skincare-essentials",
-    title: "5 חיוניים לטיפוח עור זוהר לקיץ",
-    excerpt: "המוצרים והשגרות החיוניים לעור בריא וזוהר לאורך הקיץ",
-    featuredImage: "/assets/blog/featured-seasonal.png",
-    date: "2024-05-20",
-    readTime: 7,
-  },
-  {
-    slug: "natural-makeup-guide",
-    title: "מדריך לאיפור טבעי",
-    excerpt: "טיפים מקצועיים לאיפור טבעי שמדגיש את היופי שלך",
-    featuredImage: "/assets/blog/featured-beauty-tip.png",
-    date: "2024-04-10",
-    readTime: 6,
-  },
-];
+import type { HomepageFeaturedPost } from "@/lib/blog";
 
 function estimateReadTime(content: string): number {
   return Math.max(
@@ -87,7 +23,7 @@ function estimateReadTime(content: string): number {
   );
 }
 
-function adaptPost(post: Post): PreviewPost {
+function adaptPost(post: Post): HomepageFeaturedPost {
   const dateSource = post.publishedAt || post.createdAt;
   return {
     slug: post.slug,
@@ -109,10 +45,14 @@ const cardVariants = {
   },
 };
 
-export function BlogPreview() {
+interface BlogPreviewProps {
+  /** From server (SSR/ISR); HTML includes these slugs for crawlers and first paint. */
+  initialPosts?: HomepageFeaturedPost[];
+}
+
+export function BlogPreview({ initialPosts = [] }: BlogPreviewProps) {
   const { t, locale } = useTranslation();
-  const fallback = locale === "he" ? fallbackPostsHe : fallbackPostsEn;
-  const [posts, setPosts] = useState<PreviewPost[]>(fallback);
+  const [posts, setPosts] = useState<HomepageFeaturedPost[]>(initialPosts);
   const dateLocale = locale === "he" ? "he-IL" : "en-US";
 
   useEffect(() => {
@@ -123,12 +63,16 @@ export function BlogPreview() {
         setPosts(data.slice(0, 3).map(adaptPost));
       })
       .catch(() => {
-        /* keep fallback */
+        /* keep server-rendered posts */
       });
     return () => {
       cancelled = true;
     };
   }, []);
+
+  if (posts.length === 0) {
+    return null;
+  }
 
   return (
     <Section title={t.blogTitle} subtitle={t.blogSubtitle} bg="cream">
@@ -148,12 +92,12 @@ export function BlogPreview() {
         {posts.map((post) => (
           <motion.div key={post.slug} variants={cardVariants}>
             <Card className="overflow-hidden flex flex-col h-full hover:-translate-y-1 transition-transform duration-200 ease-[0.4,0,0.2,1]">
-              <div className="relative h-48 bg-cream-100">
-                <Image
+              <div className="relative h-48 bg-cream-100 overflow-hidden">
+                {/* Plain <img> so /uploads/* is not forced through next/image */}
+                <img
                   src={post.featuredImage}
                   alt={post.title}
-                  fill
-                  className="object-cover"
+                  className="absolute inset-0 h-full w-full object-cover"
                 />
               </div>
 

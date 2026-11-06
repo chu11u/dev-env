@@ -21,6 +21,7 @@ interface ApiPost {
   excerpt: string;
   content: string;
   featuredImage: string | null;
+  showOnHomepage?: boolean;
   status: "DRAFT" | "PUBLISHED";
   publishedAt: string | null;
   createdAt: string;
@@ -56,6 +57,52 @@ function adaptApiPost(post: ApiPost): BlogPost {
     content: post.content,
     readTime: estimateReadTime(post.content),
   };
+}
+
+/** Featured homepage strip (matches GET /api/blog/posts/featured). */
+export interface HomepageFeaturedPost {
+  slug: string;
+  title: string;
+  excerpt: string;
+  date: string;
+  readTime: number;
+  featuredImage: string;
+}
+
+function adaptFeaturedHomepagePost(post: ApiPost): HomepageFeaturedPost {
+  const dateSource = post.publishedAt || post.createdAt;
+  return {
+    slug: post.slug,
+    title: post.title,
+    excerpt: post.excerpt,
+    date: dateSource.split("T")[0],
+    readTime: estimateReadTime(post.content || ""),
+    featuredImage:
+      post.featuredImage || "/assets/blog/featured-skincare.png",
+  };
+}
+
+/**
+ * Server-only: latest PUBLISHED posts with showOnHomepage (or API fallback).
+ * Cached with ISR via next.revalidate — same cadence as /blog.
+ */
+export async function getFeaturedHomepagePosts(): Promise<
+  HomepageFeaturedPost[]
+> {
+  try {
+    const res = await fetch(`${apiBase()}/api/blog/posts/featured`, {
+      next: { revalidate: 60 },
+    });
+    if (!res.ok) return [];
+    const posts = (await res.json()) as ApiPost[];
+    return posts
+      .filter((p) => p.status === "PUBLISHED")
+      .slice(0, 3)
+      .map(adaptFeaturedHomepagePost);
+  } catch (err) {
+    console.error("getFeaturedHomepagePosts failed:", err);
+    return [];
+  }
 }
 
 /** Fetch published posts from the CMS API (source of truth at runtime). */
