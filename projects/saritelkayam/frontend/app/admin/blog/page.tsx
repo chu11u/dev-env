@@ -11,6 +11,7 @@ interface Post {
   title: string;
   slug: string;
   status: 'DRAFT' | 'PUBLISHED';
+  showOnHomepage?: boolean;
   publishedAt: string | null;
   updatedAt: string;
 }
@@ -75,6 +76,7 @@ export default function BlogListPage() {
                  <tr className="border-b border-cream-200 bg-cream-50">
                    <th className="text-left px-6 py-3 font-body text-xs font-semibold uppercase tracking-wider text-charcoal-500">Title</th>
                    <th className="text-left px-6 py-3 font-body text-xs font-semibold uppercase tracking-wider text-charcoal-500">Status</th>
+                   <th className="text-left px-6 py-3 font-body text-xs font-semibold uppercase tracking-wider text-charcoal-500">Homepage</th>
                    <th className="text-left px-6 py-3 font-body text-xs font-semibold uppercase tracking-wider text-charcoal-500">Published</th>
                    <th className="text-right px-6 py-3 font-body text-xs font-semibold uppercase tracking-wider text-charcoal-500">Actions</th>
                  </tr>
@@ -93,6 +95,13 @@ export default function BlogListPage() {
                      </td>
                      <td className="px-6 py-4">
                        <span className="font-body text-sm text-charcoal-600">{post.status === 'PUBLISHED' ? 'Published' : 'Draft'}</span>
+                     </td>
+                     <td className="px-6 py-4">
+                       {post.showOnHomepage ? (
+                         <Badge variant="accent">Homepage</Badge>
+                       ) : (
+                         <span className="font-body text-sm text-charcoal-400">—</span>
+                       )}
                      </td>
                      <td className="px-6 py-4">
                        <span className="font-body text-sm text-charcoal-500">

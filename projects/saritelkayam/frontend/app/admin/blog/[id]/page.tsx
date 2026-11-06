@@ -18,9 +18,11 @@ interface PostData {
   excerpt: string;
   content: string;
   featuredImage: string | null;
+  showOnHomepage: boolean;
   status: "DRAFT" | "PUBLISHED";
   publishedAt: string | null;
   authorNames?: string[];
+  authors?: Array<{ name: string }>;
 }
 
 export default function EditPostPage() {
@@ -34,6 +36,7 @@ export default function EditPostPage() {
   const [featuredImage, setFeaturedImage] = useState("");
   const [authorName, setAuthorName] = useState("");
   const [isPublished, setIsPublished] = useState(false);
+  const [showOnHomepage, setShowOnHomepage] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -53,6 +56,7 @@ export default function EditPostPage() {
         setFeaturedImage(data.featuredImage || "");
         setAuthorName(data.authors?.[0]?.name || "");
         setIsPublished(data.status === "PUBLISHED");
+        setShowOnHomepage(Boolean(data.showOnHomepage));
         setIsLoading(false);
       })
       .catch(() => {
@@ -82,6 +86,7 @@ export default function EditPostPage() {
         excerpt,
         content,
         featuredImage: featuredImage || undefined,
+        showOnHomepage: isPublished ? showOnHomepage : false,
         status: isPublished ? "PUBLISHED" : "DRAFT",
         publishedAt: isPublished
           ? post?.publishedAt || new Date().toISOString()
@@ -194,15 +199,43 @@ export default function EditPostPage() {
               <input
                 type="checkbox"
                 checked={isPublished}
-                onChange={(e) => setIsPublished(e.target.checked)}
+                onChange={(e) => {
+                  const next = e.target.checked;
+                  setIsPublished(next);
+                  if (next && !showOnHomepage) setShowOnHomepage(true);
+                  if (!next) setShowOnHomepage(false);
+                }}
                 className="sr-only peer"
               />
               <div className="w-11 h-6 bg-charcoal-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-rose-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-rose-400 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
-              <span className="ml-3 font-body text-sm text-charcoal-600">
+              <span className="ms-3 font-body text-sm text-charcoal-600">
                 {isPublished ? "Published" : "Draft"}
               </span>
             </label>
           </div>
+
+          {/* Homepage Toggle */}
+          <div className="flex items-center gap-3">
+            <label
+              className={`relative inline-flex items-center ${isPublished ? "cursor-pointer" : "opacity-50 cursor-not-allowed"}`}
+            >
+              <input
+                type="checkbox"
+                checked={showOnHomepage}
+                disabled={!isPublished}
+                onChange={(e) => setShowOnHomepage(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-charcoal-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-rose-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-rose-400 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+              <span className="ms-3 font-body text-sm text-charcoal-600">
+                Show on homepage
+              </span>
+            </label>
+          </div>
+          <p className="font-body text-xs text-charcoal-400 -mt-2">
+            Homepage shows up to 3 posts. Publishing a new post auto-keeps the
+            latest 3.
+          </p>
 
           {/* Actions */}
           <div className="flex gap-3 pt-4 border-t border-cream-200">

@@ -8,6 +8,7 @@ export interface Post {
   excerpt: string;
   content: string;
   featuredImage: string | null;
+  showOnHomepage: boolean;
   status: "DRAFT" | "PUBLISHED";
   publishedAt: string | null;
   createdAt: string;
@@ -27,6 +28,7 @@ export interface CreatePostData {
   excerpt: string;
   content: string;
   featuredImage?: string;
+  showOnHomepage?: boolean;
   status: "DRAFT" | "PUBLISHED";
   publishedAt?: string;
   authorNames?: string[];
@@ -40,6 +42,13 @@ export interface UpdatePostData extends Partial<CreatePostData> {}
 export async function getPublishedPosts(): Promise<Post[]> {
   const res = await fetch("/api/blog/posts");
   if (!res.ok) throw new Error("Failed to fetch posts");
+  return res.json();
+}
+
+/** Get posts flagged for the homepage (latest 3) */
+export async function getHomepagePosts(): Promise<Post[]> {
+  const res = await fetch("/api/blog/posts/featured");
+  if (!res.ok) throw new Error("Failed to fetch homepage posts");
   return res.json();
 }
 
@@ -272,4 +281,20 @@ export async function deletePost(id: string): Promise<void> {
     const error = await res.json();
     throw new Error(error.error || "Failed to delete post");
   }
+}
+
+/** Recompute homepage posts to the latest 3 published (Genie / admin) */
+export async function syncHomepagePosts(): Promise<{
+  synced: boolean;
+  limit: number;
+  posts: Post[];
+}> {
+  const res = await fetch("/api/admin/blog/posts/sync-homepage", {
+    method: "POST",
+  });
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({}));
+    throw new Error(error.error || "Failed to sync homepage posts");
+  }
+  return res.json();
 }

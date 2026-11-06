@@ -28,6 +28,7 @@ export default function NewPostPage() {
   const [featuredImage, setFeaturedImage] = useState("");
   const [authorName, setAuthorName] = useState("Sarit Elkayam");
   const [isPublished, setIsPublished] = useState(false);
+  const [showOnHomepage, setShowOnHomepage] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -55,6 +56,7 @@ export default function NewPostPage() {
         excerpt,
         content,
         featuredImage: featuredImage || undefined,
+        showOnHomepage: isPublished ? showOnHomepage : false,
         status: isPublished ? "PUBLISHED" : "DRAFT",
         publishedAt: isPublished ? new Date().toISOString() : undefined,
         authorNames: authorName ? [authorName] : [],
@@ -157,15 +159,42 @@ export default function NewPostPage() {
               <input
                 type="checkbox"
                 checked={isPublished}
-                onChange={(e) => setIsPublished(e.target.checked)}
+                onChange={(e) => {
+                  const next = e.target.checked;
+                  setIsPublished(next);
+                  if (!next) setShowOnHomepage(false);
+                  else setShowOnHomepage(true);
+                }}
                 className="sr-only peer"
               />
               <div className="w-11 h-6 bg-charcoal-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-rose-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-rose-400 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
-              <span className="ml-3 font-body text-sm text-charcoal-600">
+              <span className="ms-3 font-body text-sm text-charcoal-600">
                 {isPublished ? "Published" : "Draft"}
               </span>
             </label>
           </div>
+
+          {/* Homepage Toggle */}
+          <div className="flex items-center gap-3">
+            <label
+              className={`relative inline-flex items-center ${isPublished ? "cursor-pointer" : "opacity-50 cursor-not-allowed"}`}
+            >
+              <input
+                type="checkbox"
+                checked={showOnHomepage && isPublished}
+                disabled={!isPublished}
+                onChange={(e) => setShowOnHomepage(e.target.checked)}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-charcoal-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-rose-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-rose-400 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+              <span className="ms-3 font-body text-sm text-charcoal-600">
+                Show on homepage
+              </span>
+            </label>
+          </div>
+          <p className="font-body text-xs text-charcoal-400 -mt-2">
+            Homepage shows up to 3 posts. Publishing auto-keeps the latest 3.
+          </p>
 
           {/* Actions */}
           <div className="flex gap-3 pt-4 border-t border-cream-200">
