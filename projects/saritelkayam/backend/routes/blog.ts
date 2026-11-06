@@ -19,7 +19,7 @@ async function syncHomepageToLatest(limit = HOMEPAGE_POST_LIMIT) {
     take: limit,
     select: { id: true },
   });
-  const latestIds = latest.map((p) => p.id);
+  const latestIds = latest.map((p: { id: string }) => p.id);
 
   await db.post.updateMany({
     where: { showOnHomepage: true, id: { notIn: latestIds } },
