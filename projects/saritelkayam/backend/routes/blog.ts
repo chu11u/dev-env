@@ -244,31 +244,66 @@ router.post("/admin/blog/posts", async (req: Request, res: Response) => {
   }
 });
 
-// PUT /api/admin/blog/posts/:id — Update post
+// PUT /api/admin/blog/posts/:id — Partial update (omit = leave unchanged)
 router.put("/admin/blog/posts/:id", async (req: Request, res: Response) => {
   try {
     const postId = String(req.params.id);
-    const {
-      title,
-      slug,
-      excerpt,
-      content,
-      featuredImage,
-      showOnHomepage,
-      status,
-      publishedAt,
-      authorNames,
-    } = req.body;
+    const body = req.body || {};
 
     const existing = await db.post.findUnique({ where: { id: postId } });
     if (!existing) {
       return res.status(404).json({ error: "Post not found" });
     }
 
-    // Find or create authors
-    const authors: any[] = [];
-    if (authorNames && authorNames.length > 0) {
-      for (const name of authorNames) {
+    const data: Record<string, unknown> = {};
+
+    for (const key of [
+      "title",
+      "slug",
+      "excerpt",
+      "content",
+      "featuredImage",
+    ] as const) {
+      if (body[key] !== undefined) {
+        data[key] = body[key];
+      }
+    }
+
+    let nextStatus = existing.status;
+    if (body.status !== undefined) {
+      data.status = body.status;
+      nextStatus = body.status;
+    }
+
+    const wasPublished = existing.status === "PUBLISHED";
+    const willBePublished = nextStatus === "PUBLISHED";
+    const justPublished = willBePublished && !wasPublished;
+    const explicitlyDrafted =
+      body.status !== undefined && nextStatus !== "PUBLISHED";
+
+    // publishedAt: only when explicitly sent, on first publish, or when drafting
+    if (body.publishedAt !== undefined) {
+      data.publishedAt = body.publishedAt
+        ? new Date(body.publishedAt)
+        : null;
+    } else if (justPublished) {
+      data.publishedAt = existing.publishedAt || new Date();
+    } else if (explicitlyDrafted) {
+      data.publishedAt = null;
+    }
+
+    // showOnHomepage: only when explicitly sent, or clear when drafting
+    if (body.showOnHomepage !== undefined) {
+      data.showOnHomepage = willBePublished
+        ? Boolean(body.showOnHomepage)
+        : false;
+    } else if (explicitlyDrafted) {
+      data.showOnHomepage = false;
+    }
+
+    if (body.authorNames !== undefined) {
+      const authors: any[] = [];
+      for (const name of body.authorNames as string[]) {
         let author = await db.author.findFirst({ where: { name } });
         if (!author) {
           author = await db.author.create({
@@ -280,35 +315,8 @@ router.put("/admin/blog/posts/:id", async (req: Request, res: Response) => {
         }
         authors.push(author);
       }
+      data.authors = { set: authors.map((a) => ({ id: a.id })) };
     }
-
-    const isPublished = status === "PUBLISHED";
-    const authorIds = authors.map((a) => a.id);
-
-    const data: Record<string, unknown> = {
-      title,
-      slug,
-      excerpt,
-      content,
-      featuredImage,
-      status,
-      publishedAt: isPublished
-        ? publishedAt || existing.publishedAt || new Date()
-        : null,
-    };
-
-    if (showOnHomepage !== undefined) {
-      data.showOnHomepage = isPublished ? Boolean(showOnHomepage) : false;
-    } else if (!isPublished) {
-      data.showOnHomepage = false;
-    }
-
-    if (authorIds.length > 0 || authorNames) {
-      data.authors = { set: authorIds.map((id) => ({ id })) };
-    }
-
-    const wasPublished = existing.status === "PUBLISHED";
-    const justPublished = isPublished && !wasPublished;
 
     await db.post.update({
       where: { id: postId },
@@ -318,8 +326,10 @@ router.put("/admin/blog/posts/:id", async (req: Request, res: Response) => {
     // Newly published → recompute latest 3 (Genie-friendly default)
     if (justPublished) {
       await syncHomepageToLatest();
-    } else if (isPublished && showOnHomepage === true) {
-      // Manual "show on homepage" check — cap at 3 without forcing latest-by-date
+    } else if (
+      willBePublished &&
+      body.showOnHomepage === true
+    ) {
       await capHomepageSlots(postId);
     }
 

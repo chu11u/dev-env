@@ -80,7 +80,9 @@ export default function EditPostPage() {
 
     setIsSubmitting(true);
     try {
-      await updatePost(postId!, {
+      // Always send explicit status/homepage; preserve existing publishedAt
+      // (never invent a new date on content edits of an already-published post).
+      const payload: Parameters<typeof updatePost>[1] = {
         title,
         slug,
         excerpt,
@@ -88,11 +90,14 @@ export default function EditPostPage() {
         featuredImage: featuredImage || undefined,
         showOnHomepage: isPublished ? showOnHomepage : false,
         status: isPublished ? "PUBLISHED" : "DRAFT",
-        publishedAt: isPublished
-          ? post?.publishedAt || new Date().toISOString()
-          : undefined,
         authorNames: authorName ? [authorName] : [],
-      });
+      };
+      if (isPublished && post?.publishedAt) {
+        payload.publishedAt = post.publishedAt;
+      } else if (isPublished && !post?.publishedAt) {
+        payload.publishedAt = new Date().toISOString();
+      }
+      await updatePost(postId!, payload);
       router.push("/admin/blog");
     } catch (err) {
       setError("Failed to update post. Please try again.");
