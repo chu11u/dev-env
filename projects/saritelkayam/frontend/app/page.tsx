@@ -1,5 +1,3 @@
-"use client";
-
 import HeroSection from "@/components/sections/HeroSection";
 import ServicesPreview from "@/components/sections/ServicesPreview";
 import ProductsPreview from "@/components/sections/ProductsPreview";
@@ -7,8 +5,13 @@ import TestimonialsSection from "@/components/sections/TestimonialsSection";
 import BlogPreview from "@/components/sections/BlogPreview";
 import CTASection from "@/components/sections/CTASection";
 import { FadeInSection } from "@/components/common/FadeInSection";
+import { getHomepageBlogPosts } from "@/lib/blog";
 
-export default function HomePage() {
+export const revalidate = 60;
+
+export default async function HomePage() {
+  const homepagePosts = await getHomepageBlogPosts();
+
   return (
     <>
       <HeroSection />
@@ -22,7 +25,7 @@ export default function HomePage() {
         <TestimonialsSection />
       </FadeInSection>
       <FadeInSection delay={0}>
-        <BlogPreview />
+        <BlogPreview initialPosts={homepagePosts} />
       </FadeInSection>
       <FadeInSection delay={0}>
         <CTASection />

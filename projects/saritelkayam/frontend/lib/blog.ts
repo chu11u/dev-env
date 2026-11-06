@@ -58,6 +58,27 @@ function adaptApiPost(post: ApiPost): BlogPost {
   };
 }
 
+/** Homepage featured posts (showOnHomepage / latest 3). */
+export async function getHomepageBlogPosts(): Promise<BlogPost[]> {
+  try {
+    const res = await fetch(`${apiBase()}/api/blog/posts/featured`, {
+      next: { revalidate: 60 },
+    });
+    if (res.ok) {
+      const posts = (await res.json()) as ApiPost[];
+      return posts
+        .filter((p) => p.status !== "DRAFT")
+        .slice(0, 3)
+        .map(adaptApiPost);
+    }
+  } catch (err) {
+    console.error("getHomepageBlogPosts API failed:", err);
+  }
+  // Fallback: newest published posts
+  const all = await getAllBlogPosts();
+  return all.slice(0, 3);
+}
+
 /** Fetch published posts from the CMS API (source of truth at runtime). */
 export async function getAllBlogPosts(): Promise<BlogPost[]> {
   try {
