@@ -58,7 +58,21 @@ export function BlogListContent({ posts }: BlogListContentProps) {
                     href={`/blog/${post.slug}`}
                     className="block h-full hover:-translate-y-1 transition-transform duration-200 ease-[0.4,0,0.2,1]"
                   >
-                    <Card className="p-6 flex flex-col h-full">
+                    <Card className="p-0 overflow-hidden flex flex-col h-full">
+                      {post.coverImage ? (
+                        <div className="aspect-[16/10] w-full bg-cream-200 overflow-hidden">
+                          {/* Plain img — /uploads is proxied to backend; avoid next/image optimizer 404s */}
+                          <img
+                            src={post.coverImage}
+                            alt={post.title}
+                            className="h-full w-full object-cover"
+                            loading="lazy"
+                            decoding="async"
+                          />
+                        </div>
+                      ) : null}
+
+                      <div className="p-6 flex flex-col flex-1">
                       {/* Category */}
                       {post.category && (
                         <Badge variant="default">{post.category}</Badge>
@@ -87,6 +101,7 @@ export function BlogListContent({ posts }: BlogListContentProps) {
                         <span className="flex items-center gap-1">
                           <Clock size={12} /> {post.readTime} {t.blogReadTime}
                         </span>
+                      </div>
                       </div>
                     </Card>
                   </a>

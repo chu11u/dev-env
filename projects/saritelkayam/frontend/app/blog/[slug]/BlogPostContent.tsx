@@ -287,6 +287,27 @@ export default function BlogPostContent({ post }: { post: BlogPost }) {
         </section>
       </FadeInSection>
 
+      {post.coverImage ? (
+        <FadeInSection>
+          <section className="bg-cream-50 pb-2 md:pb-4">
+            <Container>
+              <div className="max-w-3xl mx-auto">
+                <figure className="overflow-hidden rounded-2xl bg-cream-200">
+                  {/* Plain img — /uploads is proxied to backend; avoid next/image optimizer 404s */}
+                  <img
+                    src={post.coverImage}
+                    alt={post.title}
+                    className="w-full h-auto max-h-[28rem] object-cover"
+                    loading="eager"
+                    decoding="async"
+                  />
+                </figure>
+              </div>
+            </Container>
+          </section>
+        </FadeInSection>
+      ) : null}
+
       {/* Post content */}
       <FadeInSection>
         <article className="py-8 md:py-16 lg:py-20">
