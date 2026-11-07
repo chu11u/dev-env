@@ -308,7 +308,7 @@ for dir in "$PROJECTS_DIR"/*/; do
      [ "$SERVICE_COUNT" -gt 1 ] && log "      │  Multi-service ($SERVICE_COUNT services)"
 
     log "      │  Building & starting..."
-    BUILD_OUTPUT=$(docker compose up -d --build 2>&1)
+    BUILD_OUTPUT=$(docker compose -p "$PROJECT_NAME" up -d --build 2>&1)
     if [ $? -eq 0 ]; then
         log "      └─ ${GREEN}✅ $PROJECT_NAME is LIVE!${NC}"
         SUMMARY_OK+=("Deployed $PROJECT_NAME")

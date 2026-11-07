@@ -44,7 +44,7 @@ fi
 
 # Rebuild
 echo "Building containers..."
-docker compose up -d --build
+docker compose -p "$PROJECT_NAME" up -d --build
 
 echo ""
 echo "Deployed: https://$PROJECT_NAME.apps.elkayam.me"
