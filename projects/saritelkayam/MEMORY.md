@@ -177,10 +177,12 @@ saritelkayam-postgres   Up   port 5432         (PostgreSQL 16)
 
 ### Deploy Workflow
 1. `cd /Users/elnaor/Environments/Zed/dev-env && git add -A && git commit -m "saritelkayam: [what]" && git push origin main`
-2. SSH: `cd /home/elkayam/dev-env && git fetch origin && git reset --hard origin/main && cd projects/saritelkayam && docker compose build && docker compose up -d`
-3. Frontend-only: `docker compose build frontend && docker compose up -d frontend`
+2. SSH: `cd /home/elkayam/dev-env && git fetch origin && git reset --hard origin/main && cd projects/saritelkayam && docker compose -p saritelkayam build && docker compose -p saritelkayam up -d`
+3. Frontend-only: `docker compose -p saritelkayam build frontend && docker compose -p saritelkayam up -d frontend`
+4. **Outage / CF 1033** (tunnel up, origin `:3006` down): `cd projects/saritelkayam && ./recover.sh` or `./deploy-all.sh` from repo root on Games
 
 ### Critical Deployment Notes
+- Compose project name is fixed in `docker-compose.yml` as `name: saritelkayam` — always use `docker compose -p saritelkayam` (or run from this directory) to avoid duplicate `saritelkayam-frontend` container conflicts
 - No local `node/npm/npx` — build only via Docker on server
 - `frontend/Dockerfile` uses `npm install --legacy-peer-deps` (react-quill React 19 compat)
 - `backend/Dockerfile` runs `prisma migrate deploy` on startup (auto-applies pending migrations)

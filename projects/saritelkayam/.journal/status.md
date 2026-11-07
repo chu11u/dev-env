@@ -1,6 +1,15 @@
 # Sarit Elkayam - Agent Work Journal
 # Auto-maintained by Agent. Read this on crash recovery.
-# Last updated: 2026-05-27
+# Last updated: 2026-11-07
+
+## Incident: CF 530 / error 1033 (2026-11-07 ~15:52 IL)
+
+- **Symptom**: `https://saritelkayam.com` and `/api/blog/posts/featured` return Cloudflare **530** / **1033** (origin not reachable via tunnel). `*.elkayam.fun` (e.g. WAHA) recovered after homelab network returned; apex site did not.
+- **Likely cause**: Cloudflare ingress still points at `http://127.0.0.1:3006` but **no listener** after power/network event — `saritelkayam-frontend` stack not running, or stale duplicate compose project left containers stopped.
+- **Fix (on Games)**: `cd projects/saritelkayam && ./recover.sh` (or merge worker PR and let post-merge rebuild run). Verify: `curl -sI http://127.0.0.1:3006/`.
+- **Prevention**: `name: saritelkayam` in compose; `deploy-all.sh` uses `-p` on `up`; healthcheck on frontend.
+
+---
 
 ## Phase 8K: Embed EasyBizy Scheduler + Logo + Price Toggles (2026-05-26/27)
 
