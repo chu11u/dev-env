@@ -387,17 +387,11 @@ export default function BlogPostContent({ post }: { post: BlogPost }) {
         </article>
       </FadeInSection>
 
-      {/* Booking CTA */}
+      {/* Booking CTA — lead-in text is written by the post author */}
       <FadeInSection>
         <section className="bg-cream-50 pb-8 md:pb-12">
           <Container>
-            <div className="max-w-3xl mx-auto rounded-2xl bg-rose-50 border border-rose-100 px-6 py-8 md:px-10 text-center">
-              <h2 className="font-heading text-2xl md:text-3xl font-bold text-charcoal-800 mb-3">
-                {t.blogCtaTitle}
-              </h2>
-              <p className="font-body text-charcoal-600 mb-6">
-                {t.blogCtaText}
-              </p>
+            <div className="max-w-3xl mx-auto text-center">
               <Button
                 variant="primary"
                 size="lg"
