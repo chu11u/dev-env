@@ -75,6 +75,7 @@ export default function BookPage() {
                   href={EASYBIZY_URL}
                   target="_blank"
                   rel="noopener noreferrer"
+                  data-umami-event="booking-open-external"
                   className="inline-flex items-center gap-2 font-body text-sm text-rose-400 hover:text-rose-600 transition-colors"
                 >
                   <ExternalLink size={16} />

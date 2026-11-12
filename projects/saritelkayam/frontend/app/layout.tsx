@@ -3,6 +3,7 @@ import { Frank_Ruhl_Libre, Heebo } from "next/font/google";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import LocaleWrapper from "@/components/layout/LocaleProvider";
+import Analytics from "@/components/common/Analytics";
 import "@/styles/globals.css";
 
 const frankRuhlLibre = Frank_Ruhl_Libre({
@@ -53,6 +54,7 @@ export default function RootLayout({
           </main>
           <Footer />
         </LocaleWrapper>
+        <Analytics />
       </body>
     </html>
   );

@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { Container } from "@/components/ui/Container";
+import { trackEvent } from "@/components/common/Analytics";
 import { SectionDivider } from "@/components/common/SectionDivider";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
@@ -19,9 +21,68 @@ interface BlogPost {
   coverImage?: string;
 }
 
+const SCROLL_MILESTONES = [25, 50, 75, 100];
+
+/** Sends blog-scroll (25/50/75/100% of the article) and blog-read-time events. */
+function useReadingAnalytics(slug: string) {
+  const articleRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const reached = new Set<number>();
+    const onScroll = () => {
+      const el = articleRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const total = rect.height - window.innerHeight;
+      const pct =
+        total <= 0 ? 100 : Math.min(100, (-rect.top / total) * 100);
+      for (const m of SCROLL_MILESTONES) {
+        if (pct >= m && !reached.has(m)) {
+          reached.add(m);
+          trackEvent("blog-scroll", { post: slug, depth: m });
+        }
+      }
+    };
+
+    let visibleMs = 0;
+    let visibleSince = document.visibilityState === "visible" ? Date.now() : 0;
+    let sent = false;
+    const flush = () => {
+      if (visibleSince) visibleMs += Date.now() - visibleSince;
+      visibleSince = 0;
+      const seconds = Math.round(visibleMs / 1000);
+      if (!sent && seconds >= 3) {
+        sent = true;
+        trackEvent("blog-read-time", { post: slug, seconds });
+      }
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") flush();
+      else if (!sent) visibleSince = Date.now();
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("pagehide", flush);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pagehide", flush);
+      flush();
+    };
+  }, [slug]);
+
+  return articleRef;
+}
+
+function isBookingLink(href: string) {
+  return /(^|\/\/[^/]*saritelkayam\.com)\/book\b|easybizy/i.test(href);
+}
+
 export default function BlogPostContent({ post }: { post: BlogPost }) {
   const { t, locale, isRtl } = useTranslation();
   const dateLocale = locale === "he" ? "he-IL" : "en-US";
+  const articleRef = useReadingAnalytics(post.slug);
 
   // Simple markdown rendering: convert headers, paragraphs, lists, links
   const renderMarkdown = (md: string) => {
@@ -232,6 +293,13 @@ export default function BlogPostContent({ post }: { post: BlogPost }) {
             className="text-rose-400 hover:underline"
             target="_blank"
             rel="noopener noreferrer"
+            {...(isBookingLink(linkMatch[2])
+              ? {
+                  "data-umami-event": "book-click",
+                  "data-umami-event-post": post.slug,
+                  "data-umami-event-placement": "inline-link",
+                }
+              : {})}
           >
             {linkMatch[1]}
           </a>,
@@ -310,13 +378,39 @@ export default function BlogPostContent({ post }: { post: BlogPost }) {
 
       {/* Post content */}
       <FadeInSection>
-        <article className="py-8 md:py-16 lg:py-20">
+        <article ref={articleRef} className="py-8 md:py-16 lg:py-20">
           <Container>
             <div className="max-w-3xl mx-auto prose-lg">
               {renderMarkdown(post.content)}
             </div>
           </Container>
         </article>
+      </FadeInSection>
+
+      {/* Booking CTA */}
+      <FadeInSection>
+        <section className="bg-cream-50 pb-8 md:pb-12">
+          <Container>
+            <div className="max-w-3xl mx-auto rounded-2xl bg-rose-50 border border-rose-100 px-6 py-8 md:px-10 text-center">
+              <h2 className="font-heading text-2xl md:text-3xl font-bold text-charcoal-800 mb-3">
+                {t.blogCtaTitle}
+              </h2>
+              <p className="font-body text-charcoal-600 mb-6">
+                {t.blogCtaText}
+              </p>
+              <Button
+                variant="primary"
+                size="lg"
+                href={`/book?from=${encodeURIComponent(post.slug)}`}
+                data-umami-event="book-click"
+                data-umami-event-post={post.slug}
+                data-umami-event-placement="post-cta"
+              >
+                {t.blogCtaButton}
+              </Button>
+            </div>
+          </Container>
+        </section>
       </FadeInSection>
 
       {/* Back to blog */}
