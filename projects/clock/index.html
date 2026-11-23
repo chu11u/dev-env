@@ -16,6 +16,19 @@
                overflow: hidden;
              }
              .container { text-align: center; position: relative; z-index: 1; }
+             .header {
+               font-size: 2.5rem;
+               font-weight: bold;
+               color: #e0e7ff;
+               text-shadow: 0 0 10px rgba(99, 102, 241, 0.8), 0 0 20px rgba(99, 102, 241, 0.6), 0 0 30px rgba(99, 102, 241, 0.4);
+               margin-bottom: 0.5rem;
+               letter-spacing: 0.15rem;
+               animation: glow 3s ease-in-out infinite;
+             }
+             @keyframes glow {
+               0%, 100% { opacity: 1; text-shadow: 0 0 10px rgba(99, 102, 241, 0.8), 0 0 20px rgba(99, 102, 241, 0.6), 0 0 30px rgba(99, 102, 241, 0.4); }
+               50% { opacity: 0.85; text-shadow: 0 0 15px rgba(99, 102, 241, 1), 0 0 30px rgba(99, 102, 241, 0.8), 0 0 45px rgba(99, 102, 241, 0.6); }
+             }
              .date { color: #60a5fa; font-size: 1.5rem; margin-bottom: 1rem; opacity: 0.8; }
              .clock { display: flex; align-items: center; gap: 0.5rem; }
              .time-segment {
@@ -73,6 +86,7 @@
 <body>
          <div class="particles" id="particles"></div>
          <div class="container">
+             <div class="header">Elkayam Clock</div>
              <div class="date" id="date"></div>
              <div class="clock">
                  <span class="time-segment" id="hours">00</span>
