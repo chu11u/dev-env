@@ -32,6 +32,21 @@
              }
              @keyframes blink { 50% { opacity: 0.3; } }
              .seconds { font-size: 3rem; color: #818cf8; margin-top: 1rem; }
+             .toggle-btn {
+               margin-top: 1rem;
+               padding: 0.5rem 1rem;
+               font-family: 'Courier New', monospace;
+               font-size: 1rem;
+               background: rgba(99, 102, 241, 0.2);
+               color: #e0e7ff;
+               border: 1px solid #6366f1;
+               border-radius: 4px;
+               cursor: pointer;
+               transition: all 0.2s;
+             }
+             .toggle-btn:hover {
+               background: rgba(99, 102, 241, 0.4);
+             }
              .particles {
                position: absolute;
                top: 0; left: 0;
@@ -65,18 +80,41 @@
                  <span class="time-segment" id="minutes">00</span>
              </div>
              <div class="seconds" id="seconds">00</div>
+             <button id="format-toggle" class="toggle-btn">24h</button>
          </div>
          <script>
+            let is24h = localStorage.getItem('clockFormat') !== '12h';
+            const toggleBtn = document.getElementById('format-toggle');
+            
             function updateClock() {
                 const now = new Date();
                 const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
                 const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
                 document.getElementById('date').textContent =
                     days[now.getDay()] + ', ' + months[now.getMonth()] + ' ' + now.getDate();
-                document.getElementById('hours').textContent = String(now.getHours()).padStart(2, '0');
+                
+                let hours;
+                if (is24h) {
+                    hours = now.getHours();
+                } else {
+                    hours = now.getHours() % 12 || 12;
+                }
+                
+                document.getElementById('hours').textContent = String(hours).padStart(2, '0');
                 document.getElementById('minutes').textContent = String(now.getMinutes()).padStart(2, '0');
                 document.getElementById('seconds').textContent = String(now.getSeconds()).padStart(2, '0');
-             }
+            }
+            
+            function toggleFormat() {
+                is24h = !is24h;
+                localStorage.setItem('clockFormat', is24h ? '24h' : '12h');
+                toggleBtn.textContent = is24h ? '24h' : '12h';
+                updateClock();
+            }
+            
+            toggleBtn.textContent = is24h ? '24h' : '12h';
+            toggleBtn.addEventListener('click', toggleFormat);
+            
             function createParticles() {
                 const container = document.getElementById('particles');
                 for (let i = 0; i < 50; i++) {
